@@ -1,0 +1,3 @@
+{
+  "*.{ts,tsx,js,css,md}": "eslint --fix --max-warnings=0 && prettier --write"
+}
