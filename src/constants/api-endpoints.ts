@@ -1,16 +1,15 @@
 export const API_ENDPOINTS = {
-  auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    me: '/auth/me',
-  },
-  contis: {
-    root: '/contis',
-    byId: (id: string) => `/contis/${id}`,
-  },
-  songs: {
-    root: '/songs',
-    byId: (id: string) => `/songs/${id}`,
-    search: '/songs/search',
-  },
-} as const
+  // Auth
+  GOOGLE_LOGIN: '/oauth2/authorization/google',
+  TOKEN_REFRESH: '/api/v1/auth/refresh',
+  LOGOUT: '/api/v1/auth/logout',
+  ME: '/api/v1/auth/me',
+
+  // Contis
+  CONTIS: '/api/v1/contis',
+  CONTI_DETAIL: (id: string) => `/api/v1/contis/${id}`,
+
+  // Songs
+  SONGS: '/api/v1/songs',
+  SONG_DETAIL: (id: string) => `/api/v1/songs/${id}`,
+};

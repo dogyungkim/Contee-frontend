@@ -367,3 +367,25 @@ module.exports = {
 - **CSRF Protection**: SameSite 쿠키 설정
 - **Content Security Policy**: CSP 헤더 설정
 - **Environment Variables**: 민감한 정보 환경변수로 관리
+
+### 10.2 Authentication Flow
+```typescript
+// JWT 토큰 관리
+export const useAuth = () => {
+  const [token, setToken] = useState<string | null>(null);
+  
+  const login = async (credentials: LoginCredentials) => {
+    const response = await apiClient.post('/auth/login', credentials);
+    const { token } = response.data;
+    setToken(token);
+    localStorage.setItem('auth_token', token);
+  };
+  
+  const logout = () => {
+    setToken(null);
+    localStorage.removeItem('auth_token');
+  };
+  
+  return { token, login, logout };
+};
+```

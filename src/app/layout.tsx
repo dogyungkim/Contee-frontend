@@ -1,17 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Inter } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
 import './globals.css'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import Header from '@/components/layout/header'
+import Footer from '@/components/layout/footer'
+import { AuthProvider } from '@/components/auth/auth-provider'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
   subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: '--font-inter',
 })
 
 export const metadata: Metadata = {
@@ -29,7 +26,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#3b82f6',
+  themeColor: '#059669',
 }
 
 export default function RootLayout({
@@ -40,13 +37,25 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} antialiased`}
       >
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <div className="flex-1">{children}</div>
-          <Footer />
-        </div>
+        <AuthProvider>
+          <div className="relative flex min-h-dvh flex-col bg-background">
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
