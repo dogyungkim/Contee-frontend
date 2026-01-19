@@ -7,6 +7,10 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // 쿠키 포함
+  adapter:
+    process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+      ? require('./mock/adapter').mockAdapter
+      : undefined,
 });
 
 // Request interceptor - 토큰 자동 추가
@@ -39,7 +43,13 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as any;
+    const originalRequest =
+      (error.config as (typeof error.config & { _retry?: boolean }) | undefined) ??
+      undefined;
+
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -47,7 +57,7 @@ apiClient.interceptors.response.use(
       try {
         // 스토어의 refreshToken 메서드 사용
         const refreshSuccess = await useAuthStore.getState().refreshToken();
-        
+
         if (refreshSuccess) {
           // 새 토큰으로 원래 요청 재시도
           const newToken = useAuthStore.getState().accessToken;

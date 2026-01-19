@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Menu, Music, User, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useRouter } from 'next/navigation';
@@ -11,6 +13,20 @@ import { useRouter } from 'next/navigation';
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const router = useRouter();
+  const teams = [
+    { id: 'team-main', name: '메인 팀' },
+    { id: 'team-youth', name: '청년부' },
+    { id: 'team-midweek', name: '수요예배' },
+  ];
+  const [selectedTeam, setSelectedTeam] = useState<string>(teams[0].id);
+
+  const handleTeamChange = (value: string) => {
+    if (value === '__add__') {
+      router.push('/dashboard/settings/teams');
+      return;
+    }
+    setSelectedTeam(value);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -20,11 +36,27 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+        <div className="mr-4 hidden md:flex items-center gap-4">
+          <Link href="/" className="mr-2 flex items-center space-x-2">
             <Music className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block">Contee</span>
           </Link>
+          {isAuthenticated && (
+            <Select value={selectedTeam} onValueChange={handleTeamChange}>
+              <SelectTrigger className="w-[160px]" aria-label="팀 선택">
+                <SelectValue placeholder="팀 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+                <DropdownMenuSeparator />
+                <SelectItem value="__add__">+ 팀 추가하기</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           {isAuthenticated && (
             <nav className="flex items-center space-x-6 text-sm font-medium">
               <Link href="/dashboard">대시보드</Link>
@@ -60,6 +92,22 @@ const Header = () => {
                       <Link href="/dashboard">대시보드</Link>
                       <Link href="/dashboard/contis">콘티</Link>
                       <Link href="/dashboard/songs">곡</Link>
+                  <div className="pt-2">
+                    <Select value={selectedTeam} onValueChange={handleTeamChange}>
+                      <SelectTrigger aria-label="팀 선택">
+                        <SelectValue placeholder="팀 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <SelectItem value="__add__">+ 팀 추가하기</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                       <Button variant="ghost" onClick={handleLogout} className="justify-start">
                         <LogOut className="h-4 w-4 mr-2" />
                         로그아웃

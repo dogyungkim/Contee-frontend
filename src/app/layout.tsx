@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
-import Header from '@/components/layout/header'
-import Footer from '@/components/layout/footer'
+import { ConditionalHeader } from '@/components/layout/conditional-header'
+import { ConditionalFooter } from '@/components/layout/conditional-footer'
 import { AuthProvider } from '@/components/auth/auth-provider'
 
 const inter = Inter({
@@ -41,9 +41,9 @@ export default function RootLayout({
       >
         <AuthProvider>
           <div className="relative flex min-h-dvh flex-col bg-background">
-            <Header />
+            <ConditionalHeader />
             <main className="flex-1">{children}</main>
-            <Footer />
+            <ConditionalFooter />
           </div>
         </AuthProvider>
         <Toaster
