@@ -96,7 +96,7 @@ export default function LoginPage() {
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Contee는 찬양팀 리더를 위한 콘티 관리 서비스입니다.
+            Contee는 찬양팀을 위한 콘티 관리 서비스입니다.
           </p>
           <p className="text-sm text-gray-500 mt-1">
             예배 준비 시간을 단축하고 팀원과 효율적으로 소통하세요.

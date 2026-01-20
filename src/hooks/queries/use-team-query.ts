@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole } from '@/lib/api/team';
+import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole, createTeam } from '@/lib/api/team';
 import { UpdateTeamMemberRoleRequest } from '@/types/team';
 
 export const teamKeys = {
@@ -60,6 +60,17 @@ export const useUpdateTeamMemberRoleMutation = () => {
         }) => updateTeamMemberRole(teamId, userId, role),
         onSuccess: (_, { teamId }) => {
             queryClient.invalidateQueries({ queryKey: teamKeys.members(teamId) });
+        },
+    });
+};
+
+export const useCreateTeamMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: createTeam,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
         },
     });
 };

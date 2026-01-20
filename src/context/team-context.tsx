@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useMyTeamsQuery } from '@/hooks/queries/use-team-query'
 import { Team } from '@/types/team'
 
@@ -17,13 +18,19 @@ const TeamContext = createContext<TeamContextType | undefined>(undefined)
 export function TeamProvider({ children }: { children: ReactNode }) {
   const { data: teams = [], isLoading } = useMyTeamsQuery()
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
+  const searchParams = useSearchParams()
 
-  // Initialize with first team when teams load
+  // Initialize with teamId from URL or first team when teams load
   useEffect(() => {
     if (teams.length > 0 && !selectedTeamId) {
-      setSelectedTeamId(teams[0].id)
+      const urlTeamId = searchParams.get('teamId')
+      if (urlTeamId && teams.some(t => t.id === urlTeamId)) {
+        setSelectedTeamId(urlTeamId)
+      } else {
+        setSelectedTeamId(teams[0].id)
+      }
     }
-  }, [teams, selectedTeamId])
+  }, [teams, selectedTeamId, searchParams])
 
   // Find the selected team object
   const selectedTeam = teams.find(team => team.id === selectedTeamId) || null

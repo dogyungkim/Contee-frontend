@@ -26,7 +26,7 @@ export function TeamEmptyState() {
           </div>
 
           <Button asChild size="lg" className="w-full">
-            <Link href="/teams/new">팀 만들기</Link>
+            <Link href="/dashboard/teams/create">팀 만들기</Link>
           </Button>
         </CardContent>
       </Card>
