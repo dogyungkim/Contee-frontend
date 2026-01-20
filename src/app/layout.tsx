@@ -29,6 +29,8 @@ export const viewport: Viewport = {
   themeColor: '#059669',
 }
 
+import QueryProvider from '@/components/providers/query-provider'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,13 +41,15 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased`}
       >
-        <AuthProvider>
-          <div className="relative flex min-h-dvh flex-col bg-background">
-            <ConditionalHeader />
-            <main className="flex-1">{children}</main>
-            <ConditionalFooter />
-          </div>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <div className="relative flex min-h-dvh flex-col bg-background">
+              <ConditionalHeader />
+              <main className="flex-1">{children}</main>
+              <ConditionalFooter />
+            </div>
+          </AuthProvider>
+        </QueryProvider>
         <Toaster
           position="top-right"
           toastOptions={{

@@ -28,7 +28,7 @@ export default function TeamCreatePage() {
           <p className="text-sm text-muted-foreground">새로운 팀을 생성해 관리하세요.</p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/dashboard/settings">설정으로 돌아가기</Link>
+          <Link href="/dashboard/teams">팀 관리로 돌아가기</Link>
         </Button>
       </div>
 
@@ -67,7 +67,7 @@ export default function TeamCreatePage() {
                 팀 추가하기
               </Button>
               <Button asChild variant="outline">
-                <Link href="/dashboard/settings">취소</Link>
+                <Link href="/dashboard/teams">취소</Link>
               </Button>
             </div>
           </form>
@@ -76,4 +76,3 @@ export default function TeamCreatePage() {
     </div>
   )
 }
-

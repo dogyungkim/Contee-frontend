@@ -4,17 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, login, initializeAuth } = useAuthStore();
-
-  useEffect(() => {
-    // 페이지 로드 시 인증 상태 확인
-    initializeAuth();
-  }, [initializeAuth]);
+  const { isAuthenticated, isLoading, login } = useAuth();
 
   useEffect(() => {
     // 이미 로그인된 사용자는 대시보드로 리다이렉트
@@ -24,7 +19,7 @@ export default function LoginPage() {
   }, [isAuthenticated, router]);
 
   const handleGoogleLogin = () => {
-    login('google');
+    login();
   };
 
   if (isLoading) {

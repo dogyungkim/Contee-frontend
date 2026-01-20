@@ -4,49 +4,50 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Clock, ListMusic, Search } from 'lucide-react'
 
-import {
-  mockActivities,
-  mockDashboardSummary,
-  mockRecentContis,
-  mockSongs,
-} from '@/lib/mock/mock-dashboard'
+import { useDashboard } from '@/hooks/use-dashboard'
+import { DashboardHeader } from './dashboard-header'
+import { TeamEmptyState } from './team-empty-state'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { TeamEmptyState } from './team-empty-state'
 
-export function DashboardClient() {
+/**
+ * Dashboard Content Component
+ * Handles both empty and active dashboard states
+ */
+export function DashboardContent() {
   const [query, setQuery] = useState('')
-  
-  // TODO: Replace with real team data fetching logic
-  const mockHasTeam = false
+  const { hasTeam, summary, recentContis, songs, activities } = useDashboard()
 
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return mockSongs.slice(0, 4)
-    return mockSongs
+    if (!q) return songs.slice(0, 4)
+    return songs
       .filter((s) => `${s.title} ${s.artist}`.toLowerCase().includes(q))
       .slice(0, 8)
-  }, [query])
+  }, [query, songs])
 
   // Show empty state if user has no teams
-  if (!mockHasTeam) {
+  if (!hasTeam) {
     return <TeamEmptyState />
   }
 
+  // Show full dashboard when user has a team
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
+    <>
+      <DashboardHeader />
+      <div className="grid gap-6 lg:grid-cols-12">
       <div className="grid gap-6 lg:col-span-8">
         <div className="grid gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">다가오는 예배</CardTitle>
-              <CardDescription>{mockDashboardSummary.nextServiceLabel}</CardDescription>
+              <CardDescription>{summary.nextServiceLabel}</CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>{mockDashboardSummary.nextServiceDateLabel}</span>
+                <span>{summary.nextServiceDateLabel}</span>
               </div>
               <Button asChild size="sm" variant="outline">
                 <Link href="/dashboard/contis">콘티 보기</Link>
@@ -63,13 +64,13 @@ export function DashboardClient() {
               <div className="rounded-md border p-3">
                 <div className="text-xs text-muted-foreground">이번 주 콘티</div>
                 <div className="mt-1 text-xl font-semibold">
-                  {mockDashboardSummary.thisWeekContiCount}
+                  {summary.thisWeekContiCount}
                 </div>
               </div>
               <div className="rounded-md border p-3">
                 <div className="text-xs text-muted-foreground">등록된 곡</div>
                 <div className="mt-1 text-xl font-semibold">
-                  {mockDashboardSummary.totalSongCount}
+                  {summary.totalSongCount}
                 </div>
               </div>
             </CardContent>
@@ -89,7 +90,7 @@ export function DashboardClient() {
             </div>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {mockRecentContis.map((conti) => (
+            {recentContis.map((conti) => (
               <div
                 key={conti.id}
                 className="flex items-center justify-between rounded-md border p-3"
@@ -181,7 +182,7 @@ export function DashboardClient() {
             <CardDescription>최근 상태를 확인하세요</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {mockActivities.map((a) => (
+            {activities.map((a) => (
               <div key={a.id} className="rounded-md border p-3">
                 <div className="text-xs text-muted-foreground">{a.timeLabel}</div>
                 <div className="mt-1 text-sm">{a.message}</div>
@@ -191,6 +192,7 @@ export function DashboardClient() {
         </Card>
       </div>
     </div>
+    </>
   )
 }
 

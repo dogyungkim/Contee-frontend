@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
-import { useAuthStore } from '@/stores/auth-store'
+import { useAuth } from '@/hooks/use-auth'
 
 function FullPageLoading({ label }: { label: string }) {
   return (
@@ -18,12 +18,7 @@ function FullPageLoading({ label }: { label: string }) {
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, isLoading, initializeAuth } = useAuthStore()
-
-  useEffect(() => {
-    // 새로고침/딥링크 진입 시 인증 초기화 보장
-    initializeAuth()
-  }, [initializeAuth])
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     if (isLoading) return

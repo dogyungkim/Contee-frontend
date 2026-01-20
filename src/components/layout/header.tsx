@@ -7,18 +7,22 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Menu, Music, User, LogOut } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuth } from '@/hooks/use-auth';
+import { useMyTeamsQuery } from '@/hooks/queries/use-team-query';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
-  const teams = [
-    { id: 'team-main', name: '메인 팀' },
-    { id: 'team-youth', name: '청년부' },
-    { id: 'team-midweek', name: '수요예배' },
-  ];
-  const [selectedTeam, setSelectedTeam] = useState<string>(teams[0].id);
+  const { data: teams = [] } = useMyTeamsQuery();
+  const [selectedTeam, setSelectedTeam] = useState<string>('');
+
+  useEffect(() => {
+    if (teams.length > 0 && !selectedTeam) {
+      setSelectedTeam(teams[0].id);
+    }
+  }, [teams, selectedTeam]);
 
   const handleTeamChange = (value: string) => {
     if (value === '__add__') {

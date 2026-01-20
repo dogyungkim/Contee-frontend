@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useAuthStore } from '@/stores/auth-store';
+import { useUserQuery } from '@/hooks/queries/use-auth-query';
+import { useInitialAuth } from '@/hooks/use-auth';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { initializeAuth } = useAuthStore();
-
-  useEffect(() => {
-    // 앱 시작 시 인증 상태 초기화
-    initializeAuth();
-  }, [initializeAuth]);
+  // Check for existing session on initial load
+  useInitialAuth();
+  
+  // Fetch user data when token is available
+  useUserQuery();
 
   return <>{children}</>;
 }

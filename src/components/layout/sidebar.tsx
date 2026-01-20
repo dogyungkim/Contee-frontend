@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -14,32 +13,27 @@ import {
   Settings, 
   ChevronDown,
   LogOut,
-  User
+  User,
+  Users
 } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuth } from '@/hooks/use-auth';
+import { useTeam } from '@/context/team-context';
 import { cn } from '@/lib/utils';
 
 const Sidebar = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   
-  // TODO: Replace with real team data fetching logic
-  const mockHasTeam = false;
-  
-  const teams = [
-    { id: 'team-main', name: '메인 팀' },
-    { id: 'team-youth', name: '청년부' },
-    { id: 'team-midweek', name: '수요예배' },
-  ];
-  const [selectedTeam, setSelectedTeam] = useState<string>(teams[0]?.id || '');
+  const { teams, selectedTeamId, setSelectedTeamId } = useTeam();
+  const hasTeams = teams.length > 0;
 
   const handleTeamChange = (value: string) => {
     if (value === '__add__') {
-      router.push('/dashboard/settings/teams');
+      router.push('/dashboard/teams/create');
       return;
     }
-    setSelectedTeam(value);
+    setSelectedTeamId(value);
   };
 
   const handleLogout = async () => {
@@ -67,6 +61,12 @@ const Sidebar = () => {
       requiresTeam: false,
     },
     {
+      title: '팀 관리',
+      href: '/dashboard/teams',
+      icon: Users,
+      requiresTeam: false,
+    },
+    {
       title: '설정',
       href: '/dashboard/settings',
       icon: Settings,
@@ -86,8 +86,8 @@ const Sidebar = () => {
 
       {/* Team Selector or Create Team Button */}
       <div className="p-4 pb-3">
-        {mockHasTeam ? (
-          <Select value={selectedTeam} onValueChange={handleTeamChange}>
+        {hasTeams ? (
+          <Select value={selectedTeamId || ''} onValueChange={handleTeamChange}>
             <SelectTrigger className="w-full" aria-label="팀 선택">
               <SelectValue placeholder="팀 선택" />
             </SelectTrigger>
@@ -104,7 +104,7 @@ const Sidebar = () => {
         ) : (
           <Button 
             className="w-full" 
-            onClick={() => router.push('/teams/new')}
+            onClick={() => router.push('/dashboard/teams/create')}
           >
             팀 만들기
           </Button>
@@ -137,13 +137,13 @@ const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-4">
         {navItems
-          .filter((item) => !item.requiresTeam || mockHasTeam)
+          .filter((item) => !item.requiresTeam || hasTeams)
           .map((item) => {
             // For /dashboard, only match exact path, not subpaths
             const isActive = item.href === '/dashboard' 
               ? pathname === '/dashboard'
               : pathname === item.href || pathname.startsWith(item.href + '/');
-            const isDisabled = item.requiresTeam && !mockHasTeam;
+            const isDisabled = item.requiresTeam && !hasTeams;
             
             return (
               <Link
