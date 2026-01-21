@@ -6,6 +6,7 @@ import {
     AddTeamMemberRequest,
     JoinTeamRequest,
     Team,
+    TeamSummary,
     TeamMember,
     UpdateTeamMemberRoleRequest,
 } from '@/types/team';
@@ -17,8 +18,8 @@ export const createTeam = async (data: CreateTeamRequest): Promise<Team> => {
 };
 
 // 2. 내 팀 목록 조회
-export const getMyTeams = async (): Promise<Team[]> => {
-    const response = await apiClient.get<ApiResponse<Team[]>>('/api/v1/teams');
+export const getMyTeams = async (): Promise<TeamSummary[]> => {
+    const response = await apiClient.get<ApiResponse<TeamSummary[]>>('/api/v1/teams');
     return response.data.data;
 };
 

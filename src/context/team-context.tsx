@@ -3,13 +3,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useMyTeamsQuery } from '@/domains/team/hooks/use-team-query'
-import { Team } from '@/types/team'
+import { TeamSummary } from '@/types/team'
 
 interface TeamContextType {
   selectedTeamId: string | null
   setSelectedTeamId: (id: string | null) => void
-  selectedTeam: Team | null
-  teams: Team[]
+  selectedTeam: TeamSummary | null
+  teams: TeamSummary[]
   isLoading: boolean
 }
 
