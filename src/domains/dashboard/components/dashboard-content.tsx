@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Clock, ListMusic, Search } from 'lucide-react'
 
-import { useDashboard } from '@/hooks/use-dashboard'
+import { useDashboard } from '@/domains/dashboard/hooks/use-dashboard'
 import { DashboardHeader } from './dashboard-header'
 import { TeamEmptyState } from './team-empty-state'
 import { DashboardSkeleton } from './dashboard-skeleton'

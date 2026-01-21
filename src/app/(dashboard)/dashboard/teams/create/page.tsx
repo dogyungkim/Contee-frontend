@@ -1,4 +1,4 @@
-import { CreateTeamForm } from '@/components/team/create-team-form';
+import { CreateTeamForm } from '@/domains/team/components/create-team-form';
 
 export const metadata = {
   title: '새 팀 생성 | Contee',

@@ -16,7 +16,7 @@ import {
   User,
   Users
 } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/domains/auth/hooks/use-auth';
 import { useTeam } from '@/context/team-context';
 import { cn } from '@/lib/utils';
 

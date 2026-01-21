@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
-import { useUserQuery, useLogoutMutation } from './queries/use-auth-query';
+import { useUserQuery, useLogoutMutation } from './use-auth-query';
 import { loginWithGoogle, refreshToken } from '@/lib/api/auth';
 
 /**

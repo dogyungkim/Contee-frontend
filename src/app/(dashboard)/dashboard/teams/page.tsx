@@ -7,7 +7,7 @@ import { Plus, Users, Copy, Check, MoreVertical, UserMinus, Shield } from 'lucid
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTeam } from '@/context/team-context'
-import { useTeamMembersQuery, useRemoveTeamMemberMutation, useUpdateTeamMemberRoleMutation } from '@/hooks/queries/use-team-query'
+import { useTeamMembersQuery, useRemoveTeamMemberMutation, useUpdateTeamMemberRoleMutation } from '@/domains/team/hooks/use-team-query'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/domains/auth/hooks/use-auth'
 import toast from 'react-hot-toast'
 
 export default function TeamsPage() {

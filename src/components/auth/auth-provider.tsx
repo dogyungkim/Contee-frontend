@@ -1,7 +1,7 @@
 'use client';
 
-import { useUserQuery } from '@/hooks/queries/use-auth-query';
-import { useInitialAuth } from '@/hooks/use-auth';
+import { useUserQuery } from '@/domains/auth/hooks/use-auth-query';
+import { useInitialAuth } from '@/domains/auth/hooks/use-auth';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check for existing session on initial load

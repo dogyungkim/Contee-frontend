@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useMyTeamsQuery } from '@/hooks/queries/use-team-query'
+import { useMyTeamsQuery } from '@/domains/team/hooks/use-team-query'
 import { Team } from '@/types/team'
 
 interface TeamContextType {

@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 
-import { RequireAuth } from '@/components/auth/require-auth'
+import { RequireAuth } from '@/domains/auth/components/require-auth'
 import Sidebar from '@/components/layout/sidebar'
 import { TeamProvider } from '@/context/team-context'
 

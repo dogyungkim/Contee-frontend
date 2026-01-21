@@ -7,7 +7,7 @@ import HeroSection from '@/components/sections/hero-section';
 import ProblemSection from '@/components/sections/problem-section';
 import FeatureSection from '@/components/sections/feature-section';
 import CtaSection from '@/components/sections/cta-section';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/domains/auth/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {

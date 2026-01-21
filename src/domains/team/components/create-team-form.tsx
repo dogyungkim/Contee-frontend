@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCreateTeamMutation } from '@/hooks/queries/use-team-query';
+import { useCreateTeamMutation } from '@/domains/team/hooks/use-team-query';
 import { Button } from '@/components/ui/button';
 import {
   Form,
