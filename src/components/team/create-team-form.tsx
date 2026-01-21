@@ -19,10 +19,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/lib/toast';
+import { TEAM_VALIDATION } from '@/constants/validation';
 
 const formSchema = z.object({
-  name: z.string().min(1, '팀 이름을 입력해주세요.').max(100, '팀 이름은 100자 이하로 입력해주세요.'),
-  description: z.string().max(2000, '설명은 2000자 이하로 입력해주세요.').optional(),
+  name: z.string().min(1, '팀 이름을 입력해주세요.').max(TEAM_VALIDATION.NAME_MAX_LENGTH, `팀 이름은 ${TEAM_VALIDATION.NAME_MAX_LENGTH}자 이하로 입력해주세요.`),
+  description: z.string().max(TEAM_VALIDATION.DESCRIPTION_MAX_LENGTH, `설명은 ${TEAM_VALIDATION.DESCRIPTION_MAX_LENGTH}자 이하로 입력해주세요.`).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;

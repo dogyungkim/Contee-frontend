@@ -7,6 +7,7 @@ import { Clock, ListMusic, Search } from 'lucide-react'
 import { useDashboard } from '@/hooks/use-dashboard'
 import { DashboardHeader } from './dashboard-header'
 import { TeamEmptyState } from './team-empty-state'
+import { DashboardSkeleton } from './dashboard-skeleton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,7 +18,7 @@ import { Input } from '@/components/ui/input'
  */
 export function DashboardContent() {
   const [query, setQuery] = useState('')
-  const { hasTeam, summary, recentContis, songs, activities } = useDashboard()
+  const { hasTeam, summary, recentContis, songs, activities, isLoading, isError } = useDashboard()
 
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -31,6 +32,23 @@ export function DashboardContent() {
   if (!hasTeam) {
     return <TeamEmptyState />
   }
+
+  // // Show loading state with skeleton
+  // if (isLoading) {
+  //   return <DashboardSkeleton />
+  // }
+
+  // // Show error state
+  // if (isError) {
+  //   return (
+  //     <div className="flex items-center justify-center py-12">
+  //       <div className="text-center">
+  //         <div className="text-destructive">데이터를 불러오는 중 오류가 발생했습니다.</div>
+  //         <div className="mt-2 text-sm text-muted-foreground">잠시 후 다시 시도해주세요.</div>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   // Show full dashboard when user has a team
   return (

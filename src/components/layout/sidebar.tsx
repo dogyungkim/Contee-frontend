@@ -20,6 +20,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useTeam } from '@/context/team-context';
 import { cn } from '@/lib/utils';
 
+const ADD_TEAM_VALUE = '__add__';
+
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -29,7 +31,7 @@ const Sidebar = () => {
   const hasTeams = teams.length > 0;
 
   const handleTeamChange = (value: string) => {
-    if (value === '__add__') {
+    if (value === ADD_TEAM_VALUE) {
       router.push('/dashboard/teams/create');
       return;
     }
@@ -39,6 +41,14 @@ const Sidebar = () => {
   const handleLogout = async () => {
     await logout();
     router.push('/');
+  };
+
+  // Helper function to determine if a navigation item is active
+  const isNavItemActive = (itemHref: string, currentPath: string): boolean => {
+    if (itemHref === '/dashboard') {
+      return currentPath === '/dashboard';
+    }
+    return currentPath === itemHref || currentPath.startsWith(itemHref + '/');
   };
 
   const navItems = [
@@ -98,7 +108,7 @@ const Sidebar = () => {
                 </SelectItem>
               ))}
               <Separator className="my-1" />
-              <SelectItem value="__add__">+ 팀 추가하기</SelectItem>
+              <SelectItem value={ADD_TEAM_VALUE}>+ 팀 추가하기</SelectItem>
             </SelectContent>
           </Select>
         ) : (
@@ -139,10 +149,7 @@ const Sidebar = () => {
         {navItems
           .filter((item) => !item.requiresTeam || hasTeams)
           .map((item) => {
-            // For /dashboard, only match exact path, not subpaths
-            const isActive = item.href === '/dashboard' 
-              ? pathname === '/dashboard'
-              : pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive = isNavItemActive(item.href, pathname);
             const isDisabled = item.requiresTeam && !hasTeams;
             
             return (
