@@ -8,7 +8,8 @@ import {
     getContiSongs,
     addContiSong,
     removeContiSong,
-    updateContiSong
+    updateContiSong,
+    reorderContiSongs
 } from '@/lib/api/conti';
 import { CreateContiRequest, UpdateContiRequest, AddContiSongRequest } from '@/types/conti';
 
@@ -106,8 +107,8 @@ export const useUpdateContiSongOrder = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ contiId, contiSongId, orderIndex }: { contiId: string; contiSongId: string; orderIndex: number }) =>
-            updateContiSong(contiId, contiSongId, { orderIndex }),
+        mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) =>
+            reorderContiSongs(contiId, songIds),
         onSuccess: (_, { contiId }) => {
             queryClient.invalidateQueries({ queryKey: contiKeys.songs(contiId) });
         },

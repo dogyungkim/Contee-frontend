@@ -1,6 +1,6 @@
 import { Team, TeamMember } from '@/types/team';
-import { Conti, ContiSong, TeamSong } from '@/types/conti';
-import { Song } from '@/types/song';
+import { Conti, ContiSong } from '@/types/conti';
+import { Song, TeamSong } from '@/types/song';
 
 export type DashboardSummary = {
     nextServiceLabel: string
@@ -125,8 +125,8 @@ export const MOCK_CONTIS: Conti[] = [
         id: 'conti-1',
         teamId: 'team-1',
         title: '2024년 5월 19일 주일 예배',
-        serviceDate: '2024-05-19',
-        description: '오순절 강림 주일',
+        worshipDate: '2024-05-19',
+        memo: '오순절 강림 주일',
         createdAt: '2024-05-10T10:00:00Z',
         updatedAt: '2024-05-10T10:00:00Z',
     },
@@ -138,8 +138,8 @@ export const MOCK_CONTI_SONGS: ContiSong[] = [
         contiId: 'conti-1',
         teamSongId: 'ts-1',
         orderIndex: 0,
-        keySignature: 'G',
-        bpm: 72,
+        keyOverride: 'G',
+        bpmOverride: 72,
         createdAt: '2024-05-10T10:05:00Z',
         updatedAt: '2024-05-10T10:05:00Z',
         teamSong: MOCK_TEAM_SONGS[0],
@@ -150,7 +150,7 @@ export const MOCK_CONTI_SONGS: ContiSong[] = [
 export const MOCK_RECENT_CONTIS = MOCK_CONTIS.map(c => ({
     id: c.id,
     title: c.title,
-    dateLabel: c.serviceDate,
+    dateLabel: c.worshipDate,
     songCount: 1
 }));
 

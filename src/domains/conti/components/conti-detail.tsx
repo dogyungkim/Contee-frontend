@@ -78,8 +78,8 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       request: {
         teamSongId: song.id,
         orderIndex: nextOrder,
-        keySignature: song.keySignature,
-        bpm: song.bpm
+        customKeySignature: song.keySignature,
+        customBpm: song.bpm
       }
     })
   }
@@ -93,8 +93,8 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         songId: song.id,
         customTitle: song.title,
         artist: song.artist,
-        keySignature: song.keySignature,
-        bpm: song.bpm,
+        customKeySignature: song.keySignature,
+        customBpm: song.bpm,
         youtubeUrl: song.youtubeUrl,
         sheetMusicUrl: song.sheetMusicUrl
       }
@@ -127,13 +127,11 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
 
   const handleUpdateOrder = async (reorderedSongs: ContiSong[]) => {
     try {
-      for (const song of reorderedSongs) {
-        await updateOrderMutateAsync({
-          contiId,
-          contiSongId: song.id,
-          orderIndex: song.orderIndex
-        })
-      }
+      const songIds = reorderedSongs.map(s => s.id)
+      await updateOrderMutateAsync({
+        contiId,
+        songIds
+      })
     } catch (error) {
       console.error('Failed to update song order:', error)
     }
@@ -152,7 +150,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
             <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="font-semibold text-primary/80">
-                {format(new Date(conti.serviceDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
+                {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
               </span>
               <Separator orientation="vertical" className="h-3" />
               <span className="flex items-center gap-1">
@@ -198,11 +196,11 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-1">날짜</p>
-                <p className="font-medium">{format(new Date(conti.serviceDate), 'yyyy년 M월 d일')}</p>
+                <p className="font-medium">{format(new Date(conti.worshipDate), 'yyyy년 M월 d일')}</p>
               </div>
               <div>
                 <p className="text-xs text-neutral-500 mb-1">시간</p>
-                <p className="font-medium">{format(new Date(conti.serviceDate), 'a h:mm', { locale: ko })}</p>
+                <p className="font-medium">{format(new Date(conti.worshipDate), 'a h:mm', { locale: ko })}</p>
               </div>
                {/* Placeholder for future fields */}
               <div>
@@ -210,10 +208,10 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                  <span className="inline-block px-2 py-0.5 text-xs bg-emerald-50 text-emerald-600 rounded font-medium">준비중</span>
               </div>
             </div>
-            {conti.description && (
+            {conti.memo && (
               <div className="mt-4 pt-4 border-t border-neutral-200">
-                <p className="text-xs text-amber-600 mb-1 font-bold">메모 / 지시사항</p>
-                <p className="text-sm text-neutral-600 leading-relaxed">{conti.description}</p>
+                <p className="text-xs text-amber-600 mb-1 font-bold">특이사항</p>
+                <p className="text-sm text-neutral-600 leading-relaxed">{conti.memo}</p>
               </div>
             )}
           </div>

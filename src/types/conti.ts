@@ -113,3 +113,7 @@ export interface AddContiSongRequest {
     orderIndex?: number // API doc adds this in the response example but not explicitly in request? Ah, usually appended. But doc for 'Create Conti' has orderIndex. 
     // 'Add Song to Conti' doc request body examples don't show orderIndex, but response does.
 }
+
+export interface ReorderContiSongsRequest {
+    contiSongIds: string[]
+}

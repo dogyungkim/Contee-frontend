@@ -54,8 +54,8 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
     const request: CreateTeamSongRequest = {
       customTitle: title,
       artist: artist,
-      keySignature: key,
-      bpm: bpm ? parseInt(bpm) : undefined,
+      customKeySignature: key,
+      customBpm: bpm ? parseInt(bpm) : undefined,
       youtubeUrl: youtubeUrl,
       sheetMusicUrl: sheetMusicUrl,
       note: finalNote,

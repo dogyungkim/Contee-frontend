@@ -9,8 +9,9 @@ import {
     MOCK_TEAM_SONGS,
     MOCK_MASTER_SONGS
 } from './data';
+import { Conti, ContiSong } from '@/types/conti';
 import { Team, TeamMember } from '@/types/team';
-import { Conti, ContiSong, TeamSong } from '@/types/conti';
+import { TeamSong } from '@/types/song';
 
 // Helper to create successful response
 const success = (data: any): AxiosResponse => {
@@ -70,8 +71,8 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             id: `conti-${Date.now()}`,
             teamId,
             title: body.title,
-            serviceDate: body.serviceDate,
-            description: body.description,
+            worshipDate: body.worshipDate,
+            memo: body.memo,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
@@ -103,8 +104,8 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             contiId,
             teamSongId: body.teamSongId,
             orderIndex: body.orderIndex,
-            keySignature: body.keySignature,
-            bpm: body.bpm,
+            keyOverride: body.keyOverride,
+            bpmOverride: body.bpmOverride,
             note: body.note,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -132,6 +133,24 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         }
     }
 
+    const contiSongsOrderMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs\/order$/);
+    if (contiSongsOrderMatch && methodUpper === 'PUT') {
+        const contiId = contiSongsOrderMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const { contiSongIds } = body;
+
+        if (Array.isArray(contiSongIds)) {
+            // In a real DB we'd update index. 
+            // In mock, we can just re-sort MOCK_CONTI_SONGS for this conti, or update orderIndex on items.
+            contiSongIds.forEach((id, index) => {
+                const match = MOCK_CONTI_SONGS.find(cs => cs.id === id);
+                if (match) match.orderIndex = index;
+            });
+            // Sort mock storage to reflect order if needed, but orderIndex is what matters.
+        }
+        return success(null);
+    }
+
     // --- Team Songs API ---
     const teamSongsMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs$/);
     if (teamSongsMatch && methodUpper === 'GET') {
@@ -147,8 +166,8 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             teamId,
             customTitle: body.customTitle,
             artist: body.artist,
-            keySignature: body.keySignature,
-            bpm: body.bpm,
+            keySignature: body.customKeySignature,
+            bpm: body.customBpm,
             youtubeUrl: body.youtubeUrl,
             sheetMusicUrl: body.sheetMusicUrl,
             note: body.note,

@@ -73,7 +73,7 @@ export function ContiList() {
                 <CardTitle className="line-clamp-1">{conti.title}</CardTitle>
                 <CardDescription className="flex items-center gap-1.5 text-xs">
                   <Calendar className="h-3 w-3" />
-                  {format(new Date(conti.serviceDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
+                  {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
                 </CardDescription>
               </div>
               <div className="z-10">
@@ -103,9 +103,9 @@ export function ContiList() {
             </div>
           </CardHeader>
           <CardContent>
-            {conti.description && (
+            {conti.memo && (
               <p className="line-clamp-2 text-xs text-muted-foreground">
-                {conti.description}
+                {conti.memo}
               </p>
             )}
           </CardContent>

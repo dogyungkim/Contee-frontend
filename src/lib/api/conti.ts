@@ -65,3 +65,12 @@ export async function updateContiSong(
     const { data } = await apiClient.patch<ApiResponse<ContiSong>>(`/api/v1/contis/${contiId}/songs/${contiSongId}`, request);
     return data.data;
 }
+// Reorder conti songs
+export async function reorderContiSongs(
+    contiId: string,
+    songIds: string[]
+): Promise<void> {
+    await apiClient.put<ApiResponse<void>>(`/api/v1/contis/${contiId}/songs/order`, {
+        contiSongIds: songIds
+    });
+}

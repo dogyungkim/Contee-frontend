@@ -55,8 +55,8 @@ export interface CreateTeamSongRequest {
     songId?: string
     customTitle: string
     artist?: string
-    keySignature?: string
-    bpm?: number
+    customKeySignature?: string
+    customBpm?: number
     ccliNumber?: string
     youtubeUrl?: string
     sheetMusicUrl?: string
@@ -66,8 +66,8 @@ export interface CreateTeamSongRequest {
 export interface UpdateTeamSongRequest {
     customTitle?: string
     artist?: string
-    keySignature?: string
-    bpm?: number
+    customKeySignature?: string
+    customBpm?: number
     ccliNumber?: string
     youtubeUrl?: string
     sheetMusicUrl?: string

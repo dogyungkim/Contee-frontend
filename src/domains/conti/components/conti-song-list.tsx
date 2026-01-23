@@ -78,8 +78,8 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
   // Initialize form when song changes
   useEffect(() => {
     setForm({
-      keySignature: contiSong.keySignature || teamSong?.keySignature || '',
-      bpm: contiSong.bpm || teamSong?.bpm || 0,
+      keySignature: contiSong.keyOverride || teamSong?.keySignature || '',
+      bpm: contiSong.bpmOverride || teamSong?.bpm || 0,
       note: contiSong.note || '',
     })
   }, [contiSong, teamSong])
@@ -94,16 +94,16 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
     const timer = setTimeout(() => {
       // Only save if values differ from current contiSong
       if (
-        form.keySignature !== (contiSong.keySignature || '') ||
-        form.bpm !== (contiSong.bpm || 0) ||
+        form.keySignature !== (contiSong.keyOverride || '') ||
+        form.bpm !== (contiSong.bpmOverride || 0) ||
         form.note !== (contiSong.note || '')
       ) {
         updateDetail({
           contiId: contiSong.contiId,
           contiSongId: contiSong.id,
           request: {
-            keySignature: form.keySignature,
-            bpm: form.bpm,
+            keyOverride: form.keySignature,
+            bpmOverride: form.bpm,
             note: form.note
           }
         })
