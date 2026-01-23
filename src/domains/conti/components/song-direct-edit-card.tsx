@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SongFormDialog } from '@/domains/song/components/song-form-dialog'
-import { AVAILABLE_SECTIONS } from '@/domains/song/components/song-form-editor'
+import { getSongFormSummary } from '@/domains/song/utils/song-form'
 import { SongFormPart, CreateTeamSongRequest } from '@/types/song'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -63,30 +63,8 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
     onSave(request)
   }
 
-  // Group consecutive parts of the same type for Flow Summary
-  const groupedFlow = songForm.reduce((acc: { type: string, abbr: string, count: number, showBars: boolean, bars: number }[], part) => {
-    const section = AVAILABLE_SECTIONS.find(s => s.type === part.type);
-    
-    // Use custom abbr if provided, otherwise use section abbr
-    let abbr = part.abbr || section?.abbr || part.type;
-    const showBars = ['Intro', 'Interlude', 'Instrumental', 'Outro'].includes(part.type);
-
-    // If Verse, Interlude, or Tag, attempt to extract number from label (Verse 1 -> V1)
-    // Chorus and Bridge typically don't have numbers
-    // Skip this if custom abbr is provided
-    if (!part.abbr && ['Verse', 'Interlude', 'Tag'].includes(part.type)) {
-        const num = (part.label || '').replace(/[^0-9]/g, '');
-        if (num) abbr = `${abbr}${num}`;
-    }
-    
-    // Group only if same type, same abbreviation (handles V1 vs V2), and not a 'showBars' section
-    if (acc.length > 0 && acc[acc.length - 1].type === part.type && acc[acc.length - 1].abbr === abbr && !showBars) {
-      acc[acc.length - 1].count += 1;
-    } else {
-      acc.push({ type: part.type, abbr: abbr, count: 1, showBars, bars: part.bars || 8 });
-    }
-    return acc;
-  }, []);
+  // Use shared summary logic
+  const groupedFlow = getSongFormSummary(songForm)
 
   return (
     <Card className="border-2 border-primary/20 shadow-lg">

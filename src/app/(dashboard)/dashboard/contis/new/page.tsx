@@ -6,8 +6,7 @@ import { Calendar, Plus, Save, Music, ChevronLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
-import { useCreateConti } from '@/domains/conti/hooks/use-conti'
-import { useAddContiSong } from '@/domains/conti/hooks/use-conti'
+import { useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,35 +16,8 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
 import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
-import { TeamSong, CreateTeamSongRequest } from '@/types/song'
-import { ContiSongCreateRequestItem } from '@/types/conti'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
-
-// Temp Song Type for UI State
-interface TempContiSong {
-  tempId: string
-  isNewSong: boolean 
-  orderIndex: number
-
-  // Common/Override Display Data
-  customTitle: string
-  artist?: string
-  keySignature?: string
-  bpm?: number
-  
-  // Existing Song Ref
-  teamSongId?: string
-  teamSong?: TeamSong
-
-  // New Song Data
-  youtubeUrl?: string
-  sheetMusicUrl?: string
-  note?: string // Library note (for new songs) or just note
-  
-  // Conti Specific
-  contiNote?: string
-}
 
 // Time Constants
 const PERIODS = [
@@ -60,26 +32,32 @@ export default function NewContiPage() {
   const router = useRouter()
   const { selectedTeamId, selectedTeam } = useTeam()
   
-  // Worship Info State
-  const [date, setDate] = useState<Date>(new Date())
-  const [period, setPeriod] = useState<string>("AM")
-  const [hour, setHour] = useState<string>("10")
-  const [minute, setMinute] = useState<string>("00")
-  const [title, setTitle] = useState<string>("")
-  const [memo, setMemo] = useState<string>("") // description -> memo
+  // Use the custom hook for all business logic
+  const {
+    date,
+    setDate,
+    period,
+    setPeriod,
+    hour,
+    setHour,
+    minute,
+    setMinute,
+    title,
+    setTitle,
+    memo,
+    setMemo,
+    tempSongs,
+    addExistingSong,
+    addNewSong,
+    removeSong,
+    handleSave,
+    isSaving,
+  } = useNewContiForm(selectedTeamId)
   
-  // Song List State
-  const [tempSongs, setTempSongs] = useState<TempContiSong[]>([])
-  
-  // UI State
+  // UI State (kept in component as it's purely UI-related)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchTab, setSearchTab] = useState<'team' | 'new'>('team')
-  const [isAddingNewSong, setIsAddingNewSong] = useState(false) // Show SongDirectEditCard
-  const [isSaving, setIsSaving] = useState(false)
-  
-  const { mutateAsync: createContiAsync } = useCreateConti()
-  // NOTE: addContiSongAsync is for adding to *existing* Conti. 
-  // Here we use createConti with nested songs.
+  const [isAddingNewSong, setIsAddingNewSong] = useState(false)
 
   if (!selectedTeamId || !selectedTeam) {
     return (
@@ -88,114 +66,6 @@ export default function NewContiPage() {
         <p className="text-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
       </div>
     )
-  }
-
-  // --- Handlers ---
-
-  const handleSave = async () => {
-    if (!title.trim()) {
-      alert('예배 제목을 입력해주세요.')
-      return
-    }
-    setIsSaving(true)
-    try {
-      // 1. worshipDate composition
-      let h = parseInt(hour)
-      if (period === "PM" && h < 12) h += 12
-      if (period === "AM" && h === 12) h = 0
-      const serviceTime = `${h.toString().padStart(2, '0')}:${minute}:00`
-      const worshipDate = `${format(date, 'yyyy-MM-dd')}T${serviceTime}`
-      
-      // 2. Map tempSongs to API Request Items
-      const contiSongsRequest: ContiSongCreateRequestItem[] = tempSongs.map((song, idx) => {
-         const base = {
-             orderIndex: idx, // Ensure sequential index
-             keyOverride: song.keySignature, // Initial override same as original keys
-             bpmOverride: song.bpm,
-             contiNote: song.contiNote
-         }
-
-         if (song.isNewSong) {
-             // Case 2: New Song
-             return {
-                 ...base,
-                 customTitle: song.customTitle,
-                 artist: song.artist,
-                 customKeySignature: song.keySignature,
-                 customBpm: song.bpm,
-                 youtubeUrl: song.youtubeUrl,
-                 sheetMusicUrl: song.sheetMusicUrl,
-                 note: song.note, // Library note
-             }
-         } else {
-             // Case 1: Existing Song
-             return {
-                 ...base,
-                 teamSongId: song.teamSongId!,
-             }
-         }
-      })
-
-      // 3. createConti with nested songs
-      const newConti = await createContiAsync({
-        teamId: selectedTeamId,
-        title,
-        worshipDate,
-        memo: memo || undefined,
-        contiSongs: contiSongsRequest
-      })
-      
-      // 4. Redirect
-      router.push(`/dashboard/contis/${newConti.id}`)
-    } catch (error) {
-      console.error('Failed to create conti:', error)
-      alert('콘티 생성 중 오류가 발생했습니다.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  // Handle Existing Song Selection from Dialog
-  const handleAddExistingSong = (song: TeamSong) => {
-    const newTempSong: TempContiSong = {
-      tempId: `temp-${Date.now()}`,
-      isNewSong: false,
-      orderIndex: tempSongs.length,
-      teamSongId: song.id,
-      teamSong: song,
-      customTitle: song.customTitle,
-      artist: song.artist,
-      keySignature: song.keySignature,
-      bpm: song.bpm,
-      note: song.note, // Existing library note
-      // contiNote is initially empty
-    }
-    
-    setTempSongs([...tempSongs, newTempSong])
-    setSearchOpen(false)
-  }
-
-  // Handle New Song Creation from Direct Card
-  const handleSaveNewSong = (data: CreateTeamSongRequest) => {
-      const newTempSong: TempContiSong = {
-          tempId: `new-${Date.now()}`,
-          isNewSong: true,
-          orderIndex: tempSongs.length,
-          customTitle: data.customTitle,
-          artist: data.artist,
-          keySignature: data.keySignature,
-          bpm: data.bpm,
-          youtubeUrl: data.youtubeUrl,
-          sheetMusicUrl: data.sheetMusicUrl,
-          note: data.note, // Library note containing Form JSON
-          // contiNote initially empty
-      }
-      setTempSongs([...tempSongs, newTempSong])
-      setIsAddingNewSong(false)
-  }
-
-  const handleRemoveSong = (tempId: string) => {
-    setTempSongs(tempSongs.filter(s => s.tempId !== tempId))
   }
 
   return (
@@ -376,7 +246,7 @@ export default function NewContiPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-neutral-400 hover:text-destructive"
-                      onClick={() => handleRemoveSong(song.tempId)}
+                      onClick={() => removeSong(song.tempId)}
                     >
                       ×
                     </Button>
@@ -389,7 +259,10 @@ export default function NewContiPage() {
           {isAddingNewSong && (
              <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
                  <SongDirectEditCard 
-                    onSave={handleSaveNewSong}
+                    onSave={(data) => {
+                      addNewSong(data)
+                      setIsAddingNewSong(false)
+                    }}
                     onCancel={() => setIsAddingNewSong(false)}
                  />
              </div>
@@ -450,7 +323,10 @@ export default function NewContiPage() {
       <SongSearchDialog
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        onSelect={handleAddExistingSong}
+        onSelect={(song) => {
+          addExistingSong(song)
+          setSearchOpen(false)
+        }}
         existingSongIds={tempSongs.map(s => s.teamSongId).filter(Boolean) as string[]}
         initialTab={searchTab}
       />
