@@ -1,25 +1,12 @@
 import { Team, TeamMember } from '@/types/team';
+import { Conti, ContiSong, TeamSong } from '@/types/conti';
+import { Song } from '@/types/song';
 
 export type DashboardSummary = {
     nextServiceLabel: string
     nextServiceDateLabel: string
     thisWeekContiCount: number
     totalSongCount: number
-}
-
-export type Conti = {
-    id: string
-    title: string
-    dateLabel: string
-    songCount: number
-}
-
-export type Song = {
-    id: string
-    title: string
-    artist: string
-    defaultKey?: string
-    bpm?: number
 }
 
 export type Activity = {
@@ -34,19 +21,6 @@ export const MOCK_DASHBOARD_SUMMARY: DashboardSummary = {
     thisWeekContiCount: 1,
     totalSongCount: 128,
 }
-
-export const MOCK_RECENT_CONTIS: Conti[] = [
-    { id: 'c_001', title: '주일 예배 콘티', dateLabel: '2026-01-19', songCount: 6 },
-    { id: 'c_002', title: '수요 예배 콘티', dateLabel: '2026-01-15', songCount: 5 },
-    { id: 'c_003', title: '청년부 예배 콘티', dateLabel: '2026-01-12', songCount: 7 },
-]
-
-export const MOCK_SONGS: Song[] = [
-    { id: 's_001', title: '주의 은혜라', artist: '마커스', defaultKey: 'G', bpm: 72 },
-    { id: 's_002', title: '주님 한 분만으로', artist: '어노인팅', defaultKey: 'E', bpm: 68 },
-    { id: 's_003', title: '하늘 위에 주님밖에', artist: '마커스', defaultKey: 'A', bpm: 80 },
-    { id: 's_004', title: '예수 사랑하심은', artist: 'Hymn', defaultKey: 'C', bpm: 96 },
-]
 
 export const MOCK_ACTIVITIES: Activity[] = [
     { id: 'a_001', timeLabel: '방금', message: '로그인에 성공했어요.' },
@@ -86,33 +60,9 @@ export const MOCK_MEMBERS_TEAM_1: TeamMember[] = [
         role: 'OWNER',
         joinedAt: '2023-01-01T09:00:00Z',
     },
-    {
-        id: 'member-2',
-        userId: 'user-2',
-        userName: 'Jane Smith',
-        userEmail: 'jane@example.com',
-        role: 'ADMIN',
-        joinedAt: '2023-01-02T10:00:00Z',
-    },
-    {
-        id: 'member-3',
-        userId: 'user-3',
-        userName: 'Mike Johnson',
-        userEmail: 'mike@example.com',
-        role: 'MEMBER',
-        joinedAt: '2023-01-05T11:00:00Z',
-    },
 ];
 
 export const MOCK_MEMBERS_TEAM_2: TeamMember[] = [
-    {
-        id: 'member-4',
-        userId: 'user-1',
-        userName: 'John Doe',
-        userEmail: 'john@example.com',
-        role: 'MEMBER',
-        joinedAt: '2023-02-01T14:00:00Z',
-    },
     {
         id: 'member-5',
         userId: 'user-4',
@@ -131,3 +81,115 @@ export const MOCK_USER = {
 };
 
 export const MOCK_USER_ID = 'user-1';
+
+// --- Conti & Song Mock Data ---
+
+export const MOCK_TEAM_SONGS: TeamSong[] = [
+    {
+        id: 'ts-1',
+        teamId: 'team-1',
+        customTitle: '주의 은혜라',
+        artist: '마커스',
+        keySignature: 'G',
+        bpm: 72,
+        isFavorite: true,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+    },
+    {
+        id: 'ts-2',
+        teamId: 'team-1',
+        customTitle: '주님 한 분만으로',
+        artist: '어노인팅',
+        keySignature: 'E',
+        bpm: 68,
+        isFavorite: false,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+    },
+    {
+        id: 'ts-3',
+        teamId: 'team-1',
+        customTitle: '하늘 위에 주님밖에',
+        artist: '마커스',
+        keySignature: 'A',
+        bpm: 80,
+        isFavorite: true,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+    },
+];
+
+export const MOCK_CONTIS: Conti[] = [
+    {
+        id: 'conti-1',
+        teamId: 'team-1',
+        title: '2024년 5월 19일 주일 예배',
+        serviceDate: '2024-05-19',
+        description: '오순절 강림 주일',
+        createdAt: '2024-05-10T10:00:00Z',
+        updatedAt: '2024-05-10T10:00:00Z',
+    },
+];
+
+export const MOCK_CONTI_SONGS: ContiSong[] = [
+    {
+        id: 'cs-1',
+        contiId: 'conti-1',
+        teamSongId: 'ts-1',
+        orderIndex: 0,
+        keySignature: 'G',
+        bpm: 72,
+        createdAt: '2024-05-10T10:05:00Z',
+        updatedAt: '2024-05-10T10:05:00Z',
+        teamSong: MOCK_TEAM_SONGS[0],
+    },
+];
+
+// Special exports for dashboard components that expect simpler types
+export const MOCK_RECENT_CONTIS = MOCK_CONTIS.map(c => ({
+    id: c.id,
+    title: c.title,
+    dateLabel: c.serviceDate,
+    songCount: 1
+}));
+
+export const MOCK_SONGS = MOCK_TEAM_SONGS.map(ts => ({
+    id: ts.id,
+    title: ts.customTitle,
+    artist: ts.artist || '',
+    defaultKey: ts.keySignature,
+    bpm: ts.bpm
+}));
+
+// --- Master Song Mock Data ---
+
+export const MOCK_MASTER_SONGS: Song[] = [
+    {
+        id: 'ms-1',
+        title: '놀라운 주의 사랑',
+        artist: '어노인팅',
+        keySignature: 'E',
+        bpm: 72,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+    },
+    {
+        id: 'ms-2',
+        title: '꽃들도',
+        artist: '제이워십',
+        keySignature: 'E',
+        bpm: 66,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+    },
+    {
+        id: 'ms-3',
+        title: '주를 위한 이곳에',
+        artist: '아이자야 씩스티원',
+        keySignature: 'D',
+        bpm: 68,
+        createdAt: '2023-01-01T00:00:00Z',
+        updatedAt: '2023-01-01T00:00:00Z',
+    },
+];

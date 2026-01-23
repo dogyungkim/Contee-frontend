@@ -1,6 +1,16 @@
 import { AxiosAdapter, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { MOCK_TEAMS, MOCK_MEMBERS_TEAM_1, MOCK_MEMBERS_TEAM_2, MOCK_USER } from './data';
+import {
+    MOCK_TEAMS,
+    MOCK_MEMBERS_TEAM_1,
+    MOCK_MEMBERS_TEAM_2,
+    MOCK_USER,
+    MOCK_CONTIS,
+    MOCK_CONTI_SONGS,
+    MOCK_TEAM_SONGS,
+    MOCK_MASTER_SONGS
+} from './data';
 import { Team, TeamMember } from '@/types/team';
+import { Conti, ContiSong, TeamSong } from '@/types/conti';
 
 // Helper to create successful response
 const success = (data: any): AxiosResponse => {
@@ -26,33 +36,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     // Intentional delay for realism
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // --- Auth & User API ---
-
-    // 1. Get Current User (GET /api/v1/users/me)
-    // if (url === '/api/v1/users/me' && methodUpper === 'GET') {
-    //     const authHeader = config.headers.Authorization;
-    //     if (authHeader && authHeader.toString().startsWith('Bearer ')) {
-    //         return success(MOCK_USER);
-    //     }
-    //     return success(null);
-    // }
-
-    // // 2. Refresh Token (POST /api/v1/auth/refresh)
-    // if (url === '/api/v1/auth/refresh' && methodUpper === 'POST') {
-    //     return success({
-    //         accessToken: 'mock-access-token-' + Date.now(),
-    //         expiresIn: 3600,
-    //     });
-    // }
-
-    // // 3. Logout (POST /api/v1/auth/logout)
-    // if (url === '/api/v1/auth/logout' && methodUpper === 'POST') {
-    //     return success(null);
-    // }
-
     // --- Teams API ---
-
-    // 4. Create Team (POST /api/v1/teams)
     if (url === '/api/v1/teams' && methodUpper === 'POST') {
         const body = data ? JSON.parse(data) : {};
         const newTeam: Team = {
@@ -68,88 +52,131 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         return success(newTeam);
     }
 
-    // 5. Get My Teams (GET /api/v1/teams)
     if (url === '/api/v1/teams' && methodUpper === 'GET') {
         return success(MOCK_TEAMS);
     }
 
-    // 6. Get Team Detail (GET /api/v1/teams/{id})
-    const teamDetailMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)$/);
-    if (teamDetailMatch && methodUpper === 'GET') {
-        const teamId = teamDetailMatch[1];
-        const team = MOCK_TEAMS.find((t) => t.id === teamId);
-        if (team) return success(team);
+    // --- Conti API ---
+    const teamContisMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/contis$/);
+    if (teamContisMatch && methodUpper === 'GET') {
+        const teamId = teamContisMatch[1];
+        return success(MOCK_CONTIS.filter(c => c.teamId === teamId));
+    }
+
+    if (teamContisMatch && methodUpper === 'POST') {
+        const teamId = teamContisMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const newConti: Conti = {
+            id: `conti-${Date.now()}`,
+            teamId,
+            title: body.title,
+            serviceDate: body.serviceDate,
+            description: body.description,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        MOCK_CONTIS.push(newConti);
+        return success(newConti);
+    }
+
+    const contiDetailMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)$/);
+    if (contiDetailMatch && methodUpper === 'GET') {
+        const id = contiDetailMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+        return success(conti);
+    }
+
+    // --- Conti Songs API ---
+    const contiSongsMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs$/);
+    if (contiSongsMatch && methodUpper === 'GET') {
+        const contiId = contiSongsMatch[1];
+        return success(MOCK_CONTI_SONGS.filter(cs => cs.contiId === contiId));
+    }
+
+    if (contiSongsMatch && methodUpper === 'POST') {
+        const contiId = contiSongsMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const teamSong = MOCK_TEAM_SONGS.find(ts => ts.id === body.teamSongId);
+
+        const newContiSong: ContiSong = {
+            id: `cs-${Date.now()}`,
+            contiId,
+            teamSongId: body.teamSongId,
+            orderIndex: body.orderIndex,
+            keySignature: body.keySignature,
+            bpm: body.bpm,
+            note: body.note,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            teamSong: teamSong,
+        };
+        MOCK_CONTI_SONGS.push(newContiSong);
+        return success(newContiSong);
+    }
+
+    const contiSongDetailMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs\/([a-zA-Z0-9-]+)$/);
+    if (contiSongDetailMatch && methodUpper === 'DELETE') {
+        const id = contiSongDetailMatch[2];
+        const index = MOCK_CONTI_SONGS.findIndex(cs => cs.id === id);
+        if (index > -1) MOCK_CONTI_SONGS.splice(index, 1);
         return success(null);
     }
 
-    // 7. Update Team (PUT /api/v1/teams/{id})
-    if (teamDetailMatch && methodUpper === 'PUT') {
-        const teamId = teamDetailMatch[1];
+    if (contiSongDetailMatch && methodUpper === 'PATCH') {
+        const id = contiSongDetailMatch[2];
         const body = data ? JSON.parse(data) : {};
-        const team = MOCK_TEAMS.find((t) => t.id === teamId);
-        if (team) {
-            const updatedTeam = { ...team, ...body, updatedAt: new Date().toISOString() };
-            return success(updatedTeam);
+        const song = MOCK_CONTI_SONGS.find(cs => cs.id === id);
+        if (song) {
+            Object.assign(song, body, { updatedAt: new Date().toISOString() });
+            return success(song);
         }
     }
 
-    // 8. Delete Team (DELETE /api/v1/teams/{id})
-    if (teamDetailMatch && methodUpper === 'DELETE') {
-        return success(null);
+    // --- Team Songs API ---
+    const teamSongsMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs$/);
+    if (teamSongsMatch && methodUpper === 'GET') {
+        const teamId = teamSongsMatch[1];
+        return success(MOCK_TEAM_SONGS.filter(ts => ts.teamId === teamId));
     }
 
-    // --- Members API ---
-
-    // 9. Get Team Members (GET /api/v1/teams/{id}/members)
-    const membersMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/members$/);
-    if (membersMatch && methodUpper === 'GET') {
-        const teamId = membersMatch[1];
-        if (teamId === 'team-1') return success(MOCK_MEMBERS_TEAM_1);
-        if (teamId === 'team-2') return success(MOCK_MEMBERS_TEAM_2);
-        return success([]);
-    }
-
-    // 10. Add Team Member (POST /api/v1/teams/{id}/members)
-    if (membersMatch && methodUpper === 'POST') {
+    if (teamSongsMatch && methodUpper === 'POST') {
+        const teamId = teamSongsMatch[1];
         const body = data ? JSON.parse(data) : {};
-        const newMember: TeamMember = {
-            id: `member-${Date.now()}`,
-            userId: body.userId,
-            userName: 'New User',
-            userEmail: 'newuser@example.com',
-            role: body.role,
-            joinedAt: new Date().toISOString()
-        }
-        return success(newMember);
+        const newTeamSong: TeamSong = {
+            id: `ts-${Date.now()}`,
+            teamId,
+            customTitle: body.customTitle,
+            artist: body.artist,
+            keySignature: body.keySignature,
+            bpm: body.bpm,
+            youtubeUrl: body.youtubeUrl,
+            sheetMusicUrl: body.sheetMusicUrl,
+            note: body.note,
+            isFavorite: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        MOCK_TEAM_SONGS.push(newTeamSong);
+        return success(newTeamSong);
+    }
+
+    // --- Master Songs API (Search) ---
+    if (url === '/api/v1/songs' && methodUpper === 'GET') {
+        const query = config.params?.q;
+        if (!query) return success(MOCK_MASTER_SONGS.slice(0, 10)); // return recent/popular if no query
+
+        const filtered = MOCK_MASTER_SONGS.filter(s =>
+            s.title.includes(query) || s.artist.includes(query)
+        );
+        return success(filtered);
     }
 
     // --- Dashboard API ---
-
-    // 12. Get Dashboard Summary (GET /api/v1/dashboard/summary)
     if (url === '/api/v1/dashboard/summary' && methodUpper === 'GET') {
         const { MOCK_DASHBOARD_SUMMARY } = await import('./data');
         return success(MOCK_DASHBOARD_SUMMARY);
     }
 
-    // 13. Get Recent Contis (GET /api/v1/dashboard/contis/recent)
-    if (url === '/api/v1/dashboard/contis/recent' && methodUpper === 'GET') {
-        const { MOCK_RECENT_CONTIS } = await import('./data');
-        return success(MOCK_RECENT_CONTIS);
-    }
-
-    // 14. Get Songs (GET /api/v1/dashboard/songs)
-    if (url === '/api/v1/dashboard/songs' && methodUpper === 'GET') {
-        const { MOCK_SONGS } = await import('./data');
-        return success(MOCK_SONGS);
-    }
-
-    // 15. Get Activities (GET /api/v1/dashboard/activities)
-    if (url === '/api/v1/dashboard/activities' && methodUpper === 'GET') {
-        const { MOCK_ACTIVITIES } = await import('./data');
-        return success(MOCK_ACTIVITIES);
-    }
-
-    // 16. Get All Dashboard Data (GET /api/v1/dashboard)
     if (url === '/api/v1/dashboard' && methodUpper === 'GET') {
         const {
             MOCK_DASHBOARD_SUMMARY,
@@ -162,15 +189,6 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             recentContis: MOCK_RECENT_CONTIS,
             songs: MOCK_SONGS,
             activities: MOCK_ACTIVITIES,
-        });
-    }
-
-    // 11. Join Team (POST /api/v1/teams/join)
-    if (url === '/api/v1/teams/join' && methodUpper === 'POST') {
-        return success({
-            id: 'member-new',
-            role: 'MEMBER',
-            joinedAt: new Date().toISOString()
         });
     }
 

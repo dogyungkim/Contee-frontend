@@ -120,7 +120,7 @@ export function DashboardContent() {
                   </div>
                 </div>
                 <Button asChild size="sm" variant="outline">
-                  <Link href="/dashboard/contis">열기</Link>
+                  <Link href={`/dashboard/contis/${conti.id}`}>열기</Link>
                 </Button>
               </div>
             ))}
@@ -180,9 +180,15 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent className="grid gap-2">
             <Button asChild className="justify-start" variant="outline">
+              <Link href="/dashboard/contis/new">
+                <ListMusic className="mr-2 h-4 w-4" />
+                새 콘티 작성
+              </Link>
+            </Button>
+            <Button asChild className="justify-start" variant="outline">
               <Link href="/dashboard/contis">
                 <ListMusic className="mr-2 h-4 w-4" />
-                콘티 만들기/관리
+                콘티 목록 관리
               </Link>
             </Button>
             <Button asChild className="justify-start" variant="outline">
