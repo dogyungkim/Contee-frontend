@@ -5,48 +5,48 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-background: #fafafa;
-  --color-foreground: #374151;
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
 
   --color-card: #ffffff;
-  --color-card-foreground: #374151;
+  --color-card-foreground: #0a0a0a;
 
   --color-popover: #ffffff;
-  --color-popover-foreground: #374151;
+  --color-popover-foreground: #0a0a0a;
 
-  --color-primary: #059669;
-  --color-primary-foreground: #ffffff;
+  --color-primary: #18181b;
+  --color-primary-foreground: #fafafa;
 
-  --color-secondary: #e2e8f0; /* Adjusted for better contrast/subtlety based on design system */
-  --color-secondary-foreground: #374151;
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
 
-  --color-muted: #f3f4f6;
-  --color-muted-foreground: #6b7280;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
 
-  --color-accent: #059669;
-  --color-accent-foreground: #ffffff;
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
 
   --color-destructive: #ef4444;
   --color-destructive-foreground: #fafafa;
 
-  --color-border: #f3f4f6;
-  --color-input: #f3f4f6;
-  --color-ring: #059669;
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #18181b;
 
-  --color-chart-1: #059669; /* Accent */
-  --color-chart-2: #374151; /* Primary text/navigation */
-  --color-chart-3: #6b7280; /* Supporting text */
-  --color-chart-4: #facc15; /* Example: A neutral yellow, if needed */
-  --color-chart-5: #ef4444; /* Destructive */
+  --color-chart-1: #18181b;
+  --color-chart-2: #71717a;
+  --color-chart-3: #a1a1aa;
+  --color-chart-4: #d4d4d8;
+  --color-chart-5: #ef4444;
 
-  --color-sidebar: #374151; /* Primary for sidebar background */
-  --color-sidebar-foreground: #ffffff;
-  --color-sidebar-primary: #059669; /* Accent for active sidebar items */
-  --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #4b5563; /* Slightly lighter shade for sidebar elements */
-  --color-sidebar-accent-foreground: #ffffff;
-  --color-sidebar-border: #4b5563;
-  --color-sidebar-ring: #059669;
+  --color-sidebar: #fafafa;
+  --color-sidebar-foreground: #18181b;
+  --color-sidebar-primary: #18181b;
+  --color-sidebar-primary-foreground: #fafafa;
+  --color-sidebar-accent: #f4f4f5;
+  --color-sidebar-accent-foreground: #18181b;
+  --color-sidebar-border: #e4e4e7;
+  --color-sidebar-ring: #18181b;
 
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
@@ -59,21 +59,26 @@
     from {
       height: 0;
     }
+
     to {
       height: var(--radix-accordion-content-height);
     }
   }
+
   @keyframes accordion-up {
     from {
       height: var(--radix-accordion-content-height);
     }
+
     to {
       height: 0;
     }
   }
 
-  --font-display: "Inter", sans-serif;
-  --font-body: "Inter", sans-serif;
+  --font-display: "Inter",
+  sans-serif;
+  --font-body: "Inter",
+  sans-serif;
 }
 
 /*
@@ -85,12 +90,13 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: #f3f4f6; /* Light Gray for subtle borders */
+    border-color: #e4e4e7;
   }
 }
 
@@ -144,13 +150,19 @@
   * {
     border-color: var(--border);
   }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-body);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     color: var(--foreground);
   }
@@ -159,6 +171,7 @@
     color: var(--primary);
     text-decoration: none;
   }
+
   a:hover {
     text-decoration: underline;
   }
@@ -171,4 +184,23 @@
 /* Hide Next.js error overlay portal */
 nextjs-portal {
   display: none !important;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e4e4e7;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #71717a;
+  }
 }
