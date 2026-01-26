@@ -5,6 +5,7 @@ import { Plus, Calendar, Music, MoreVertical } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
+import { Conti } from '@/types/conti'
 import { useContis, useDeleteConti } from '../hooks/use-conti'
 import { useTeam } from '@/context/team-context'
 import { Button } from '@/components/ui/button'
@@ -62,7 +63,7 @@ export function ContiList() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {contis.map((conti) => (
+      {contis.map((conti: Conti) => (
         <Card key={conti.id} className="group relative overflow-hidden transition-all hover:border-primary/50">
           <Link href={`/dashboard/contis/${conti.id}`} className="absolute inset-0 z-0">
             <span className="sr-only">상세 보기</span>
@@ -87,7 +88,7 @@ export function ContiList() {
                     <DropdownMenuItem asChild>
                       <Link href={`/dashboard/contis/${conti.id}`}>편집</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
                       onClick={() => {
                         if (confirm('정말로 이 콘티를 삭제하시겠습니까?')) {

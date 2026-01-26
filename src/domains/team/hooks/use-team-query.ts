@@ -14,6 +14,7 @@ export const useMyTeamsQuery = () => {
     return useQuery({
         queryKey: teamKeys.lists(),
         queryFn: getMyTeams,
+        select: (data) => Array.isArray(data) ? data : (data as any)?.content || [],
     });
 };
 
@@ -30,6 +31,7 @@ export const useTeamMembersQuery = (teamId: string) => {
         queryKey: teamKeys.members(teamId),
         queryFn: () => getTeamMembers(teamId),
         enabled: !!teamId,
+        select: (data) => Array.isArray(data) ? data : (data as any)?.content || [],
     });
 };
 

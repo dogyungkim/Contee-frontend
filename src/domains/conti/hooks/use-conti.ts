@@ -25,6 +25,7 @@ export const useContis = (teamId: string | null) => {
         queryKey: contiKeys.list(teamId || ''),
         queryFn: () => getTeamContis(teamId!),
         enabled: !!teamId,
+        select: (data) => Array.isArray(data) ? data : (data as any)?.content || [],
     });
 };
 
@@ -41,6 +42,7 @@ export const useContiSongs = (contiId: string | null) => {
         queryKey: contiKeys.songs(contiId || ''),
         queryFn: () => getContiSongs(contiId!),
         enabled: !!contiId,
+        select: (data) => Array.isArray(data) ? data : (data as any)?.content || [],
     });
 };
 
