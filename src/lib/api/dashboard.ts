@@ -1,5 +1,7 @@
 import apiClient from '../api';
-import type { DashboardSummary, Conti, Song, Activity } from '@/lib/mock/data';
+import type { DashboardSummary, Activity } from '@/lib/mock/data';
+import type { Conti } from '@/types/conti';
+import type { Song } from '@/types/song';
 
 /**
  * [A] API Layer - Dashboard

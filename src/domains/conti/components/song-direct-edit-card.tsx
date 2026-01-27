@@ -38,27 +38,42 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
       return
     }
 
-    // Serialize song form to JSON and store in 'note' field for now, 
-    // appending to user note or handling as dedicated storage if note is empty
-    // For MVP, lets structure note field as:
-    // User Note...
-    // ---
-    // JSON: [...]
-    
-    let finalNote = note
-    if (songForm.length > 0) {
-        if (finalNote) finalNote += '\n\n'
-        finalNote += `[SongForm]${JSON.stringify(songForm)}`
-    }
+    // Map UI SongForm to API Request format
+    const songFormRequest = songForm.map(part => {
+        // Map UI type to API type
+        const typeMap: Record<string, string> = {
+            'Intro': 'INTRO',
+            'Verse': 'VERSE',
+            'Pre-chorus': 'PRE_CHORUS', 
+            'Chorus': 'CHORUS',
+            'Bridge': 'BRIDGE',
+            'Interlude': 'INTERLUDE', 
+            'Outro': 'OUTRO',
+            'Tag': 'TAG',
+            'Instrumental': 'INSTRUMENTAL'
+        }
+        
+        return {
+            partType: (typeMap[part.type] || 'VERSE') as any, // Cast to any or SongPartType
+            customPartName: part.abbr, // Using abbr as custom name if needed, or label? The API expects partType + count mostly. 
+            // The UI SongFormPart has: type, label, bars, abbr.
+            // The API SongFormPartRequest has: partType, customPartName, repeatCount, note.
+            // We'll set repeatCount to 1 as default since UI doesn't have it yet per-part in the array (it has 'count' in summary but not in Part struct explicitly?)
+            // Actually, looks like UI SongFormPart is linear list of parts. So repeatCount is 1 for each entry in the sequence.
+            repeatCount: 1, 
+            note: part.label // Use label (e.g. V1) as note or customPartName? Let's use label as note/customName.
+        }
+    })
 
-    const request: CreateTeamSongRequest = {
+    const request: CreateTeamSongRequest & { songForm?: any[] } = {
       customTitle: title,
       artist: artist,
       customKeySignature: key,
       customBpm: bpm ? parseInt(bpm) : undefined,
       youtubeUrl: youtubeUrl,
       sheetMusicUrl: sheetMusicUrl,
-      note: finalNote,
+      note: note,
+      songForm: songFormRequest.length > 0 ? songFormRequest : undefined
     }
     onSave(request)
   }

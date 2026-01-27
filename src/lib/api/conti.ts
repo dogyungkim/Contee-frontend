@@ -1,6 +1,6 @@
 import apiClient from '../api';
 import { ApiResponse } from '@/types/team';
-import type { Conti, ContiSong, CreateContiRequest, UpdateContiRequest, AddContiSongRequest } from '@/types/conti';
+import type { Conti, ContiSong, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
 
 /**
  * Conti API
@@ -50,11 +50,11 @@ export async function removeContiSong(contiId: string, contiSongId: string): Pro
     await apiClient.delete<ApiResponse<void>>(`/api/v1/contis/${contiId}/songs/${contiSongId}`);
 }
 
-// Update conti song (order, note, key, bpm)
+// Update conti song (key, bpm, note overrides)
 export async function updateContiSong(
     contiId: string,
     contiSongId: string,
-    request: Partial<AddContiSongRequest>
+    request: UpdateContiSongRequest
 ): Promise<ContiSong> {
     const { data } = await apiClient.patch<ApiResponse<ContiSong>>(`/api/v1/contis/${contiId}/songs/${contiSongId}`, request);
     return data.data;

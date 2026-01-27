@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Music, X, GripVertical, Youtube, FileText, Star, MessageSquare, Plus, Minus, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { ContiSong } from '@/types/conti'
-import { SongFormPart } from '@/types/song'
+import { SongFormPart, ApiSongFormPart } from '@/types/song'
 import { getSongFormSummary } from '@/domains/song/utils/song-form'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -69,25 +69,36 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
   const teamSong = contiSong.teamSong
 
   const [isTeamNoteOpen, setIsTeamNoteOpen] = useState(false)
-  const [parsedNote, setParsedNote] = useState<{ text: string, form: SongFormPart[] }>({ text: '', form: [] })
 
-  useEffect(() => {
-    const note = teamSong?.note || ''
-    const match = note.match(/\[SongForm\]([\s\S]*)/)
-    if (match) {
-      try {
-        const form = JSON.parse(match[1])
-        const text = note.replace(match[0], '').trim()
-        setParsedNote({ text, form })
-      } catch {
-        setParsedNote({ text: note, form: [] })
-      }
-    } else {
-      setParsedNote({ text: note, form: [] })
+  // Convert API song form to UI song form
+  const convertApiSongFormToUi = (apiParts: ApiSongFormPart[]): SongFormPart[] => {
+    return apiParts.map((part, index) => ({
+      id: `${part.id || index}`,
+      type: convertPartType(part.partType),
+      label: part.customPartName || part.partType,
+      bars: 8, // Default, API doesn't provide bars
+      abbr: part.customPartName ? part.customPartName.substring(0, 3) : undefined
+    }))
+  }
+
+  // Convert backend part type to UI part type
+  const convertPartType = (apiType: string): SongFormPart['type'] => {
+    const typeMap: Record<string, SongFormPart['type']> = {
+      'INTRO': 'Intro',
+      'VERSE': 'Verse',
+      'PRE_CHORUS': 'Pre-chorus',
+      'CHORUS': 'Chorus',
+      'BRIDGE': 'Bridge',
+      'INTERLUDE': 'Interlude',
+      'OUTRO': 'Outro',
+      'TAG': 'Tag',
+      'INSTRUMENTAL': 'Instrumental',
     }
-  }, [teamSong])
+    return typeMap[apiType] || 'Intro'
+  }
 
-  const groupedFlow = getSongFormSummary(parsedNote.form)
+  const songFormParts = contiSong.songForm ? convertApiSongFormToUi(contiSong.songForm) : []
+  const groupedFlow = getSongFormSummary(songFormParts)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -125,7 +136,7 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
           request: {
             keyOverride: form.keySignature,
             bpmOverride: form.bpm,
-            note: form.note
+            contiNote: form.note
           }
         })
       }
@@ -177,10 +188,10 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
 
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-base truncate">
-              {contiSong.customTitle || teamSong?.customTitle || contiSong.songTitle}
+              {contiSong.customTitle || contiSong.songTitle}
             </h4>
-            {/* Show original title if it exists and is different from the display title */}
-            {(contiSong.songTitle && (contiSong.customTitle || teamSong?.customTitle) !== contiSong.songTitle) && (
+            {/* Show original title if custom title exists and is different */}
+            {(contiSong.customTitle && contiSong.customTitle !== contiSong.songTitle) && (
               <p className="text-xs text-muted-foreground truncate -mt-0.5 mb-1">
                 Orig: {contiSong.songTitle}
               </p>
@@ -320,8 +331,8 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
               />
             </div>
 
-            {/* Team Song Note (Read-only) with Song Form */}
-            {(!!parsedNote.text || parsedNote.form.length > 0) && (
+            {/* Song Form and Team Note */}
+            {(songFormParts.length > 0 || teamSong?.note) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">팀 곡 정보 (공유)</Label>
@@ -336,7 +347,7 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
                   isTeamNoteOpen ? "max-h-[500px]" : "max-h-32"
                 )}>
                   {/* Song Form Display */}
-                  {parsedNote.form.length > 0 && (
+                  {songFormParts.length > 0 && (
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                       {groupedFlow.map((group, index) => (
                           <div key={index} className="flex items-center gap-1.5 shrink-0">
@@ -360,9 +371,9 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
                   )}
 
                   {/* Text Note */}
-                  {parsedNote.text && (
+                  {teamSong?.note && (
                      <div className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-                       {parsedNote.text}
+                       {teamSong.note}
                      </div>
                   )}
 

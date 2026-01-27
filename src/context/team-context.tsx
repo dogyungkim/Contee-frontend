@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useMyTeamsQuery } from '@/domains/team/hooks/use-team-query'
-import { TeamSummary } from '@/types/team'
+import { TeamSummary, Team } from '@/types/team'
 
 interface TeamContextType {
   selectedTeamId: string | null
@@ -24,7 +24,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (teams.length > 0 && !selectedTeamId) {
       const urlTeamId = searchParams.get('teamId')
-      if (urlTeamId && teams.some(t => t.id === urlTeamId)) {
+      if (urlTeamId && teams.some((t: Team) => t.id === urlTeamId)) {
         setSelectedTeamId(urlTeamId)
       } else {
         setSelectedTeamId(teams[0].id)
@@ -33,7 +33,7 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   }, [teams, selectedTeamId, searchParams])
 
   // Find the selected team object
-  const selectedTeam = teams.find(team => team.id === selectedTeamId) || null
+  const selectedTeam = teams.find((team: Team) => team.id === selectedTeamId) || null
 
   return (
     <TeamContext.Provider

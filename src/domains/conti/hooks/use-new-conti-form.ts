@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { useCreateConti } from '@/domains/conti/hooks/use-conti'
-import { TeamSong, CreateTeamSongRequest } from '@/types/song'
+import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/song'
 import { ContiSongCreateRequestItem } from '@/types/conti'
 
 // Temp Song Type for UI State
@@ -27,6 +27,7 @@ export interface TempContiSong {
     youtubeUrl?: string
     sheetMusicUrl?: string
     note?: string // Library note (for new songs) or just note
+    songForm?: SongFormPartRequest[] // Song structure for new songs
 
     // Conti Specific
     contiNote?: string
@@ -91,6 +92,7 @@ export const useNewContiForm = (teamId: string | null) => {
                         youtubeUrl: song.youtubeUrl,
                         sheetMusicUrl: song.sheetMusicUrl,
                         note: song.note,
+                        songForm: song.songForm,
                     }
                 } else {
                     // Case 1: Existing Song
@@ -149,6 +151,7 @@ export const useNewContiForm = (teamId: string | null) => {
             youtubeUrl: data.youtubeUrl,
             sheetMusicUrl: data.sheetMusicUrl,
             note: data.note,
+            songForm: data.songForm,
         }
         setTempSongs([...tempSongs, newTempSong])
     }

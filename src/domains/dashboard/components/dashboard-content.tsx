@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Clock, ListMusic, Search } from 'lucide-react'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
 
 import { useDashboard } from '@/domains/dashboard/hooks/use-dashboard'
 import { DashboardHeader } from './dashboard-header'
@@ -116,7 +118,7 @@ export function DashboardContent() {
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium">{conti.title}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {conti.dateLabel} · {conti.songCount}곡
+                    {format(new Date(conti.worshipDate), 'yyyy. M. d', { locale: ko })} · {conti.contiSongs?.length || 0}곡
                   </div>
                 </div>
                 <Button asChild size="sm" variant="outline">
@@ -157,7 +159,7 @@ export function DashboardContent() {
                   <div className="text-sm font-medium">{song.title}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
                     {song.artist}
-                    {song.defaultKey ? ` · Key ${song.defaultKey}` : ''}
+                    {song.keySignature ? ` · Key ${song.keySignature}` : ''}
                     {typeof song.bpm === 'number' ? ` · ${song.bpm}bpm` : ''}
                   </div>
                   <div className="mt-3">

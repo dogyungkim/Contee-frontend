@@ -39,6 +39,7 @@ export const MOCK_TEAMS: Team[] = [
         createdAt: '2023-01-01T09:00:00Z',
         updatedAt: '2023-01-15T10:00:00Z',
         memberCount: 5,
+        members: [],
     },
     {
         id: 'team-2',
@@ -48,6 +49,7 @@ export const MOCK_TEAMS: Team[] = [
         createdAt: '2023-02-01T14:00:00Z',
         updatedAt: '2023-02-01T14:00:00Z',
         memberCount: 12,
+        members: [],
     },
 ];
 
@@ -135,14 +137,16 @@ export const MOCK_CONTIS: Conti[] = [
 export const MOCK_CONTI_SONGS: ContiSong[] = [
     {
         id: 'cs-1',
-        contiId: 'conti-1',
+        contiId: 'c-1',
         teamSongId: 'ts-1',
         orderIndex: 0,
         keyOverride: 'G',
-        bpmOverride: 72,
-        createdAt: '2024-05-10T10:05:00Z',
-        updatedAt: '2024-05-10T10:05:00Z',
+        bpmOverride: 120,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         teamSong: MOCK_TEAM_SONGS[0],
+        songTitle: 'Mock Song 1',
+        songForm: []
     },
 ];
 

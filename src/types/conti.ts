@@ -1,6 +1,6 @@
 // Conti related types
 
-import { TeamSong } from "./song"
+import { TeamSong, ApiSongFormPart, SongFormPartRequest } from "./song"
 
 /**
  * Conti (Continuity/Setlist) - 예배 순서지
@@ -22,31 +22,26 @@ export interface Conti {
  */
 export interface ContiSong {
     id: string
-    contiId: string // Might not be in the nested list in some contexts
-    teamSongId?: string // Nullable if custom song not in library? API says teamSongId is UUID.
+    contiId: string
+    teamSongId: string
     orderIndex: number
-    note?: string // Library note? or contiNote? API response says `note`. Revisit.
-    // The API response for ContiSong has "note". The request has "contiNote".
-    // I will assume `note` in ContiSong refers to the note specific to this Conti connection if it's following the previous pattern, 
-    // OR it might be the TeamSong's note.
-    // Let's stick to the previous pattern: ContiSong has its own properties.
-    // Actually, looking at the API response: "customTitle", "songTitle", "songArtist", "keyOverride", "bpmOverride", "note".
-    // I will use `note` here.
+    note?: string // Conti-specific note (response field)
 
     keyOverride?: string
     bpmOverride?: number
 
-    // Additional fields from API response flattenning
-    customTitle?: string
-    songTitle?: string
+    // Flattened fields from API response
+    customTitle?: string // Team's custom title
+    songTitle: string // Original song title
     songArtist?: string
-    youtubeUrl?: string // From TeamSong or original Song
-    sheetMusicUrl?: string // From TeamSong or original Song
+    youtubeUrl?: string
+    sheetMusicUrl?: string
+    songForm: ApiSongFormPart[] // Song structure (Intro, Verse, Chorus, etc.)
 
     createdAt: string
     updatedAt: string
 
-    // Populated fields
+    // Populated fields (optional)
     teamSong?: TeamSong
 }
 
@@ -72,6 +67,7 @@ export interface ContiSongCreateNew {
     youtubeUrl?: string
     sheetMusicUrl?: string
     note?: string // Library note
+    songForm?: SongFormPartRequest[] // Song structure for new song (Added)
 
     orderIndex: number
     keyOverride?: string
@@ -80,6 +76,35 @@ export interface ContiSongCreateNew {
 }
 
 export type ContiSongCreateRequestItem = ContiSongCreateExisting | ContiSongCreateNew
+
+// Update Request Item (can include id for existing items)
+export interface ContiSongUpdateExisting {
+    id?: string // If present, updates existing ContiSong. If null/undefined, creates new.
+    teamSongId: string
+    orderIndex: number
+    keyOverride?: string
+    bpmOverride?: number
+    contiNote?: string
+}
+
+export interface ContiSongUpdateNew {
+    id?: string // Should be null/undefined for new songs usually, but kept for consistency
+    customTitle: string
+    artist?: string
+    customKeySignature?: string
+    customBpm?: number
+    youtubeUrl?: string
+    sheetMusicUrl?: string
+    note?: string
+    songForm?: SongFormPartRequest[]
+
+    orderIndex: number
+    keyOverride?: string
+    bpmOverride?: number
+    contiNote?: string
+}
+
+export type ContiSongUpdateRequestItem = ContiSongUpdateExisting | ContiSongUpdateNew
 
 export interface CreateContiRequest {
     teamId: string
@@ -93,28 +118,36 @@ export interface UpdateContiRequest {
     title?: string
     worshipDate?: string
     memo?: string
-    contiSongs?: ContiSongCreateRequestItem[]
+    contiSongs?: ContiSongUpdateRequestItem[]
 }
 
 export interface AddContiSongRequest {
-    // This endpoint /api/v1/contis/{id}/songs accepts a single song addition.
-    // It can be either Case 1 or Case 2 structure.
+    // Case 1: Adding existing library song
     teamSongId?: string
 
+    // Case 2: Creating new song
     customTitle?: string
     artist?: string
     customKeySignature?: string
     customBpm?: number
     youtubeUrl?: string
     sheetMusicUrl?: string
-    note?: string // Library note
+    note?: string // Library note for new song
+    songForm?: SongFormPartRequest[] // Song structure for new song
 
+    // Conti-specific overrides
     keyOverride?: string
     bpmOverride?: number
     contiNote?: string
 
-    orderIndex?: number // API doc adds this in the response example but not explicitly in request? Ah, usually appended. But doc for 'Create Conti' has orderIndex. 
-    // 'Add Song to Conti' doc request body examples don't show orderIndex, but response does.
+    orderIndex?: number
+}
+
+export interface UpdateContiSongRequest {
+    keyOverride?: string
+    bpmOverride?: number
+    contiNote?: string
+    songForm?: SongFormPartRequest[]
 }
 
 export interface ReorderContiSongsRequest {

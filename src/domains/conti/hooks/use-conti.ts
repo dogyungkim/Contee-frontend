@@ -10,7 +10,7 @@ import {
     updateContiSong,
     reorderContiSongs
 } from '@/lib/api/conti';
-import { CreateContiRequest, UpdateContiRequest, AddContiSongRequest } from '@/types/conti';
+import { CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
 
 export const contiKeys = {
     all: ['contis'] as const,
@@ -133,7 +133,7 @@ export const useUpdateContiSongDetail = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ contiId, contiSongId, request }: { contiId: string; contiSongId: string; request: Partial<AddContiSongRequest> }) =>
+        mutationFn: ({ contiId, contiSongId, request }: { contiId: string; contiSongId: string; request: UpdateContiSongRequest }) =>
             updateContiSong(contiId, contiSongId, request),
         onSuccess: (_, { contiId }) => {
             // Invalidate conti detail to refresh the contiSongs array

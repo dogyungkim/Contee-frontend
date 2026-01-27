@@ -61,6 +61,7 @@ export interface CreateTeamSongRequest {
     youtubeUrl?: string
     sheetMusicUrl?: string
     note?: string
+    songForm?: SongFormPartRequest[] // Added for creation with form
 }
 
 export interface UpdateTeamSongRequest {

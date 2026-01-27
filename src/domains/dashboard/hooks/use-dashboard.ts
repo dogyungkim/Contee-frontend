@@ -2,7 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { getDashboardData } from '@/lib/api/dashboard';
 import { useTeam } from '@/context/team-context';
 import { STALE_TIME } from '@/constants/time';
-import type { DashboardSummary, Conti, Song, Activity } from '@/lib/mock/data';
+import type { DashboardSummary, Activity } from '@/lib/mock/data';
+import type { Conti } from '@/types/conti';
+import type { Song } from '@/types/song';
 
 /**
  * [D] Logic Layer (Custom Hooks)

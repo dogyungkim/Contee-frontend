@@ -41,6 +41,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     if (url === '/api/v1/teams' && methodUpper === 'POST') {
         const body = data ? JSON.parse(data) : {};
         const newTeam: Team = {
+            members: [],
             id: `team-${Date.now()}`,
             name: body.name || 'New Team',
             shortCode: 'NEW12345',
@@ -100,6 +101,8 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const teamSong = MOCK_TEAM_SONGS.find(ts => ts.id === body.teamSongId);
 
         const newContiSong: ContiSong = {
+            songTitle: 'New Song', // Default title, or fetch from teamSong if available in real logic
+            songForm: [],
             id: `cs-${Date.now()}`,
             contiId,
             teamSongId: body.teamSongId,
