@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Music, X, GripVertical, Youtube, FileText, Star, MessageSquare, Plus, Minus, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { ContiSong } from '@/types/conti'
+import { SongFormPart } from '@/types/song'
+import { getSongFormSummary } from '@/domains/song/utils/song-form'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -64,7 +66,28 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
     note: '',
   })
   
+  const teamSong = contiSong.teamSong
+
   const [isTeamNoteOpen, setIsTeamNoteOpen] = useState(false)
+  const [parsedNote, setParsedNote] = useState<{ text: string, form: SongFormPart[] }>({ text: '', form: [] })
+
+  useEffect(() => {
+    const note = teamSong?.note || ''
+    const match = note.match(/\[SongForm\]([\s\S]*)/)
+    if (match) {
+      try {
+        const form = JSON.parse(match[1])
+        const text = note.replace(match[0], '').trim()
+        setParsedNote({ text, form })
+      } catch {
+        setParsedNote({ text: note, form: [] })
+      }
+    } else {
+      setParsedNote({ text: note, form: [] })
+    }
+  }, [teamSong])
+
+  const groupedFlow = getSongFormSummary(parsedNote.form)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -72,8 +95,6 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
     zIndex: isDragging ? 20 : 1,
     opacity: isDragging ? 0.5 : 1,
   }
-
-  const teamSong = contiSong.teamSong
   
   // Initialize form when song changes
   useEffect(() => {
@@ -156,8 +177,14 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
 
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-base truncate">
-              {teamSong?.customTitle}
+              {contiSong.customTitle || teamSong?.customTitle || contiSong.songTitle}
             </h4>
+            {/* Show original title if it exists and is different from the display title */}
+            {(contiSong.songTitle && (contiSong.customTitle || teamSong?.customTitle) !== contiSong.songTitle) && (
+              <p className="text-xs text-muted-foreground truncate -mt-0.5 mb-1">
+                Orig: {contiSong.songTitle}
+              </p>
+            )}
             <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
               <span className={cn("flex items-center gap-1", isKeyOverridden && "text-amber-600 font-medium")}>
                 <Music className="h-3 w-3" />
@@ -293,23 +320,54 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
               />
             </div>
 
-            {/* Team Song Note (Read-only) */}
-            {teamSong?.note && (
+            {/* Team Song Note (Read-only) with Song Form */}
+            {(!!parsedNote.text || parsedNote.form.length > 0) && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">팀 곡 메모 (공유)</Label>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">팀 곡 정보 (공유)</Label>
                   <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={() => setIsTeamNoteOpen(!isTeamNoteOpen)}>
                     {isTeamNoteOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                     {isTeamNoteOpen ? '접기' : '전체 보기'}
                   </Button>
                 </div>
+                
                 <div className={cn(
-                  "relative rounded-md border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground transition-all duration-200 overflow-hidden",
-                  isTeamNoteOpen ? "max-h-[500px]" : "max-h-16"
+                  "relative rounded-md border bg-muted/30 p-3 transition-all duration-200 overflow-hidden space-y-3",
+                  isTeamNoteOpen ? "max-h-[500px]" : "max-h-32"
                 )}>
-                  {teamSong.note}
+                  {/* Song Form Display */}
+                  {parsedNote.form.length > 0 && (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                      {groupedFlow.map((group, index) => (
+                          <div key={index} className="flex items-center gap-1.5 shrink-0">
+                                <div className={cn("px-2 py-1 rounded text-xs font-bold border shadow-sm whitespace-nowrap", {
+                                    'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
+                                    'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
+                                    'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
+                                    'bg-amber-50 border-amber-200 text-amber-700': group.type === 'Bridge',
+                                    'bg-emerald-50 border-emerald-200 text-emerald-700': group.type === 'Instrumental',
+                                    'bg-rose-50 border-rose-200 text-rose-700': group.type === 'Tag',
+                                    'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
+                                })}>
+                                    {group.abbr}
+                                    {group.showBars && <span className="ml-1 text-[10px] opacity-70 font-normal">({group.bars})</span>}
+                                    {group.count > 1 && <span className="ml-1 text-[9px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
+                                </div>
+                                {index < groupedFlow.length - 1 && <span className="text-slate-300 text-[10px]">→</span>}
+                          </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Text Note */}
+                  {parsedNote.text && (
+                     <div className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                       {parsedNote.text}
+                     </div>
+                  )}
+
                   {!isTeamNoteOpen && (
-                    <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-muted/30 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-muted/30 to-transparent" />
                   )}
                 </div>
               </div>
@@ -321,12 +379,12 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
               <div className="grid grid-cols-2 gap-2">
                 <Button 
                   variant="secondary" 
-                  disabled={!teamSong?.sheetMusicUrl} 
+                  disabled={!contiSong.sheetMusicUrl && !teamSong?.sheetMusicUrl} 
                   className="h-9 gap-2 text-sm"
-                  asChild={!!teamSong?.sheetMusicUrl}
+                  asChild={!!(contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl)}
                 >
-                  {teamSong?.sheetMusicUrl ? (
-                    <a href={teamSong.sheetMusicUrl} target="_blank" rel="noopener noreferrer">
+                  {(contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl) ? (
+                    <a href={contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl} target="_blank" rel="noopener noreferrer">
                       <FileText className="h-4 w-4" /> 악보 보기
                     </a>
                   ) : (
@@ -337,12 +395,12 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
                 </Button>
                 <Button 
                   variant="secondary" 
-                  disabled={!teamSong?.youtubeUrl} 
+                  disabled={!contiSong.youtubeUrl && !teamSong?.youtubeUrl} 
                   className="h-9 gap-2 text-sm"
-                  asChild={!!teamSong?.youtubeUrl}
+                  asChild={!!(contiSong.youtubeUrl || teamSong?.youtubeUrl)}
                 >
-                  {teamSong?.youtubeUrl ? (
-                    <a href={teamSong.youtubeUrl} target="_blank" rel="noopener noreferrer">
+                  {(contiSong.youtubeUrl || teamSong?.youtubeUrl) ? (
+                    <a href={contiSong.youtubeUrl || teamSong?.youtubeUrl} target="_blank" rel="noopener noreferrer">
                       <Youtube className="h-4 w-4 text-red-500" /> 유튜브
                     </a>
                   ) : (

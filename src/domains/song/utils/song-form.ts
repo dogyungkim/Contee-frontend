@@ -11,6 +11,7 @@ export const AVAILABLE_SECTIONS: {
 }[] = [
         { type: 'Intro', label: 'Intro', abbr: 'Intro', color: 'bg-slate-300', bg: 'bg-slate-50', border: 'border-slate-300' },
         { type: 'Verse', label: 'Verse', abbr: 'V', color: 'bg-blue-400', bg: 'bg-blue-50', border: 'border-blue-400' },
+        { type: 'Pre-chorus', label: 'Pre-chorus', abbr: 'PC', color: 'bg-pink-400', bg: 'bg-pink-50', border: 'border-pink-400' },
         { type: 'Chorus', label: 'Chorus', abbr: 'C', color: 'bg-purple-400', bg: 'bg-purple-50', border: 'border-purple-400' },
         { type: 'Bridge', label: 'Bridge', abbr: 'B', color: 'bg-amber-400', bg: 'bg-amber-50', border: 'border-amber-400' },
         { type: 'Instrumental', label: 'Instrumental', abbr: 'Inst', color: 'bg-emerald-400', bg: 'bg-emerald-50', border: 'border-emerald-400' },

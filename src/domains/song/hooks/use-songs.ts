@@ -6,7 +6,7 @@ import {
     updateTeamSong,
     deleteTeamSong
 } from '@/lib/api/song';
-import { CreateTeamSongRequest, UpdateTeamSongRequest } from '@/types/song';
+import { TeamSong, CreateTeamSongRequest, UpdateTeamSongRequest } from '@/types/song';
 
 export const songKeys = {
     all: ['songs'] as const,
@@ -19,6 +19,7 @@ export const useTeamSongs = (teamId: string | null) => {
         queryKey: songKeys.list(teamId || ''),
         queryFn: () => getTeamSongs(teamId!),
         enabled: !!teamId,
+        select: (data): TeamSong[] => Array.isArray(data) ? data : (data as any)?.content || [],
     });
 };
 

@@ -42,7 +42,7 @@ export interface TeamSong {
  */
 export interface SongFormPart {
     id: string
-    type: 'Intro' | 'Verse' | 'Chorus' | 'Bridge' | 'Instrumental' | 'Tag' | 'Outro' | 'Interlude'
+    type: 'Intro' | 'Verse' | 'Pre-chorus' | 'Chorus' | 'Bridge' | 'Instrumental' | 'Tag' | 'Outro' | 'Interlude'
     label?: string // e.g., "V1", "C2"
     bars?: number
     abbr?: string // Custom abbreviation for Flow summary
@@ -73,4 +73,57 @@ export interface UpdateTeamSongRequest {
     sheetMusicUrl?: string
     note?: string
     isFavorite?: boolean
+}
+
+/**
+ * Team Song Search Parameters
+ */
+export interface TeamSongSearchParams {
+    q?: string // 제목 또는 아티스트 검색어
+    key?: string // 키 (예: 'G', 'A')
+    bpmMin?: number // 최소 BPM
+    bpmMax?: number // 최대 BPM
+    isFavorite?: boolean // 즐겨찾기 여부
+}
+
+/**
+ * Song Form API Types (Backend responses)
+ * Note: There's a separate UI-focused SongFormPart type above (line 43-49)
+ */
+export type SongPartType =
+    | 'INTRO'
+    | 'VERSE'
+    | 'PRE_CHORUS'
+    | 'CHORUS'
+    | 'BRIDGE'
+    | 'INTERLUDE'
+    | 'OUTRO'
+    | 'TAG'
+    | 'INSTRUMENTAL'
+    | 'ENDING'
+    | 'CUSTOM'
+
+export interface ApiSongFormPart {
+    id: number
+    partOrder: number
+    partType: SongPartType
+    customPartName?: string
+    repeatCount: number
+    note?: string
+}
+
+export interface SongFormResponse {
+    teamSongId: string
+    parts: ApiSongFormPart[]
+}
+
+export interface SongFormPartRequest {
+    partType: SongPartType
+    customPartName?: string
+    repeatCount: number
+    note?: string
+}
+
+export interface SongFormUpdateRequest {
+    parts: SongFormPartRequest[]
 }

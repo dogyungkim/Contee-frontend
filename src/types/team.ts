@@ -4,6 +4,8 @@ export type TeamRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 export interface TeamSummary {
     id: string;
     name: string;
+    shortCode?: string;
+    description?: string;
 }
 
 // Team Detail (used in detail responses - GET /api/v1/teams/{id})

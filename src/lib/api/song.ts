@@ -1,14 +1,16 @@
 import apiClient from '../api';
 import { ApiResponse } from '@/types/team';
-import type { TeamSong, CreateTeamSongRequest, UpdateTeamSongRequest } from '@/types/song';
+import type { TeamSong, CreateTeamSongRequest, UpdateTeamSongRequest, TeamSongSearchParams } from '@/types/song';
 
 /**
  * TeamSong API
  */
 
 // Get all songs for a team
-export async function getTeamSongs(teamId: string): Promise<TeamSong[]> {
-    const { data } = await apiClient.get<ApiResponse<TeamSong[]>>(`/api/v1/teams/${teamId}/songs`);
+export async function getTeamSongs(teamId: string, params?: TeamSongSearchParams): Promise<TeamSong[]> {
+    const { data } = await apiClient.get<ApiResponse<TeamSong[]>>(`/api/v1/teams/${teamId}/songs`, {
+        params
+    });
     return data.data;
 }
 

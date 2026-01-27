@@ -5,7 +5,6 @@ import {
     createConti,
     updateConti,
     deleteConti,
-    getContiSongs,
     addContiSong,
     removeContiSong,
     updateContiSong,
@@ -38,11 +37,21 @@ export const useContiDetail = (contiId: string | null) => {
 };
 
 export const useContiSongs = (contiId: string | null) => {
+    const queryClient = useQueryClient();
+
     return useQuery({
         queryKey: contiKeys.songs(contiId || ''),
-        queryFn: () => getContiSongs(contiId!),
+        queryFn: () => {
+            // Get songs from the conti detail query cache
+            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as any;
+            return conti?.contiSongs || [];
+        },
         enabled: !!contiId,
-        select: (data) => Array.isArray(data) ? data : (data as any)?.content || [],
+        // This query depends on the conti detail query
+        initialData: () => {
+            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as any;
+            return conti?.contiSongs || [];
+        },
     });
 };
 
@@ -88,7 +97,8 @@ export const useAddContiSong = () => {
         mutationFn: ({ contiId, request }: { contiId: string; request: AddContiSongRequest }) =>
             addContiSong(contiId, request),
         onSuccess: (_, { contiId }) => {
-            queryClient.invalidateQueries({ queryKey: contiKeys.songs(contiId) });
+            // Invalidate conti detail to refresh the contiSongs array
+            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
         },
     });
 };
@@ -100,7 +110,8 @@ export const useRemoveContiSong = () => {
         mutationFn: ({ contiId, contiSongId }: { contiId: string; contiSongId: string }) =>
             removeContiSong(contiId, contiSongId),
         onSuccess: (_, { contiId }) => {
-            queryClient.invalidateQueries({ queryKey: contiKeys.songs(contiId) });
+            // Invalidate conti detail to refresh the contiSongs array
+            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
         },
     });
 };
@@ -112,7 +123,8 @@ export const useUpdateContiSongOrder = () => {
         mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) =>
             reorderContiSongs(contiId, songIds),
         onSuccess: (_, { contiId }) => {
-            queryClient.invalidateQueries({ queryKey: contiKeys.songs(contiId) });
+            // Invalidate conti detail to refresh the contiSongs array
+            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
         },
     });
 };
@@ -124,7 +136,8 @@ export const useUpdateContiSongDetail = () => {
         mutationFn: ({ contiId, contiSongId, request }: { contiId: string; contiSongId: string; request: Partial<AddContiSongRequest> }) =>
             updateContiSong(contiId, contiSongId, request),
         onSuccess: (_, { contiId }) => {
-            queryClient.invalidateQueries({ queryKey: contiKeys.songs(contiId) });
+            // Invalidate conti detail to refresh the contiSongs array
+            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
         },
     });
 };

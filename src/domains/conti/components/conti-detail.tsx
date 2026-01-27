@@ -7,7 +7,6 @@ import { ko } from 'date-fns/locale'
 
 import { 
   useContiDetail, 
-  useContiSongs, 
   useAddContiSong, 
   useRemoveContiSong,
   useUpdateContiSongOrder 
@@ -30,7 +29,8 @@ interface ContiDetailProps {
 export function ContiDetail({ contiId }: ContiDetailProps) {
   const { selectedTeamId } = useTeam()
   const { data: conti, isLoading: isContiLoading } = useContiDetail(contiId)
-  const { data: songs = [], isLoading: isSongsLoading } = useContiSongs(contiId)
+  // Songs are included in the conti detail response
+  const songs = conti?.contiSongs || []
   
   const { mutate: addSongMutate } = useAddContiSong()
   const { mutate: removeSongMutate } = useRemoveContiSong()
@@ -249,30 +249,6 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
           )}
         </div>
       </div>
-
-      {/* Dialogs */}
-      {/* TODO: Implement SongSearchDialog and SongCreateDialog */}
-      {/* <SongSearchDialog 
-        open={searchOpen} 
-        onOpenChange={setSearchOpen}
-        onSelect={(song, isMasterSong) => {
-          if (!isMasterSong) {
-            handleSelectExisting(song as TeamSong)
-          } else {
-             handleSelectMaster(song as Song)
-          }
-        }}
-        onCreateNew={handleCreateNew}
-        existingSongIds={songs.map(s => s.teamSongId)}
-      />
-
-      <SongCreateDialog 
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onSubmit={handleCreateSubmit}
-        isLoading={isCreatingSong}
-        initialTitle={initialTitle}
-      /> */}
     </div>
   )
 }

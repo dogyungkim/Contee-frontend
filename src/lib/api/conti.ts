@@ -24,9 +24,9 @@ export async function createConti(request: CreateContiRequest): Promise<Conti> {
     return data.data;
 }
 
-// Update conti
+// Update conti (full update - basic info + song list)
 export async function updateConti(contiId: string, request: UpdateContiRequest): Promise<Conti> {
-    const { data } = await apiClient.patch<ApiResponse<Conti>>(`/api/v1/contis/${contiId}`, request);
+    const { data } = await apiClient.put<ApiResponse<Conti>>(`/api/v1/contis/${contiId}`, request);
     return data.data;
 }
 
@@ -38,12 +38,6 @@ export async function deleteConti(contiId: string): Promise<void> {
 /**
  * ContiSong API
  */
-
-// Get songs in a conti
-export async function getContiSongs(contiId: string): Promise<ContiSong[]> {
-    const { data } = await apiClient.get<ApiResponse<ContiSong[]>>(`/api/v1/contis/${contiId}/songs`);
-    return data.data;
-}
 
 // Add song to conti
 export async function addContiSong(contiId: string, request: AddContiSongRequest): Promise<ContiSong> {

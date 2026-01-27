@@ -14,6 +14,7 @@ export interface Conti {
     status?: 'DRAFT' | 'CONFIRMED' // Added status from API doc
     createdAt: string
     updatedAt: string
+    contiSongs?: ContiSong[] // Included in detail API response
 }
 
 /**
@@ -39,6 +40,8 @@ export interface ContiSong {
     customTitle?: string
     songTitle?: string
     songArtist?: string
+    youtubeUrl?: string // From TeamSong or original Song
+    sheetMusicUrl?: string // From TeamSong or original Song
 
     createdAt: string
     updatedAt: string
