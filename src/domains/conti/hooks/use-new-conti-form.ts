@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { useCreateConti } from '@/domains/conti/hooks/use-conti'
 import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/song'
-import { ContiSongCreateRequestItem } from '@/types/conti'
+import { ContiSongRequestItem } from '@/types/conti'
 
 // Temp Song Type for UI State
 export interface TempContiSong {
@@ -73,9 +73,9 @@ export const useNewContiForm = (teamId: string | null) => {
             const worshipDate = `${format(date, 'yyyy-MM-dd')}T${serviceTime}`
 
             // 2. Map tempSongs to API Request Items
-            const contiSongsRequest: ContiSongCreateRequestItem[] = tempSongs.map((song, idx) => {
+            const contiSongsRequest: ContiSongRequestItem[] = tempSongs.map((song, idx) => {
                 const base = {
-                    orderIndex: idx,
+                    orderIndex: idx + 1, // 1-based index
                     keyOverride: song.keySignature,
                     bpmOverride: song.bpm,
                     contiNote: song.contiNote

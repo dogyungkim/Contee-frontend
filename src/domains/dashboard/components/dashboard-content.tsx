@@ -6,7 +6,7 @@ import { Clock, ListMusic, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
-import { useDashboard } from '@/domains/dashboard/hooks/use-dashboard'
+import { useDashboard, useMockDashboard} from '@/domains/dashboard/hooks/use-dashboard'
 import { DashboardHeader } from './dashboard-header'
 import { TeamEmptyState } from './team-empty-state'
 import { DashboardSkeleton } from './dashboard-skeleton'
@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input'
  */
 export function DashboardContent() {
   const [query, setQuery] = useState('')
-  const { hasTeam, summary, recentContis, songs, activities, isLoading, isError } = useDashboard()
+  const { hasTeam, summary, recentContis, songs, activities, isLoading, isError } = useMockDashboard()
 
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase()

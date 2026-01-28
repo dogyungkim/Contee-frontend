@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SongFormDialog } from '@/domains/song/components/song-form-dialog'
 import { getSongFormSummary } from '@/domains/song/utils/song-form'
-import { SongFormPart, CreateTeamSongRequest } from '@/types/song'
+import { SongFormPart, CreateTeamSongRequest, SongPartType, SongFormPartRequest } from '@/types/song'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
@@ -39,9 +39,9 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
     }
 
     // Map UI SongForm to API Request format
-    const songFormRequest = songForm.map(part => {
+    const songFormRequest: SongFormPartRequest[] = songForm.map(part => {
         // Map UI type to API type
-        const typeMap: Record<string, string> = {
+        const typeMap: Record<string, SongPartType> = {
             'Intro': 'INTRO',
             'Verse': 'VERSE',
             'Pre-chorus': 'PRE_CHORUS', 
@@ -53,19 +53,18 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
             'Instrumental': 'INSTRUMENTAL'
         }
         
+        const shouldIncludeBars = ['Intro', 'Interlude', 'Instrumental', 'Outro'].includes(part.type)
+
         return {
-            partType: (typeMap[part.type] || 'VERSE') as any, // Cast to any or SongPartType
-            customPartName: part.abbr, // Using abbr as custom name if needed, or label? The API expects partType + count mostly. 
-            // The UI SongFormPart has: type, label, bars, abbr.
-            // The API SongFormPartRequest has: partType, customPartName, repeatCount, note.
-            // We'll set repeatCount to 1 as default since UI doesn't have it yet per-part in the array (it has 'count' in summary but not in Part struct explicitly?)
-            // Actually, looks like UI SongFormPart is linear list of parts. So repeatCount is 1 for each entry in the sequence.
+            partType: (typeMap[part.type] || 'VERSE'), 
+            customPartName: part.abbr, 
             repeatCount: 1, 
-            note: part.label // Use label (e.g. V1) as note or customPartName? Let's use label as note/customName.
+            barCount: shouldIncludeBars ? part.bars : undefined,
+            note: part.label 
         }
     })
 
-    const request: CreateTeamSongRequest & { songForm?: any[] } = {
+    const request: CreateTeamSongRequest = {
       customTitle: title,
       artist: artist,
       customKeySignature: key,

@@ -48,8 +48,8 @@ export default function TeamsPage() {
     try {
       await removeTeamMemberMutation.mutateAsync({ teamId: selectedTeamId, userId })
       toast.success(`${userName}님이 팀에서 제거되었습니다`)
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || '멤버 제거에 실패했습니다'
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || '멤버 제거에 실패했습니다'
       toast.error(errorMessage)
       console.error('Remove member error:', error)
     }
@@ -65,8 +65,8 @@ export default function TeamsPage() {
         role: { role: newRole as 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' }
       })
       toast.success(`${userName}님의 역할이 ${getRoleLabel(newRole)}(으)로 변경되었습니다`)
-    } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || '역할 변경에 실패했습니다'
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || '역할 변경에 실패했습니다'
       toast.error(errorMessage)
       console.error('Change role error:', error)
     }

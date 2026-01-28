@@ -146,6 +146,7 @@ export const MOCK_CONTI_SONGS: ContiSong[] = [
         updatedAt: new Date().toISOString(),
         teamSong: MOCK_TEAM_SONGS[0],
         songTitle: 'Mock Song 1',
+        songArtist: 'Mock Artist',
         songForm: []
     },
 ];

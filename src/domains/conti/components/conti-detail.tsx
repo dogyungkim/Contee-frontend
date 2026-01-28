@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Plus, Settings, LayoutList, Share2, Info, Music } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -62,7 +63,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         <Info className="h-8 w-8 text-muted-foreground/30 mb-2" />
         <p className="text-sm font-medium text-muted-foreground">콘티를 찾을 수 없습니다.</p>
         <Button variant="link" asChild className="mt-2">
-            <a href="/dashboard/contis">목록으로 돌아가기</a>
+            <Link href="/dashboard/contis">목록으로 돌아가기</Link>
         </Button>
       </div>
     )
@@ -77,7 +78,6 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       contiId,
       request: {
         teamSongId: song.id,
-        orderIndex: nextOrder,
         customKeySignature: song.keySignature,
         customBpm: song.bpm
       }
@@ -191,21 +191,37 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <p className="text-xs text-neutral-500 mb-1">예배명</p>
+                <p className="text-xs text-neutral-500 mb-1">콘티명</p>
                 <p className="font-medium">{conti.title}</p>
               </div>
               <div>
-                <p className="text-xs text-neutral-500 mb-1">날짜</p>
-                <p className="font-medium">{format(new Date(conti.worshipDate), 'yyyy년 M월 d일')}</p>
+                <p className="text-xs text-neutral-500 mb-1">예배일</p>
+                <p className="font-medium">{format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}</p>
               </div>
               <div>
-                <p className="text-xs text-neutral-500 mb-1">시간</p>
-                <p className="font-medium">{format(new Date(conti.worshipDate), 'a h:mm', { locale: ko })}</p>
+                <p className="text-xs text-neutral-500 mb-1">예배 시간</p>
+                {/* worshipDate is YYYY-MM-DD, so no time info unless we kept it? 
+                    API doc says worshipDate is just Date. 
+                    If we lost time info in API, we can't show it from worshipDate. 
+                    Checking API doc again: "worshipDate": "2023-11-26". 
+                    It seems we lost specific time or it's separate?
+                    Doc overview: "모든 날짜 필드(worshipDate 등)는 YYYY-MM-DD 형식을 사용합니다."
+                    Wait, previous CreateContiRequest had hour/minute UI but sent as ISO string.
+                    New CreateContiRequest has "worshipDate": "2023-11-26".
+                    Does it mean we don't support time anymore? Or is it just implied?
+                    The doc says "worshipDate" (Required) 예배 일자 (YYYY-MM-DD).
+                    If time is not supported, I should remove "예배 시간" display or use a placeholder.
+                    Or maybe check if there's another field?
+                    Checking Type Definition I wrote: `worshipDate: string`.
+                    Let's comment out or header handle time differently if not available.
+                    For now, I'll just remove the time display if it's not in the data.
+                 */}
+                <p className="font-medium">-</p> 
               </div>
                {/* Placeholder for future fields */}
               <div>
-                 <p className="text-xs text-neutral-500 mb-1">상태</p>
-                 <span className="inline-block px-2 py-0.5 text-xs bg-emerald-50 text-emerald-600 rounded font-medium">준비중</span>
+                 <p className="text-xs text-neutral-500 mb-1">진행 상태</p>
+                 <span className="inline-block px-2 py-0.5 text-xs bg-emerald-50 text-emerald-600 rounded font-medium">예정</span>
               </div>
             </div>
             {conti.memo && (
@@ -225,6 +241,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
           </div>
           
           <ContiSongList 
+            contiId={contiId}
             songs={songs} 
             isEditMode={isEditMode}
             onRemove={(songId) => {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getTeamContis,
+    getContis,
     getConti,
     createConti,
     updateConti,
@@ -10,7 +10,7 @@ import {
     updateContiSong,
     reorderContiSongs
 } from '@/lib/api/conti';
-import { CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
+import { Conti, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
 
 export const contiKeys = {
     all: ['contis'] as const,
@@ -22,9 +22,13 @@ export const contiKeys = {
 export const useContis = (teamId: string | null) => {
     return useQuery({
         queryKey: contiKeys.list(teamId || ''),
-        queryFn: () => getTeamContis(teamId!),
+        queryFn: () => getContis(0, 100), // TODO: Implement proper pagination
         enabled: !!teamId,
-        select: (data) => Array.isArray(data) ? data : (data as any)?.content || [],
+        select: (data) => {
+            const contis = data.content || [];
+            if (!teamId) return contis;
+            return contis.filter(c => c.teamId === teamId);
+        },
     });
 };
 
@@ -43,13 +47,13 @@ export const useContiSongs = (contiId: string | null) => {
         queryKey: contiKeys.songs(contiId || ''),
         queryFn: () => {
             // Get songs from the conti detail query cache
-            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as any;
+            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as Conti;
             return conti?.contiSongs || [];
         },
         enabled: !!contiId,
         // This query depends on the conti detail query
         initialData: () => {
-            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as any;
+            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as Conti;
             return conti?.contiSongs || [];
         },
     });
@@ -120,8 +124,13 @@ export const useUpdateContiSongOrder = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) =>
-            reorderContiSongs(contiId, songIds),
+        mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) => {
+            const songOrders = songIds.map((id, index) => ({
+                contiSongId: id,
+                order: index + 1 // 1-based index per API doc
+            }));
+            return reorderContiSongs(contiId, { songOrders });
+        },
         onSuccess: (_, { contiId }) => {
             // Invalidate conti detail to refresh the contiSongs array
             queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });

@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-// import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
+import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
  import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -136,7 +136,7 @@ export default function NewContiPage() {
                     mode="single"
                     selected={date}
                     onSelect={(newDate) => newDate && setDate(newDate)}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>
@@ -320,7 +320,7 @@ export default function NewContiPage() {
       </div>
 
       {/* Song Search Dialog */}
-      {/* <SongSearchDialog
+      <SongSearchDialog
         open={searchOpen}
         onOpenChange={setSearchOpen}
         onSelect={(song) => {
@@ -329,7 +329,7 @@ export default function NewContiPage() {
         }}
         existingSongIds={tempSongs.map(s => s.teamSongId).filter(Boolean) as string[]}
         initialTab={searchTab}
-      /> */}
+      />
     </div>
   )
 }

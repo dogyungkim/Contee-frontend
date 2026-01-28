@@ -110,6 +110,7 @@ export interface ApiSongFormPart {
     partType: SongPartType
     customPartName?: string
     repeatCount: number
+    barCount?: number
     note?: string
 }
 
@@ -122,6 +123,7 @@ export interface SongFormPartRequest {
     partType: SongPartType
     customPartName?: string
     repeatCount: number
+    barCount?: number
     note?: string
 }
 

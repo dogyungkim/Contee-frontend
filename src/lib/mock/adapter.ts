@@ -14,7 +14,7 @@ import { Team, TeamMember } from '@/types/team';
 import { TeamSong } from '@/types/song';
 
 // Helper to create successful response
-const success = (data: any): AxiosResponse => {
+const success = (data: unknown): AxiosResponse => {
     return {
         data: {
             success: true,
@@ -102,6 +102,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
 
         const newContiSong: ContiSong = {
             songTitle: 'New Song', // Default title, or fetch from teamSong if available in real logic
+            songArtist: teamSong?.artist || 'Unknown',
             songForm: [],
             id: `cs-${Date.now()}`,
             contiId,

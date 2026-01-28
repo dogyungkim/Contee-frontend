@@ -1,14 +1,16 @@
 import apiClient from '../api';
 import { ApiResponse } from '@/types/team';
-import type { Conti, ContiSong, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
+import type { Conti, ContiSong, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest, ReorderContiSongsRequest } from '@/types/conti';
 
 /**
  * Conti API
  */
 
-// Get all contis for a team
-export async function getTeamContis(teamId: string): Promise<Conti[]> {
-    const { data } = await apiClient.get<ApiResponse<Conti[]>>(`/api/v1/teams/${teamId}/contis`);
+// Get all contis (Paginated)
+export async function getContis(page = 0, size = 20): Promise<{ content: Conti[], totalPages: number, totalElements: number }> {
+    const { data } = await apiClient.get<ApiResponse<{ content: Conti[], totalPages: number, totalElements: number }>>(`/api/v1/contis`, {
+        params: { page, size }
+    });
     return data.data;
 }
 
@@ -24,9 +26,9 @@ export async function createConti(request: CreateContiRequest): Promise<Conti> {
     return data.data;
 }
 
-// Update conti (full update - basic info + song list)
+// Update conti (Partial update with song list replacement)
 export async function updateConti(contiId: string, request: UpdateContiRequest): Promise<Conti> {
-    const { data } = await apiClient.put<ApiResponse<Conti>>(`/api/v1/contis/${contiId}`, request);
+    const { data } = await apiClient.patch<ApiResponse<Conti>>(`/api/v1/contis/${contiId}`, request);
     return data.data;
 }
 
@@ -50,7 +52,7 @@ export async function removeContiSong(contiId: string, contiSongId: string): Pro
     await apiClient.delete<ApiResponse<void>>(`/api/v1/contis/${contiId}/songs/${contiSongId}`);
 }
 
-// Update conti song (key, bpm, note overrides)
+// Update conti song (key, bpm, note overrides, form)
 export async function updateContiSong(
     contiId: string,
     contiSongId: string,
@@ -59,12 +61,11 @@ export async function updateContiSong(
     const { data } = await apiClient.patch<ApiResponse<ContiSong>>(`/api/v1/contis/${contiId}/songs/${contiSongId}`, request);
     return data.data;
 }
+
 // Reorder conti songs
 export async function reorderContiSongs(
     contiId: string,
-    songIds: string[]
+    request: ReorderContiSongsRequest
 ): Promise<void> {
-    await apiClient.put<ApiResponse<void>>(`/api/v1/contis/${contiId}/songs/order`, {
-        contiSongIds: songIds
-    });
+    await apiClient.put<ApiResponse<void>>(`/api/v1/contis/${contiId}/songs/order`, request);
 }

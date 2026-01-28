@@ -19,7 +19,7 @@ export const useTeamSongs = (teamId: string | null) => {
         queryKey: songKeys.list(teamId || ''),
         queryFn: () => getTeamSongs(teamId!),
         enabled: !!teamId,
-        select: (data): TeamSong[] => Array.isArray(data) ? data : (data as any)?.content || [],
+        select: (data): TeamSong[] => Array.isArray(data) ? data : (data as { content: TeamSong[] })?.content || [],
     });
 };
 

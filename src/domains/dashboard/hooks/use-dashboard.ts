@@ -68,3 +68,27 @@ export function useDashboard(): DashboardData {
         error,
     };
 }
+
+export function useMockDashboard(): DashboardData {
+    // Mock Data Implementation
+    const { teams } = useTeam();
+    const hasTeam = teams.length > 0;
+
+    return {
+        hasTeam,
+        summary: {
+            nextServiceLabel: '주일 예배',
+            nextServiceDateLabel: '이번 주 일요일 11:00',
+            thisWeekContiCount: 1,
+            totalSongCount: 128,
+        },
+        recentContis: [], // Add mock contis if needed
+        songs: [],        // Add mock songs if needed
+        activities: [
+            { id: 'a_001', timeLabel: '방금', message: '로그인에 성공했어요.' },
+        ],
+        isLoading: false,
+        isError: false,
+        error: null,
+    };
+}

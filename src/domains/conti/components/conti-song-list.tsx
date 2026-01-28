@@ -41,13 +41,14 @@ const COMMON_KEYS = [
 
 interface SortableSongItemProps {
   id: string
+  contiId: string
   contiSong: ContiSong
   index: number
   isEditMode: boolean
   onRemove: (id: string) => void
 }
 
-function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: SortableSongItemProps) {
+function SortableSongItem({ id, contiId, contiSong, index, isEditMode, onRemove }: SortableSongItemProps) {
   const {
     attributes,
     listeners,
@@ -110,11 +111,11 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
   // Initialize form when song changes
   useEffect(() => {
     setForm({
-      keySignature: contiSong.keyOverride || teamSong?.keySignature || '',
-      bpm: contiSong.bpmOverride || teamSong?.bpm || 0,
+      keySignature: contiSong.keyOverride || '',
+      bpm: contiSong.bpmOverride || 0,
       note: contiSong.note || '',
     })
-  }, [contiSong, teamSong])
+  }, [contiSong])
 
   // Checking for overrides
   const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
@@ -131,7 +132,7 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
         form.note !== (contiSong.note || '')
       ) {
         updateDetail({
-          contiId: contiSong.contiId,
+          contiId: contiId,
           contiSongId: contiSong.id,
           request: {
             keyOverride: form.keySignature,
@@ -142,7 +143,7 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
       }
     }, 1000)
     return () => clearTimeout(timer)
-  }, [form, contiSong, updateDetail])
+  }, [form, contiSong, updateDetail, contiId])
 
   const handleToggleFavorite = () => {
     if (!teamSong) return
@@ -390,12 +391,12 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
               <div className="grid grid-cols-2 gap-2">
                 <Button 
                   variant="secondary" 
-                  disabled={!contiSong.sheetMusicUrl && !teamSong?.sheetMusicUrl} 
+                  disabled={!teamSong?.sheetMusicUrl} 
                   className="h-9 gap-2 text-sm"
-                  asChild={!!(contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl)}
+                  asChild={!!(teamSong?.sheetMusicUrl)}
                 >
-                  {(contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl) ? (
-                    <a href={contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl} target="_blank" rel="noopener noreferrer">
+                  {(teamSong?.sheetMusicUrl) ? (
+                    <a href={teamSong?.sheetMusicUrl} target="_blank" rel="noopener noreferrer">
                       <FileText className="h-4 w-4" /> 악보 보기
                     </a>
                   ) : (
@@ -406,12 +407,12 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
                 </Button>
                 <Button 
                   variant="secondary" 
-                  disabled={!contiSong.youtubeUrl && !teamSong?.youtubeUrl} 
+                  disabled={!teamSong?.youtubeUrl} 
                   className="h-9 gap-2 text-sm"
-                  asChild={!!(contiSong.youtubeUrl || teamSong?.youtubeUrl)}
+                  asChild={!!(teamSong?.youtubeUrl)}
                 >
-                  {(contiSong.youtubeUrl || teamSong?.youtubeUrl) ? (
-                    <a href={contiSong.youtubeUrl || teamSong?.youtubeUrl} target="_blank" rel="noopener noreferrer">
+                  {(teamSong?.youtubeUrl) ? (
+                    <a href={teamSong?.youtubeUrl} target="_blank" rel="noopener noreferrer">
                       <Youtube className="h-4 w-4 text-red-500" /> 유튜브
                     </a>
                   ) : (
@@ -429,13 +430,14 @@ function SortableSongItem({ id, contiSong, index, isEditMode, onRemove }: Sortab
 }
 
 interface ContiSongListProps {
+  contiId: string
   songs: ContiSong[]
   isEditMode: boolean
   onRemove: (id: string) => void
   onUpdateOrder: (songs: ContiSong[]) => void
 }
 
-export function ContiSongList({ songs, isEditMode, onRemove, onUpdateOrder }: ContiSongListProps) {
+export function ContiSongList({ contiId, songs, isEditMode, onRemove, onUpdateOrder }: ContiSongListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: isEditMode ? undefined : { distance: 999999 }, // Effectively disable in view mode
@@ -485,6 +487,7 @@ export function ContiSongList({ songs, isEditMode, onRemove, onUpdateOrder }: Co
             <SortableSongItem 
               key={song.id} 
               id={song.id} 
+              contiId={contiId}
               contiSong={song} 
               index={index} 
               isEditMode={isEditMode}
