@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import { useAuthStore } from '@/stores/auth-store';
+import { mockAdapter } from './mock/adapter';
 
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -9,7 +10,7 @@ const apiClient = axios.create({
   withCredentials: true, // 쿠키 포함
   adapter:
     process.env.NEXT_PUBLIC_USE_MOCK === 'true'
-      ? require('./mock/adapter').mockAdapter
+      ? mockAdapter
       : undefined,
 });
 

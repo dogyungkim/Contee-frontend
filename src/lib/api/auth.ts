@@ -8,9 +8,9 @@ import { AuthResponse, User } from '@/types/auth';
  * - No React Hooks or UI logic allowed here.
  */
 
-// 1. Google OAuth Login Redirect
-export const loginWithGoogle = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`;
+// 1. Google OAuth Login URL
+export const getGoogleLoginUrl = (): string => {
+    return `${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`;
 };
 
 // 2. Logout

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useUserQuery, useLogoutMutation } from './use-auth-query';
-import { loginWithGoogle, refreshToken } from '@/lib/api/auth';
+import { getGoogleLoginUrl, refreshToken } from '@/lib/api/auth';
 
 /**
  * [D] Logic Layer (Custom Hooks)
@@ -58,13 +58,17 @@ export function useAuth(redirectTo?: string) {
     }
   }, [isAuthenticated, isLoading, redirectTo, router]);
 
+  const login = () => {
+    window.location.href = getGoogleLoginUrl();
+  };
+
   return {
     isAuthenticated,
     isLoading,
     user,
     error,
     clearError,
-    login: loginWithGoogle,
+    login,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
   };
@@ -89,4 +93,3 @@ export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard') {
 
   return { isAuthenticated, isLoading };
 }
-
