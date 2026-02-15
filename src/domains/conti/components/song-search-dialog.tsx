@@ -45,7 +45,7 @@ export function SongSearchDialog({
   const filteredSongs = teamSongs.filter(song => {
     const query = searchQuery.toLowerCase()
     return (
-      song.customTitle.toLowerCase().includes(query) ||
+      song.title.toLowerCase().includes(query) ||
       song.artist?.toLowerCase().includes(query) ||
       song.keySignature?.toLowerCase().includes(query) ||
       song.bpm?.toString().includes(query)

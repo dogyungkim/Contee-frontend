@@ -165,10 +165,11 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     if (teamSongsMatch && methodUpper === 'POST') {
         const teamId = teamSongsMatch[1];
         const body = data ? JSON.parse(data) : {};
+        const resolvedTitle = body.title ?? body.customTitle ?? '';
         const newTeamSong: TeamSong = {
             id: `ts-${Date.now()}`,
             teamId,
-            customTitle: body.customTitle,
+            title: resolvedTitle,
             artist: body.artist,
             keySignature: body.customKeySignature,
             bpm: body.customBpm,
@@ -181,6 +182,38 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         };
         MOCK_TEAM_SONGS.push(newTeamSong);
         return success(newTeamSong);
+    }
+
+    const teamSongDetailMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs\/([a-zA-Z0-9-]+)$/);
+    if (teamSongDetailMatch && methodUpper === 'PATCH') {
+        const songId = teamSongDetailMatch[2];
+        const body = data ? JSON.parse(data) : {};
+        const teamSong = MOCK_TEAM_SONGS.find(ts => ts.id === songId);
+
+        if (!teamSong) {
+            return {
+                data: { success: false, message: 'Team song not found', data: null },
+                status: 404,
+                statusText: 'Not Found',
+                headers: {},
+                config: {} as InternalAxiosRequestConfig,
+            };
+        }
+
+        const resolvedTitle = body.title ?? body.customTitle;
+        Object.assign(teamSong, {
+            ...(resolvedTitle !== undefined ? { title: resolvedTitle } : {}),
+            ...(body.artist !== undefined ? { artist: body.artist } : {}),
+            ...(body.customKeySignature !== undefined ? { keySignature: body.customKeySignature } : {}),
+            ...(body.customBpm !== undefined ? { bpm: body.customBpm } : {}),
+            ...(body.note !== undefined ? { note: body.note } : {}),
+            ...(body.youtubeUrl !== undefined ? { youtubeUrl: body.youtubeUrl } : {}),
+            ...(body.sheetMusicUrl !== undefined ? { sheetMusicUrl: body.sheetMusicUrl } : {}),
+            ...(body.isFavorite !== undefined ? { isFavorite: body.isFavorite } : {}),
+            updatedAt: new Date().toISOString(),
+        });
+
+        return success(teamSong);
     }
 
     // --- Master Songs API (Search) ---

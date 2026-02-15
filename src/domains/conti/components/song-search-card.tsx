@@ -20,7 +20,7 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
       {/* 1줄: 곡 제목 */}
       <div className="flex items-start justify-between gap-3 mb-2">
         <h4 className="font-bold text-base leading-tight flex-1">
-          {song.customTitle}
+          {song.title}
           {song.isFavorite && (
             <Star className="inline-block ml-2 h-4 w-4 text-yellow-600 fill-current" />
           )}

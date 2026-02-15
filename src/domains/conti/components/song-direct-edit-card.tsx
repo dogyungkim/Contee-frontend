@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Save, X, Music, type LucideIcon } from 'lucide-react'
+import { Save, X, Music } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -65,7 +65,7 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
     })
 
     const request: CreateTeamSongRequest = {
-      customTitle: title,
+      title,
       artist: artist,
       customKeySignature: key,
       customBpm: bpm ? parseInt(bpm) : undefined,

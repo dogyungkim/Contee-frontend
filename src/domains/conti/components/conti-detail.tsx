@@ -91,7 +91,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       teamId: selectedTeamId,
       request: {
         songId: song.id,
-        customTitle: song.title,
+        title: song.title,
         artist: song.artist,
         customKeySignature: song.keySignature,
         customBpm: song.bpm,

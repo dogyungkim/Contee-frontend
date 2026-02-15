@@ -90,7 +90,7 @@ export const MOCK_TEAM_SONGS: TeamSong[] = [
     {
         id: 'ts-1',
         teamId: 'team-1',
-        customTitle: '주의 은혜라',
+        title: '주의 은혜라',
         artist: '마커스',
         keySignature: 'G',
         bpm: 72,
@@ -101,7 +101,7 @@ export const MOCK_TEAM_SONGS: TeamSong[] = [
     {
         id: 'ts-2',
         teamId: 'team-1',
-        customTitle: '주님 한 분만으로',
+        title: '주님 한 분만으로',
         artist: '어노인팅',
         keySignature: 'E',
         bpm: 68,
@@ -112,7 +112,7 @@ export const MOCK_TEAM_SONGS: TeamSong[] = [
     {
         id: 'ts-3',
         teamId: 'team-1',
-        customTitle: '하늘 위에 주님밖에',
+        title: '하늘 위에 주님밖에',
         artist: '마커스',
         keySignature: 'A',
         bpm: 80,
@@ -161,7 +161,7 @@ export const MOCK_RECENT_CONTIS = MOCK_CONTIS.map(c => ({
 
 export const MOCK_SONGS = MOCK_TEAM_SONGS.map(ts => ({
     id: ts.id,
-    title: ts.customTitle,
+    title: ts.title,
     artist: ts.artist || '',
     defaultKey: ts.keySignature,
     bpm: ts.bpm

@@ -6,24 +6,33 @@ import type { TeamSong, CreateTeamSongRequest, UpdateTeamSongRequest, TeamSongSe
  * TeamSong API
  */
 
+function normalizeTeamSong(song: TeamSong & { title?: string; customTitle?: string }): TeamSong {
+    const resolvedTitle = song.title ?? song.customTitle ?? '';
+    return {
+        ...song,
+        title: resolvedTitle,
+    };
+}
+
 // Get all songs for a team
 export async function getTeamSongs(teamId: string, params?: TeamSongSearchParams): Promise<TeamSong[]> {
-    const { data } = await apiClient.get<ApiResponse<TeamSong[]>>(`/api/v1/teams/${teamId}/songs`, {
+    const { data } = await apiClient.get<ApiResponse<TeamSong[] | { content: TeamSong[] }>>(`/api/v1/teams/${teamId}/songs`, {
         params
     });
-    return data.data;
+    const rawSongs = Array.isArray(data.data) ? data.data : data.data?.content ?? [];
+    return rawSongs.map(normalizeTeamSong);
 }
 
 // Get single team song
 export async function getTeamSong(teamId: string, teamSongId: string): Promise<TeamSong> {
     const { data } = await apiClient.get<ApiResponse<TeamSong>>(`/api/v1/teams/${teamId}/songs/${teamSongId}`);
-    return data.data;
+    return normalizeTeamSong(data.data);
 }
 
 // Create team song
 export async function createTeamSong(teamId: string, request: CreateTeamSongRequest): Promise<TeamSong> {
     const { data } = await apiClient.post<ApiResponse<TeamSong>>(`/api/v1/teams/${teamId}/songs`, request);
-    return data.data;
+    return normalizeTeamSong(data.data);
 }
 
 // Update team song
@@ -33,7 +42,7 @@ export async function updateTeamSong(
     request: UpdateTeamSongRequest
 ): Promise<TeamSong> {
     const { data } = await apiClient.patch<ApiResponse<TeamSong>>(`/api/v1/teams/${teamId}/songs/${teamSongId}`, request);
-    return data.data;
+    return normalizeTeamSong(data.data);
 }
 
 // Delete team song

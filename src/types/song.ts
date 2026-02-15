@@ -24,7 +24,7 @@ export interface TeamSong {
     id: string
     teamId: string
     songId?: string // 외부 곡 DB 참조 (nullable)
-    customTitle: string
+    title: string
     artist?: string
     keySignature?: string
     bpm?: number
@@ -53,7 +53,7 @@ export interface SongFormPart {
  */
 export interface CreateTeamSongRequest {
     songId?: string
-    customTitle: string
+    title: string
     artist?: string
     customKeySignature?: string
     customBpm?: number
@@ -65,7 +65,7 @@ export interface CreateTeamSongRequest {
 }
 
 export interface UpdateTeamSongRequest {
-    customTitle?: string
+    title?: string
     artist?: string
     customKeySignature?: string
     customBpm?: number
@@ -85,6 +85,8 @@ export interface TeamSongSearchParams {
     bpmMin?: number // 최소 BPM
     bpmMax?: number // 최대 BPM
     isFavorite?: boolean // 즐겨찾기 여부
+    page?: number
+    size?: number
 }
 
 /**
