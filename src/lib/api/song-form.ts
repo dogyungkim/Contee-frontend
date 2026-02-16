@@ -1,5 +1,5 @@
 import apiClient from '../api';
-import { ApiResponse } from '@/types/team';
+import type { ApiResponse } from '@/types/api';
 import type { SongFormResponse, SongFormUpdateRequest } from '@/types/song';
 
 /**

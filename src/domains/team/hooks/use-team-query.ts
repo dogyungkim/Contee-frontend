@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole, createTeam } from '@/lib/api/team';
-import { TeamMember, TeamSummary, UpdateTeamMemberRoleRequest } from '@/types/team';
+import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole, createTeam } from '@/domains/team/api/team.api';
+import { UpdateTeamMemberRoleRequest } from '@/types/team';
 
 export const teamKeys = {
     all: ['teams'] as const,
@@ -14,7 +14,6 @@ export const useMyTeamsQuery = () => {
     return useQuery({
         queryKey: teamKeys.lists(),
         queryFn: getMyTeams,
-        select: (data) => Array.isArray(data) ? data : (data as { content: TeamSummary[] })?.content || [],
     });
 };
 
@@ -31,7 +30,6 @@ export const useTeamMembersQuery = (teamId: string) => {
         queryKey: teamKeys.members(teamId),
         queryFn: () => getTeamMembers(teamId),
         enabled: !!teamId,
-        select: (data): TeamMember[] => Array.isArray(data) ? data : (data as { content: TeamMember[] })?.content || [],
     });
 };
 
@@ -76,4 +74,3 @@ export const useCreateTeamMutation = () => {
         },
     });
 };
-

@@ -7,7 +7,7 @@ import { CheckCircle, Loader2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/stores/auth-store'
-import { refreshToken } from '@/lib/api/auth'
+import { refreshToken } from '@/domains/auth/api/auth.api'
 
 export function AuthCallbackClient() {
   const router = useRouter()
@@ -40,8 +40,8 @@ export function AuthCallbackClient() {
 
         const refreshData = await refreshToken()
 
-        if (refreshData.success && refreshData.data) {
-          setAccessToken(refreshData.data.accessToken)
+        if (refreshData) {
+          setAccessToken(refreshData.accessToken)
           setStatus('success')
           setMessage('로그인에 성공했습니다!')
 

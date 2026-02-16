@@ -1,39 +1,11 @@
-// Authentication related types
+import type { ApiResponse } from '@/types/api';
 
-export interface User {
-  id: number;
-  email: string;
-  name: string;
-  profileImageUrl: string;
-  provider: string;
-}
+export type {
+  User,
+  AuthResponse,
+  UserResponse,
+  AuthState,
+  LoginCredentials,
+} from '@/domains/auth/models/auth';
 
-export interface AuthResponse {
-  accessToken: string;
-  user: User;
-}
-
-export interface UserResponse {
-  id: number;
-  email: string;
-  name: string;
-  profileImageUrl: string;
-}
-
-export interface AuthState {
-  user: User | null;
-  accessToken: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface LoginCredentials {
-  provider: 'google';
-}
-
-export interface RefreshTokenResponse {
-  success: boolean;
-  message: string;
-  data: AuthResponse | null;
-}
+export type RefreshTokenResponse = ApiResponse<import('@/domains/auth/models/auth').AuthResponse | null>;

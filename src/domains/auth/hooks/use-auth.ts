@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useUserQuery, useLogoutMutation } from './use-auth-query';
-import { getGoogleLoginUrl, refreshToken } from '@/lib/api/auth';
+import { getGoogleLoginUrl, refreshToken } from '@/domains/auth/api/auth.api';
 
 /**
  * [D] Logic Layer (Custom Hooks)
@@ -25,9 +25,9 @@ export function useInitialAuth() {
       try {
         console.log('[useInitialAuth] Checking for existing session...');
         const refreshData = await refreshToken();
-        if (refreshData.success && refreshData.data) {
+        if (refreshData) {
           console.log('[useInitialAuth] Session recovered');
-          setAccessToken(refreshData.data.accessToken);
+          setAccessToken(refreshData.accessToken);
         }
       } catch (error) {
         // Silent fail - no session to recover

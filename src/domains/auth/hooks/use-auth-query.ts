@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMe, logout, refreshToken } from '@/lib/api/auth';
+import { getMe, logout } from '@/domains/auth/api/auth.api';
 import { useAuthStore } from '@/stores/auth-store';
 import { STALE_TIME } from '@/constants/time';
 
@@ -18,11 +18,7 @@ export const useUserQuery = () => {
 
             console.log('[useUserQuery] Fetching user data with token');
             try {
-                const response = await getMe(accessToken);
-                if (response?.success && response.data) {
-                    return response.data;
-                }
-                return null;
+                return await getMe(accessToken);
             } catch (error) {
                 console.error('[useUserQuery] Error:', error);
                 reset();

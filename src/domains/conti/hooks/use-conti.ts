@@ -9,7 +9,7 @@ import {
     removeContiSong,
     updateContiSong,
     reorderContiSongs
-} from '@/lib/api/conti';
+} from '@/domains/conti/api/conti.api';
 import { Conti, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
 
 export const contiKeys = {

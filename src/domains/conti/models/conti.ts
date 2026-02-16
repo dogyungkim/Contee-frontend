@@ -1,0 +1,58 @@
+import type { TeamSong } from '@/domains/song/models/song';
+
+export type ContiSongPartType =
+  | 'INTRO'
+  | 'VERSE'
+  | 'PRE_CHORUS'
+  | 'CHORUS'
+  | 'BRIDGE'
+  | 'INTERLUDE'
+  | 'OUTRO'
+  | 'TAG'
+  | 'INSTRUMENTAL'
+  | 'ENDING'
+  | 'CUSTOM';
+
+export interface ContiSongFormPart {
+  id: number;
+  partOrder: number;
+  partType: ContiSongPartType;
+  customPartName?: string;
+  repeatCount: number;
+  barCount?: number;
+  note?: string;
+}
+
+export interface Conti {
+  id: string;
+  teamId: string;
+  createdById?: string;
+  title: string;
+  worshipDate: string;
+  memo?: string;
+  status?: 'DRAFT' | 'CONFIRMED';
+  songCount?: number;
+  totalDuration?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  contiSongs?: ContiSong[];
+}
+
+export interface ContiSong {
+  id: string;
+  contiId?: string;
+  teamSongId?: string;
+  customTitle?: string;
+  songTitle: string;
+  songArtist: string;
+  orderIndex: number;
+  keyOverride?: string;
+  bpmOverride?: number;
+  note?: string;
+  youtubeUrl?: string;
+  sheetMusicUrl?: string;
+  songForm: ContiSongFormPart[];
+  teamSong?: TeamSong;
+  createdAt?: string;
+  updatedAt?: string;
+}

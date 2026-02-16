@@ -5,8 +5,8 @@ import {
     createTeamSong,
     updateTeamSong,
     deleteTeamSong
-} from '@/lib/api/song';
-import { TeamSong, CreateTeamSongRequest, UpdateTeamSongRequest } from '@/types/song';
+} from '@/domains/song/api/song.api';
+import { CreateTeamSongRequest, UpdateTeamSongRequest } from '@/types/song';
 
 export const songKeys = {
     all: ['songs'] as const,
@@ -19,7 +19,6 @@ export const useTeamSongs = (teamId: string | null) => {
         queryKey: songKeys.list(teamId || ''),
         queryFn: () => getTeamSongs(teamId!),
         enabled: !!teamId,
-        select: (data): TeamSong[] => Array.isArray(data) ? data : (data as { content: TeamSong[] })?.content || [],
     });
 };
 
@@ -72,7 +71,7 @@ export const useDeleteTeamSong = () => {
 export const useSearchSongs = (query: string) => {
     return useQuery({
         queryKey: [...songKeys.all, 'search', query] as const,
-        queryFn: () => import('@/lib/api/song').then(mod => mod.searchSongs(query)),
+        queryFn: () => import('@/domains/song/api/song.api').then(mod => mod.searchSongs(query)),
         enabled: query.length > 0,
         staleTime: 1000 * 60 * 5 // Cache search results for 5 minutes
     });
