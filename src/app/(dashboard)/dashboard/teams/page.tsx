@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Plus, Users, Copy, Check, MoreVertical, UserMinus, Shield } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTeam } from '@/context/team-context'
-import { useTeamMembersQuery, useRemoveTeamMemberMutation, useUpdateTeamMemberRoleMutation, useTeamQuery } from '@/domains/team/hooks/use-team-query'
+import { useTeamMembersQuery, useTeamQuery } from '@/domains/team/hooks/use-team-query'
+import { useTeamMemberActions } from '@/domains/team/hooks/use-team-member-actions'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/domains/auth/hooks/use-auth'
-import toast from 'react-hot-toast'
 
 export default function TeamsPage() {
   const { selectedTeam: summaryTeam, selectedTeamId } = useTeam()
@@ -27,76 +26,20 @@ export default function TeamsPage() {
   const selectedTeam = teamDetail || summaryTeam
   const { user } = useAuth()
   const { data: members = [], isLoading: isMembersLoading } = useTeamMembersQuery(selectedTeamId || '')
-  const removeTeamMemberMutation = useRemoveTeamMemberMutation()
-  const updateTeamMemberRoleMutation = useUpdateTeamMemberRoleMutation()
-  
-  const [copiedCode, setCopiedCode] = useState(false)
-
-  const handleCopyInviteCode = async () => {
-    if (!selectedTeam?.shortCode) return
-    await navigator.clipboard.writeText(selectedTeam.shortCode)
-    setCopiedCode(true)
-    toast.success('초대 코드가 복사되었습니다')
-    setTimeout(() => setCopiedCode(false), 2000)
-  }
-
-  const handleRemoveMember = async (userId: string, userName: string) => {
-    if (!selectedTeamId) return
-    
-    if (!confirm(`${userName}님을 팀에서 내보내시겠습니까?`)) return
-
-    try {
-      await removeTeamMemberMutation.mutateAsync({ teamId: selectedTeamId, userId })
-      toast.success(`${userName}님이 팀에서 제거되었습니다`)
-    } catch (error: unknown) {
-      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || '멤버 제거에 실패했습니다'
-      toast.error(errorMessage)
-      console.error('Remove member error:', error)
-    }
-  }
-
-  const handleChangeRole = async (userId: string, newRole: string, userName: string) => {
-    if (!selectedTeamId) return
-
-    try {
-      await updateTeamMemberRoleMutation.mutateAsync({
-        teamId: selectedTeamId,
-        userId,
-        role: { role: newRole as 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' }
-      })
-      toast.success(`${userName}님의 역할이 ${getRoleLabel(newRole)}(으)로 변경되었습니다`)
-    } catch (error: unknown) {
-      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || '역할 변경에 실패했습니다'
-      toast.error(errorMessage)
-      console.error('Change role error:', error)
-    }
-  }
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'OWNER':
-        return 'default'
-      case 'ADMIN':
-        return 'secondary'
-      default:
-        return 'outline'
-    }
-  }
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'OWNER':
-        return '소유자'
-      case 'ADMIN':
-        return '관리자'
-      case 'MEMBER':
-        return '멤버'
-      case 'VIEWER':
-        return '뷰어'
-      default:
-        return role
-    }
-  }
+  const {
+    copiedCode,
+    canManageMembers,
+    handleCopyInviteCode,
+    handleRemoveMember,
+    handleChangeRole,
+    getRoleLabel,
+    getRoleBadgeVariant,
+  } = useTeamMemberActions({
+    selectedTeamId,
+    selectedTeamShortCode: selectedTeam?.shortCode,
+    members,
+    currentUserId: user?.id,
+  })
 
   if (!selectedTeam) {
     return (
@@ -246,7 +189,7 @@ export default function TeamsPage() {
                           {getRoleLabel(member.role)}
                         </Badge>
 
-                        {!isCurrentUser && !isOwner && (
+                        {canManageMembers && !isCurrentUser && !isOwner && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">

@@ -6,6 +6,7 @@ import { format } from 'date-fns'
 import { useCreateConti } from '@/domains/conti/hooks/use-conti'
 import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/song'
 import { ContiSongRequestItem } from '@/types/conti'
+import { toast } from '@/lib/toast'
 
 // Temp Song Type for UI State
 export interface TempContiSong {
@@ -43,6 +44,9 @@ export const useNewContiForm = (teamId: string | null) => {
     const [minute, setMinute] = useState<string>("00")
     const [title, setTitle] = useState<string>("")
     const [memo, setMemo] = useState<string>("")
+    const [bibleVerseReference, setBibleVerseReference] = useState<string>("")
+    const [bibleVerseContent, setBibleVerseContent] = useState<string>("")
+    const [sharingInfo, setSharingInfo] = useState<string>("")
 
     // Song List State
     const [tempSongs, setTempSongs] = useState<TempContiSong[]>([])
@@ -54,23 +58,22 @@ export const useNewContiForm = (teamId: string | null) => {
 
     const handleSave = async () => {
         if (!title.trim()) {
-            alert('예배 제목을 입력해주세요.')
+            toast.error('예배 제목을 입력해주세요.')
             return
         }
 
         if (!teamId) {
-            alert('팀이 선택되지 않았습니다.')
+            toast.error('팀이 선택되지 않았습니다.')
             return
         }
 
         setIsSaving(true)
         try {
-            // 1. worshipDate composition
-            let h = parseInt(hour)
-            if (period === "PM" && h < 12) h += 12
-            if (period === "AM" && h === 12) h = 0
-            const serviceTime = `${h.toString().padStart(2, '0')}:${minute}:00`
-            const worshipDate = `${format(date, 'yyyy-MM-dd')}T${serviceTime}`
+            // API 계약: worshipDate는 YYYY-MM-DD 형식
+            const worshipDate = format(date, 'yyyy-MM-dd')
+            const formattedBibleVerse = [bibleVerseReference.trim(), bibleVerseContent.trim()]
+                .filter(Boolean)
+                .join('\n')
 
             // 2. Map tempSongs to API Request Items
             const contiSongsRequest: ContiSongRequestItem[] = tempSongs.map((song, idx) => {
@@ -108,7 +111,9 @@ export const useNewContiForm = (teamId: string | null) => {
                 teamId,
                 title,
                 worshipDate,
-                memo: memo || undefined,
+                memo: memo.trim() || undefined,
+                bibleVerse: formattedBibleVerse || undefined,
+                sharingInfo: sharingInfo.trim() || undefined,
                 contiSongs: contiSongsRequest
             })
 
@@ -116,7 +121,7 @@ export const useNewContiForm = (teamId: string | null) => {
             router.push(`/dashboard/contis/${newConti.id}`)
         } catch (error) {
             console.error('Failed to create conti:', error)
-            alert('콘티 생성 중 오류가 발생했습니다.')
+            toast.error('콘티 생성 중 오류가 발생했습니다.')
         } finally {
             setIsSaving(false)
         }
@@ -174,6 +179,12 @@ export const useNewContiForm = (teamId: string | null) => {
         setTitle,
         memo,
         setMemo,
+        bibleVerseReference,
+        setBibleVerseReference,
+        bibleVerseContent,
+        setBibleVerseContent,
+        sharingInfo,
+        setSharingInfo,
 
         // Songs
         tempSongs,

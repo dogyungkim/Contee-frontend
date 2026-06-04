@@ -42,6 +42,8 @@ export const toContiModel = (dto: ContiResponseDto): Conti => ({
   title: dto.title,
   worshipDate: dto.worshipDate,
   memo: dto.memo,
+  bibleVerse: dto.bibleVerse,
+  sharingInfo: dto.sharingInfo,
   status: dto.status,
   songCount: dto.songCount,
   totalDuration: dto.totalDuration,

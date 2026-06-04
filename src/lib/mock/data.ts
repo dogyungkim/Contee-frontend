@@ -129,6 +129,7 @@ export const MOCK_CONTIS: Conti[] = [
         title: '2024년 5월 19일 주일 예배',
         worshipDate: '2024-05-19',
         memo: '오순절 강림 주일',
+        status: 'DRAFT',
         createdAt: '2024-05-10T10:00:00Z',
         updatedAt: '2024-05-10T10:00:00Z',
     },
@@ -137,9 +138,9 @@ export const MOCK_CONTIS: Conti[] = [
 export const MOCK_CONTI_SONGS: ContiSong[] = [
     {
         id: 'cs-1',
-        contiId: 'c-1',
+        contiId: 'conti-1',
         teamSongId: 'ts-1',
-        orderIndex: 0,
+        orderIndex: 1,
         keyOverride: 'G',
         bpmOverride: 120,
         createdAt: new Date().toISOString(),

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import {
   Music,
   X,
@@ -15,8 +14,6 @@ import {
   ChevronUp,
 } from 'lucide-react'
 import { ContiSong } from '@/types/conti'
-import { SongFormPart, ApiSongFormPart } from '@/types/song'
-import { getSongFormSummary } from '@/domains/song/utils/song-form'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
@@ -24,35 +21,12 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Toggle } from '@/components/ui/toggle'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useUpdateContiSongDetail } from '../hooks/use-conti'
-import { useUpdateTeamSong } from '@/domains/song/hooks/use-songs'
+import { useContiSongItem } from '../hooks/use-conti-song-item'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 
 const COMMON_KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-
-const PART_TYPE_MAP: Record<string, SongFormPart['type']> = {
-  INTRO: 'Intro',
-  VERSE: 'Verse',
-  PRE_CHORUS: 'Pre-chorus',
-  CHORUS: 'Chorus',
-  BRIDGE: 'Bridge',
-  INTERLUDE: 'Interlude',
-  OUTRO: 'Outro',
-  TAG: 'Tag',
-  INSTRUMENTAL: 'Instrumental',
-}
-
-const convertApiSongFormToUi = (apiParts: ApiSongFormPart[]): SongFormPart[] => {
-  return apiParts.map((part, index) => ({
-    id: `${part.id || index}`,
-    type: PART_TYPE_MAP[part.partType] || 'Intro',
-    label: part.customPartName || part.partType,
-    bars: 8,
-    abbr: part.customPartName ? part.customPartName.substring(0, 3) : undefined,
-  }))
-}
 
 interface ContiSongItemProps {
   id: string
@@ -65,72 +39,26 @@ interface ContiSongItemProps {
 
 export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRemove }: ContiSongItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const { mutate: updateDetail } = useUpdateContiSongDetail()
-  const { mutate: updateTeamSong } = useUpdateTeamSong()
-  const [isTeamNoteOpen, setIsTeamNoteOpen] = useState(false)
-  const [form, setForm] = useState({
-    keySignature: '',
-    bpm: 0,
-    note: '',
-  })
-
-  const teamSong = contiSong.teamSong
-  const songFormParts = contiSong.songForm ? convertApiSongFormToUi(contiSong.songForm) : []
-  const groupedFlow = getSongFormSummary(songFormParts)
-
-  useEffect(() => {
-    setForm({
-      keySignature: contiSong.keyOverride || '',
-      bpm: contiSong.bpmOverride || 0,
-      note: contiSong.note || '',
-    })
-  }, [contiSong])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (
-        form.keySignature !== (contiSong.keyOverride || '') ||
-        form.bpm !== (contiSong.bpmOverride || 0) ||
-        form.note !== (contiSong.note || '')
-      ) {
-        updateDetail({
-          contiId,
-          contiSongId: contiSong.id,
-          request: {
-            keyOverride: form.keySignature,
-            bpmOverride: form.bpm,
-            contiNote: form.note,
-          },
-        })
-      }
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [form, contiSong, updateDetail, contiId])
-
-  const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
-  const isBpmOverridden = !!form.bpm && form.bpm !== teamSong?.bpm
-  const isNoteOverridden = !!form.note
+  const {
+    form,
+    setForm,
+    isTeamNoteOpen,
+    setIsTeamNoteOpen,
+    teamSong,
+    songFormParts,
+    groupedFlow,
+    isKeyOverridden,
+    isBpmOverridden,
+    isNoteOverridden,
+    handleToggleFavorite,
+    resetField,
+  } = useContiSongItem({ contiId, contiSong })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 20 : 1,
     opacity: isDragging ? 0.5 : 1,
-  }
-
-  const handleToggleFavorite = () => {
-    if (!teamSong) return
-    updateTeamSong({
-      teamId: teamSong.teamId,
-      songId: teamSong.id,
-      request: { isFavorite: !teamSong.isFavorite },
-    })
-  }
-
-  const resetField = (field: 'keySignature' | 'bpm') => {
-    if (!teamSong) return
-    setForm((prev) => ({ ...prev, [field]: teamSong[field] || (field === 'bpm' ? 0 : '') }))
   }
 
   return (

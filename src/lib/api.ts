@@ -2,6 +2,12 @@ import axios, { AxiosResponse, AxiosError } from 'axios';
 import { useAuthStore } from '@/stores/auth-store';
 import { mockAdapter } from './mock/adapter';
 
+const API_LOG_ENABLED =
+  process.env.NEXT_PUBLIC_API_LOG === 'true' || process.env.NODE_ENV === 'development';
+
+const getRequestUrl = (config: { baseURL?: string; url?: string }) =>
+  `${config.baseURL || ''}${config.url || ''}`;
+
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
@@ -17,6 +23,15 @@ const apiClient = axios.create({
 // Request interceptor - 토큰 자동 추가
 apiClient.interceptors.request.use(
   (config) => {
+    if (API_LOG_ENABLED) {
+      console.debug('[API:REQ]', {
+        method: config.method?.toUpperCase(),
+        url: getRequestUrl(config),
+        params: config.params,
+        data: config.data,
+      });
+    }
+
     const token = useAuthStore.getState().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -31,9 +46,26 @@ apiClient.interceptors.request.use(
 // Response interceptor - 401 에러 시 토큰 갱신
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    if (API_LOG_ENABLED) {
+      console.debug('[API:RES]', {
+        method: response.config.method?.toUpperCase(),
+        url: getRequestUrl(response.config),
+        status: response.status,
+        data: response.data,
+      });
+    }
     return response;
   },
   async (error: AxiosError) => {
+    if (API_LOG_ENABLED) {
+      console.error('[API:ERR]', {
+        method: error.config?.method?.toUpperCase(),
+        url: getRequestUrl(error.config || {}),
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+    }
+
     const originalRequest =
       (error.config as (typeof error.config & { _retry?: boolean }) | undefined) ??
       undefined;

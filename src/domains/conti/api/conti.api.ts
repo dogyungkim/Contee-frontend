@@ -9,6 +9,7 @@ import type {
   AddContiSongRequestDto,
   UpdateContiSongRequestDto,
   ReorderContiSongsRequestDto,
+  UpdateContiStatusRequestDto,
 } from '@/domains/conti/api/conti.dto';
 import { toContiModel, toContiSongModel } from '@/domains/conti/api/conti.mapper';
 
@@ -34,6 +35,17 @@ export async function createConti(request: CreateContiRequestDto): Promise<Conti
 
 export async function updateConti(contiId: string, request: UpdateContiRequestDto): Promise<Conti> {
   const { data } = await apiClient.patch<ApiResponse<ContiResponseDto>>(`/api/v1/contis/${contiId}`, request);
+  return toContiModel(data.data);
+}
+
+export async function updateContiStatus(
+  contiId: string,
+  request: UpdateContiStatusRequestDto,
+): Promise<Conti> {
+  const { data } = await apiClient.patch<ApiResponse<ContiResponseDto>>(
+    `/api/v1/contis/${contiId}/status`,
+    request,
+  );
   return toContiModel(data.data);
 }
 

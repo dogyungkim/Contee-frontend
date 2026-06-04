@@ -6,11 +6,13 @@ interface AuthStore {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  hasCheckedSession: boolean;
 
   // Actions
   setAccessToken: (token: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setHasCheckedSession: (checked: boolean) => void;
   clearError: () => void;
   reset: () => void;
 }
@@ -23,6 +25,7 @@ export const useAuthStore = create<AuthStore>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      hasCheckedSession: false,
 
       // Actions
       setAccessToken: (accessToken: string | null) => {
@@ -37,6 +40,10 @@ export const useAuthStore = create<AuthStore>()(
         set({ error });
       },
 
+      setHasCheckedSession: (hasCheckedSession: boolean) => {
+        set({ hasCheckedSession });
+      },
+
       clearError: () => {
         set({ error: null });
       },
@@ -47,6 +54,7 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: false,
           isLoading: false,
           error: null,
+          hasCheckedSession: true,
         });
       },
     }),

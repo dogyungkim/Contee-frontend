@@ -4,13 +4,14 @@ import {
     getConti,
     createConti,
     updateConti,
+    updateContiStatus,
     deleteConti,
     addContiSong,
     removeContiSong,
     updateContiSong,
     reorderContiSongs
 } from '@/domains/conti/api/conti.api';
-import { Conti, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
+import { Conti, ContiStatus, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
 
 export const contiKeys = {
     all: ['contis'] as const,
@@ -83,12 +84,25 @@ export const useUpdateConti = () => {
     });
 };
 
+export const useUpdateContiStatus = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ contiId, status }: { contiId: string; status: ContiStatus }) =>
+            updateContiStatus(contiId, { status }),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: contiKeys.detail(data.id) });
+            queryClient.invalidateQueries({ queryKey: contiKeys.list(data.teamId) });
+        },
+    });
+};
+
 export const useDeleteConti = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (contiId: string) => deleteConti(contiId),
-        onSuccess: (_, contiId) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: contiKeys.all });
         },
     });
@@ -129,7 +143,7 @@ export const useUpdateContiSongOrder = () => {
                 contiSongId: id,
                 order: index + 1 // 1-based index per API doc
             }));
-            return reorderContiSongs(contiId, { songOrders });
+            return reorderContiSongs(contiId, { songOrders, contiSongIds: songIds });
         },
         onSuccess: (_, { contiId }) => {
             // Invalidate conti detail to refresh the contiSongs array

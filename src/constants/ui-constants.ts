@@ -1,1 +1,17 @@
-// UI related constants will be defined here.
+export const UI_DELAY_MS = {
+  AUTH_CALLBACK_REDIRECT: 700,
+  CONTI_SONG_AUTOSAVE: 600,
+  COPY_FEEDBACK_RESET: 2000,
+} as const;
+
+export const DND_CONFIG = {
+  DISABLED_POINTER_DISTANCE: 9999,
+  SONG_FORM_MOUSE_DISTANCE: 8,
+  SONG_FORM_TOUCH_DELAY: 180,
+  SONG_FORM_TOUCH_TOLERANCE: 8,
+} as const;
+
+export const SONG_FORM_CONFIG = {
+  DEFAULT_BARS: 8,
+  CUSTOM_ABBR_MAX_LENGTH: 4,
+} as const;

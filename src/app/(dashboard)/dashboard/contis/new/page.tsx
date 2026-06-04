@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Save, Music, ChevronLeft } from 'lucide-react'
+import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
@@ -46,6 +46,12 @@ export default function NewContiPage() {
     setTitle,
     memo,
     setMemo,
+    bibleVerseReference,
+    setBibleVerseReference,
+    bibleVerseContent,
+    setBibleVerseContent,
+    sharingInfo,
+    setSharingInfo,
     tempSongs,
     addExistingSong,
     addNewSong,
@@ -201,6 +207,52 @@ export default function NewContiPage() {
               onChange={(e) => setMemo(e.target.value)}
               className="min-h-[100px] resize-none"
             />
+          </div>
+        </div>
+
+        {/* Bible Verse & Sharing Section */}
+        <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-6 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-sky-200 bg-white">
+                <BookOpen className="h-4 w-4 text-sky-700" />
+              </div>
+              <h3 className="text-sm font-bold text-sky-900">말씀 & 나눔</h3>
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="bibleVerseReference" className="text-emerald-900">본문 위치</Label>
+              <Input
+                id="bibleVerseReference"
+                placeholder="예: 요한복음 : 3 : 16"
+                value={bibleVerseReference}
+                onChange={(e) => setBibleVerseReference(e.target.value)}
+                className="text-base border-emerald-200 bg-white/90 focus-visible:ring-emerald-300"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bibleVerseContent" className="text-emerald-900">본문</Label>
+              <Textarea
+                id="bibleVerseContent"
+                placeholder="예: 하나님이 세상을 이처럼 사랑하사..."
+                value={bibleVerseContent}
+                onChange={(e) => setBibleVerseContent(e.target.value)}
+                className="min-h-[120px] resize-none border-emerald-200 bg-white/90 focus-visible:ring-emerald-300"
+              />
+            </div>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="sharingInfo" className="text-amber-900">나눔</Label>
+              <Textarea
+                id="sharingInfo"
+                placeholder="오늘 콘티 나눔 내용을 입력하세요."
+                value={sharingInfo}
+                onChange={(e) => setSharingInfo(e.target.value)}
+                className="min-h-[140px] resize-none border-amber-200 bg-white/90 focus-visible:ring-amber-300"
+              />
+            </div>
           </div>
         </div>
 

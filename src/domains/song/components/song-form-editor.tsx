@@ -3,8 +3,6 @@
 import React, { useState } from 'react' // Import useState
 import {
   DndContext,
-  DragOverlay,
-  useDraggable,
   useDroppable,
   closestCorners,
   MouseSensor,
@@ -12,7 +10,6 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragStartEvent,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -35,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
+import { DND_CONFIG, SONG_FORM_CONFIG } from '@/constants/ui-constants'
 
 // --- Types ---
 
@@ -42,6 +40,13 @@ interface SongFormEditorProps {
   value: SongFormPart[]
   onChange: (value: SongFormPart[]) => void
 }
+
+const VERSE_NUMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8] as const
+const BAR_COUNT_OPTIONS = [4, 8, 12, 16, 32] as const
+const PART_ID_RANDOM_SUFFIX_LENGTH = 9
+const CUSTOM_PART_FALLBACK_LABEL = 'Custom'
+
+const createPartId = () => `part-${Date.now()}-${Math.random().toString(36).slice(2, 2 + PART_ID_RANDOM_SUFFIX_LENGTH)}`
 
 // --- Components ---
 
@@ -109,7 +114,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="min-w-[40px]">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                        {VERSE_NUMBER_OPTIONS.map((num) => (
                             <DropdownMenuItem 
                                 key={num} 
                                 onClick={() => onUpdate(part.id, { label: `Verse ${num}` })}
@@ -137,9 +142,9 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                    type="number"
                    className="h-6 w-14 text-xs pl-1 pr-5 text-right bg-white/50 border-gray-300 focus:bg-white transition-colors"
                    value={part.bars || ''}
-                   onChange={(e) => onUpdate(part.id, { bars: parseInt(e.target.value) || 0 })}
+                   onChange={(e) => onUpdate(part.id, { bars: Number.parseInt(e.target.value) || 0 })}
                    min={0}
-                   placeholder="8"
+                   placeholder={`${SONG_FORM_CONFIG.DEFAULT_BARS}`}
                  />
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -148,7 +153,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="p-1 min-w-[60px]">
-                        {[4, 8, 12, 16, 32].map((bars) => (
+                        {BAR_COUNT_OPTIONS.map((bars) => (
                             <DropdownMenuItem 
                                 key={bars} 
                                 onClick={() => onUpdate(part.id, { bars })}
@@ -188,8 +193,6 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
 // --- Main Editor ---
 
 export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [activeItem, setActiveItem] = useState<SongFormPart | null>(null)
   const [customPopoverOpen, setCustomPopoverOpen] = useState(false)
   const [customForm, setCustomForm] = useState<{
     abbr: string
@@ -198,12 +201,19 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
   }>({
     abbr: '',
     label: '',
-    bars: 8
+    bars: SONG_FORM_CONFIG.DEFAULT_BARS
   })
 
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 10 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(MouseSensor, {
+      activationConstraint: { distance: DND_CONFIG.SONG_FORM_MOUSE_DISTANCE },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: DND_CONFIG.SONG_FORM_TOUCH_DELAY,
+        tolerance: DND_CONFIG.SONG_FORM_TOUCH_TOLERANCE,
+      },
+    }),
   )
 
   const addItem = (type: SongFormPart['type']) => {
@@ -215,10 +225,10 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
     const label = needsNumber ? `${sectionInfo.label} ${count}` : sectionInfo.label
 
     const newItem: SongFormPart = {
-      id: `part-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: createPartId(),
       type,
       label,
-      bars: 8, // default
+      bars: SONG_FORM_CONFIG.DEFAULT_BARS, // default
     }
     
     onChange([...value, newItem])
@@ -226,9 +236,9 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
 
   const handleAddCustom = () => {
     const newItem: SongFormPart = {
-      id: `part-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: createPartId(),
       type: 'Verse', // Use Verse as default type for styling
-      label: customForm.label || customForm.abbr || 'Custom',
+      label: customForm.label || customForm.abbr || CUSTOM_PART_FALLBACK_LABEL,
       bars: customForm.bars,
       abbr: customForm.abbr, // Store custom abbreviation for flow
     }
@@ -238,22 +248,12 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
     setCustomForm({
       abbr: '',
       label: '',
-      bars: 8
+      bars: SONG_FORM_CONFIG.DEFAULT_BARS
     })
-  }
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
-    const item = value.find((item) => item.id === event.active.id)
-    if (item) setActiveItem(item)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    setActiveId(null)
-    setActiveItem(null)
-
-    if (!over) return
 
     if (!over) return
 
@@ -280,7 +280,6 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <div className="grid grid-cols-12 gap-6 h-full p-1">
@@ -346,7 +345,7 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
                             min={0}
                             className="h-8 text-xs"
                             value={customForm.bars}
-                            onChange={(e) => setCustomForm(prev => ({ ...prev, bars: parseInt(e.target.value) || 0 }))}
+                            onChange={(e) => setCustomForm(prev => ({ ...prev, bars: Number.parseInt(e.target.value) || 0 }))}
                           />
                         </div>
                       </div>

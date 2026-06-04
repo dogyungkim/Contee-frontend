@@ -1,11 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMe, logout } from '@/domains/auth/api/auth.api';
+import { AxiosError } from 'axios';
+import { getMe, logout, refreshToken } from '@/domains/auth/api/auth.api';
 import { useAuthStore } from '@/stores/auth-store';
 import { STALE_TIME } from '@/constants/time';
 
 export const authKeys = {
     all: ['auth'] as const,
     user: () => [...authKeys.all, 'user'] as const,
+    sessionRecovery: () => [...authKeys.all, 'session-recovery'] as const,
+};
+
+export const useSessionRecoveryQuery = (enabled: boolean) => {
+    return useQuery({
+        queryKey: authKeys.sessionRecovery(),
+        queryFn: refreshToken,
+        enabled,
+        retry: false,
+        staleTime: 0,
+        gcTime: 0,
+    });
 };
 
 export const useUserQuery = () => {
@@ -21,8 +34,12 @@ export const useUserQuery = () => {
                 return await getMe(accessToken);
             } catch (error) {
                 console.error('[useUserQuery] Error:', error);
-                reset();
-                return null;
+                const status = (error as AxiosError).response?.status;
+                if (status === 401 || status === 403) {
+                    reset();
+                    return null;
+                }
+                throw error;
             }
         },
         enabled: !!accessToken, // Only run when we have a token

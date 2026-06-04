@@ -1,65 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle, Loader2, XCircle } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuthStore } from '@/stores/auth-store'
-import { refreshToken } from '@/domains/auth/api/auth.api'
+import { useAuthCallback } from '@/domains/auth/hooks/use-auth-callback'
 
 export function AuthCallbackClient() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { setAccessToken } = useAuthStore()
-
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [message, setMessage] = useState('인증 처리 중...')
-
-  const handleGoToDashboard = useCallback(() => {
-    router.push('/dashboard')
-  }, [router])
-
-  const handleRetry = useCallback(() => {
-    router.push('/login')
-  }, [router])
-
-  useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        const success = searchParams.get('success')
-        const error = searchParams.get('error')
-        const errorMessage = searchParams.get('message')
-
-        if (success === 'false' || error) {
-          setStatus('error')
-          setMessage(errorMessage || '인증에 실패했습니다.')
-          return
-        }
-
-        const refreshData = await refreshToken()
-
-        if (refreshData) {
-          setAccessToken(refreshData.accessToken)
-          setStatus('success')
-          setMessage('로그인에 성공했습니다!')
-
-          setTimeout(() => {
-            handleGoToDashboard()
-          }, 2000)
-        } else {
-          setStatus('error')
-          setMessage('토큰 갱신에 실패했습니다.')
-        }
-      } catch {
-        setStatus('error')
-        setMessage('인증 처리 중 오류가 발생했습니다.')
-      }
-    }
-
-    handleCallback()
-  }, [handleGoToDashboard, searchParams, setAccessToken])
+  const { status, message, handleGoToDashboard, handleRetry, handleGoHome } = useAuthCallback()
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -101,7 +49,7 @@ export function AuthCallbackClient() {
                   <Button onClick={handleRetry} className="w-full">
                     다시 로그인
                   </Button>
-                  <Button onClick={() => router.push('/')} variant="outline" className="w-full">
+                  <Button onClick={handleGoHome} variant="outline" className="w-full">
                     홈으로 이동
                   </Button>
                 </div>

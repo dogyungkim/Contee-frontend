@@ -37,7 +37,7 @@ export const getActivities = async (): Promise<Activity[]> => {
   return response.data.data.map(toActivityModel);
 };
 
-export const getDashboardData = async (): Promise<DashboardData> => {
-  const response = await apiClient.get<ApiResponse<DashboardDataDto>>('/api/v1/dashboard');
+export const getDashboardData = async (teamId: string): Promise<DashboardData> => {
+  const response = await apiClient.get<ApiResponse<DashboardDataDto>>(`/api/v1/teams/${teamId}/dashboard`);
   return toDashboardDataModel(response.data.data);
 };

@@ -13,6 +13,7 @@ import { SongFormPart, CreateTeamSongRequest, SongPartType, SongFormPartRequest 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { toast } from '@/lib/toast'
 
 interface SongDirectEditCardProps {
   onSave: (data: CreateTeamSongRequest) => void
@@ -20,6 +21,32 @@ interface SongDirectEditCardProps {
 }
 
 const KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+const SONG_PART_TYPE_MAP: Record<SongFormPart['type'], SongPartType> = {
+  Intro: 'INTRO',
+  Verse: 'VERSE',
+  'Pre-chorus': 'PRE_CHORUS',
+  Chorus: 'CHORUS',
+  Bridge: 'BRIDGE',
+  Interlude: 'INTERLUDE',
+  Outro: 'OUTRO',
+  Tag: 'TAG',
+  Instrumental: 'INSTRUMENTAL',
+}
+const BAR_COUNT_ENABLED_PART_TYPES: SongFormPart['type'][] = ['Intro', 'Interlude', 'Instrumental', 'Outro']
+
+const mapSongFormToRequest = (songForm: SongFormPart[]): SongFormPartRequest[] => {
+  return songForm.map((part) => {
+    const shouldIncludeBars = BAR_COUNT_ENABLED_PART_TYPES.includes(part.type)
+
+    return {
+      partType: SONG_PART_TYPE_MAP[part.type] || 'VERSE',
+      customPartName: part.abbr,
+      repeatCount: 1,
+      barCount: shouldIncludeBars ? part.bars : undefined,
+      note: part.label,
+    }
+  })
+}
 
 export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps) {
   const [title, setTitle] = useState('')
@@ -34,41 +61,17 @@ export function SongDirectEditCard({ onSave, onCancel }: SongDirectEditCardProps
 
   const handleSave = () => {
     if (!title.trim()) {
-      alert('곡 제목을 입력해주세요.')
+      toast.error('곡 제목을 입력해주세요.')
       return
     }
 
-    // Map UI SongForm to API Request format
-    const songFormRequest: SongFormPartRequest[] = songForm.map(part => {
-        // Map UI type to API type
-        const typeMap: Record<string, SongPartType> = {
-            'Intro': 'INTRO',
-            'Verse': 'VERSE',
-            'Pre-chorus': 'PRE_CHORUS', 
-            'Chorus': 'CHORUS',
-            'Bridge': 'BRIDGE',
-            'Interlude': 'INTERLUDE', 
-            'Outro': 'OUTRO',
-            'Tag': 'TAG',
-            'Instrumental': 'INSTRUMENTAL'
-        }
-        
-        const shouldIncludeBars = ['Intro', 'Interlude', 'Instrumental', 'Outro'].includes(part.type)
-
-        return {
-            partType: (typeMap[part.type] || 'VERSE'), 
-            customPartName: part.abbr, 
-            repeatCount: 1, 
-            barCount: shouldIncludeBars ? part.bars : undefined,
-            note: part.label 
-        }
-    })
+    const songFormRequest = mapSongFormToRequest(songForm)
 
     const request: CreateTeamSongRequest = {
       title,
       artist: artist,
       customKeySignature: key,
-      customBpm: bpm ? parseInt(bpm) : undefined,
+      customBpm: bpm ? Number.parseInt(bpm) : undefined,
       youtubeUrl: youtubeUrl,
       sheetMusicUrl: sheetMusicUrl,
       note: note,

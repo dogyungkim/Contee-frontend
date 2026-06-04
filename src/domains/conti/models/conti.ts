@@ -1,4 +1,5 @@
 import type { TeamSong } from '@/domains/song/models/song';
+import type { ContiStatus } from './conti-status';
 
 export type ContiSongPartType =
   | 'INTRO'
@@ -30,7 +31,9 @@ export interface Conti {
   title: string;
   worshipDate: string;
   memo?: string;
-  status?: 'DRAFT' | 'CONFIRMED';
+  bibleVerse?: string;
+  sharingInfo?: string;
+  status?: ContiStatus;
   songCount?: number;
   totalDuration?: number;
   createdAt?: string;

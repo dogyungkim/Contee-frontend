@@ -16,7 +16,7 @@ export function DashboardHeader() {
       </div>
       <div className="flex gap-2">
         <Button asChild>
-          <Link href="/dashboard/contis">새 콘티 만들기</Link>
+          <Link href="/dashboard/contis/new">새 콘티 만들기</Link>
         </Button>
         <Button asChild variant="outline">
           <Link href="/dashboard/songs">곡 추가/검색</Link>

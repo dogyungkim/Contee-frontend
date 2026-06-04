@@ -6,7 +6,7 @@ import { Clock, ListMusic, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
-import { useDashboard, useMockDashboard} from '@/domains/dashboard/hooks/use-dashboard'
+import { useDashboard } from '@/domains/dashboard/hooks/use-dashboard'
 import { DashboardHeader } from './dashboard-header'
 import { TeamEmptyState } from './team-empty-state'
 import { DashboardSkeleton } from './dashboard-skeleton'
@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input'
  */
 export function DashboardContent() {
   const [query, setQuery] = useState('')
-  const { hasTeam, summary, recentContis, songs, activities, isLoading, isError } = useMockDashboard()
+  const { hasTeam, summary, recentContis, songs, activities, isLoading, isError } = useDashboard()
 
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -35,22 +35,26 @@ export function DashboardContent() {
     return <TeamEmptyState />
   }
 
-  // // Show loading state with skeleton
-  // if (isLoading) {
-  //   return <DashboardSkeleton />
-  // }
+  // Show loading state with skeleton
+  if (isLoading) {
+    return <DashboardSkeleton />
+  }
 
-  // // Show error state
-  // if (isError) {
-  //   return (
-  //     <div className="flex items-center justify-center py-12">
-  //       <div className="text-center">
-  //         <div className="text-destructive">데이터를 불러오는 중 오류가 발생했습니다.</div>
-  //         <div className="mt-2 text-sm text-muted-foreground">잠시 후 다시 시도해주세요.</div>
-  //       </div>
-  //     </div>
-  //   )
-  // }
+  // Show error state
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="text-destructive">데이터를 불러오는 중 오류가 발생했습니다.</div>
+          <div className="mt-2 text-sm text-muted-foreground">잠시 후 다시 시도해주세요.</div>
+        </div>
+      </div>
+    )
+  }
+
+  const hasSongQuery = query.trim().length > 0
+  const hasUpcomingService =
+    summary.nextServiceLabel.trim().length > 0 || summary.nextServiceDateLabel.trim().length > 0
 
   // Show full dashboard when user has a team
   return (
@@ -62,17 +66,27 @@ export function DashboardContent() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">다가오는 예배</CardTitle>
-              <CardDescription>{summary.nextServiceLabel}</CardDescription>
+              <CardDescription>
+                {hasUpcomingService ? summary.nextServiceLabel : '등록된 예배 일정이 없습니다'}
+              </CardDescription>
             </CardHeader>
-            <CardContent className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>{summary.nextServiceDateLabel}</span>
-              </div>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/contis">콘티 보기</Link>
-              </Button>
-            </CardContent>
+            {hasUpcomingService ? (
+              <CardContent className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>{summary.nextServiceDateLabel}</span>
+                </div>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/dashboard/contis">콘티 보기</Link>
+                </Button>
+              </CardContent>
+            ) : (
+              <CardContent>
+                <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                  아직 다가오는 예배가 설정되지 않았습니다. 새 콘티를 만들면 여기서 바로 확인할 수 있어요.
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           <Card>
@@ -110,22 +124,28 @@ export function DashboardContent() {
             </div>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {recentContis.map((conti) => (
-              <div
-                key={conti.id}
-                className="flex items-center justify-between rounded-md border p-3"
-              >
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">{conti.title}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {format(new Date(conti.worshipDate), 'yyyy. M. d', { locale: ko })} · {conti.contiSongs?.length || 0}곡
-                  </div>
-                </div>
-                <Button asChild size="sm" variant="outline">
-                  <Link href={`/dashboard/contis/${conti.id}`}>열기</Link>
-                </Button>
+            {recentContis.length === 0 ? (
+              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                최근 콘티가 아직 없습니다. 새 콘티를 만들어보세요.
               </div>
-            ))}
+            ) : (
+              recentContis.map((conti) => (
+                <div
+                  key={conti.id}
+                  className="flex items-center justify-between rounded-md border p-3"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{conti.title}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {format(new Date(conti.worshipDate), 'yyyy. M. d', { locale: ko })} · {conti.contiSongs?.length || 0}곡
+                    </div>
+                  </div>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/dashboard/contis/${conti.id}`}>열기</Link>
+                  </Button>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -154,21 +174,29 @@ export function DashboardContent() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {filteredSongs.map((song) => (
-                <div key={song.id} className="rounded-md border p-3">
-                  <div className="text-sm font-medium">{song.title}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {song.artist}
-                    {song.keySignature ? ` · Key ${song.keySignature}` : ''}
-                    {typeof song.bpm === 'number' ? ` · ${song.bpm}bpm` : ''}
-                  </div>
-                  <div className="mt-3">
-                    <Button asChild size="sm" variant="outline">
-                      <Link href="/dashboard/songs">자세히</Link>
-                    </Button>
-                  </div>
+              {filteredSongs.length === 0 ? (
+                <div className="sm:col-span-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  {hasSongQuery
+                    ? '검색 결과가 없습니다. 다른 키워드로 다시 시도해보세요.'
+                    : '등록된 곡이 없습니다. 곡 관리에서 곡을 추가해보세요.'}
                 </div>
-              ))}
+              ) : (
+                filteredSongs.map((song) => (
+                  <div key={song.id} className="rounded-md border p-3">
+                    <div className="text-sm font-medium">{song.title}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {song.artist}
+                      {song.keySignature ? ` · Key ${song.keySignature}` : ''}
+                      {typeof song.bpm === 'number' ? ` · ${song.bpm}bpm` : ''}
+                    </div>
+                    <div className="mt-3">
+                      <Button asChild size="sm" variant="outline">
+                        <Link href="/dashboard/songs">자세히</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -208,12 +236,18 @@ export function DashboardContent() {
             <CardDescription>최근 상태를 확인하세요</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {activities.map((a) => (
-              <div key={a.id} className="rounded-md border p-3">
-                <div className="text-xs text-muted-foreground">{a.timeLabel}</div>
-                <div className="mt-1 text-sm">{a.message}</div>
+            {activities.length === 0 ? (
+              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                최근 활동이 없습니다.
               </div>
-            ))}
+            ) : (
+              activities.map((a) => (
+                <div key={a.id} className="rounded-md border p-3">
+                  <div className="text-xs text-muted-foreground">{a.timeLabel}</div>
+                  <div className="mt-1 text-sm">{a.message}</div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
@@ -221,4 +255,3 @@ export function DashboardContent() {
     </>
   )
 }
-

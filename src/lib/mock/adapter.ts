@@ -1,16 +1,13 @@
 import { AxiosAdapter, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import {
     MOCK_TEAMS,
-    MOCK_MEMBERS_TEAM_1,
-    MOCK_MEMBERS_TEAM_2,
-    MOCK_USER,
     MOCK_CONTIS,
     MOCK_CONTI_SONGS,
     MOCK_TEAM_SONGS,
     MOCK_MASTER_SONGS
 } from './data';
-import { Conti, ContiSong } from '@/types/conti';
-import { Team, TeamMember } from '@/types/team';
+import { Conti, ContiSong, ContiStatus } from '@/types/conti';
+import { Team } from '@/types/team';
 import { TeamSong } from '@/types/song';
 
 // Helper to create successful response
@@ -27,6 +24,40 @@ const success = (data: unknown): AxiosResponse => {
         config: {} as InternalAxiosRequestConfig,
     };
 };
+
+const failure = (status: number, message: string, code?: string): AxiosResponse => {
+    return {
+        data: {
+            success: false,
+            message,
+            ...(code ? { code, errorCode: code } : {}),
+            data: null,
+        },
+        status,
+        statusText: status === 400 ? 'Bad Request' : status === 409 ? 'Conflict' : 'Error',
+        headers: {},
+        config: {} as InternalAxiosRequestConfig,
+    };
+};
+
+const normalizeContiStatus = (status?: string): ContiStatus => {
+    if (status === 'PUBLISHED' || status === 'ARCHIVED') return status;
+    return 'DRAFT';
+};
+
+const getContiSongs = (contiId: string) =>
+    MOCK_CONTI_SONGS
+        .filter((song) => song.contiId === contiId)
+        .sort((a, b) => a.orderIndex - b.orderIndex);
+
+const getContiDetailData = (conti: Conti): Conti => ({
+    ...conti,
+    status: normalizeContiStatus(conti.status),
+    contiSongs: getContiSongs(conti.id),
+});
+
+const isContiEditable = (conti?: Conti): boolean =>
+    normalizeContiStatus(conti?.status) === 'DRAFT';
 
 export const mockAdapter: AxiosAdapter = async (config) => {
     const { url, method, data } = config;
@@ -59,10 +90,75 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     }
 
     // --- Conti API ---
+    if (url === '/api/v1/contis' && methodUpper === 'GET') {
+        const page = Number(config.params?.page ?? 0);
+        const size = Number(config.params?.size ?? 20);
+        const start = page * size;
+        const content = MOCK_CONTIS.slice(start, start + size).map(getContiDetailData);
+        const totalElements = MOCK_CONTIS.length;
+        const totalPages = Math.max(1, Math.ceil(totalElements / size));
+
+        return success({
+            content,
+            totalPages,
+            totalElements,
+        });
+    }
+
+    if (url === '/api/v1/contis' && methodUpper === 'POST') {
+        const body = data ? JSON.parse(data) : {};
+        const newConti: Conti = {
+            id: `conti-${Date.now()}`,
+            teamId: body.teamId,
+            title: body.title,
+            worshipDate: body.worshipDate,
+            memo: body.memo,
+            bibleVerse: body.bibleVerse,
+            sharingInfo: body.sharingInfo,
+            status: 'DRAFT',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        MOCK_CONTIS.push(newConti);
+
+        const requestSongs = Array.isArray(body.contiSongs) ? body.contiSongs : [];
+        requestSongs.forEach((song: Record<string, unknown>, index: number) => {
+            const teamSong = song.teamSongId
+                ? MOCK_TEAM_SONGS.find((ts) => ts.id === String(song.teamSongId))
+                : undefined;
+            const contiSong: ContiSong = {
+                id: `cs-${Date.now()}-${index}`,
+                contiId: newConti.id,
+                teamSongId: typeof song.teamSongId === 'string' ? song.teamSongId : undefined,
+                customTitle: typeof song.customTitle === 'string' ? song.customTitle : undefined,
+                songTitle:
+                    (typeof song.customTitle === 'string' && song.customTitle) ||
+                    teamSong?.title ||
+                    'New Song',
+                songArtist:
+                    (typeof song.artist === 'string' && song.artist) ||
+                    teamSong?.artist ||
+                    'Unknown',
+                orderIndex:
+                    typeof song.orderIndex === 'number' ? song.orderIndex : index + 1,
+                keyOverride: typeof song.keyOverride === 'string' ? song.keyOverride : undefined,
+                bpmOverride: typeof song.bpmOverride === 'number' ? song.bpmOverride : undefined,
+                note: typeof song.contiNote === 'string' ? song.contiNote : undefined,
+                songForm: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                teamSong,
+            };
+            MOCK_CONTI_SONGS.push(contiSong);
+        });
+
+        return success(getContiDetailData(newConti));
+    }
+
     const teamContisMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/contis$/);
     if (teamContisMatch && methodUpper === 'GET') {
         const teamId = teamContisMatch[1];
-        return success(MOCK_CONTIS.filter(c => c.teamId === teamId));
+        return success(MOCK_CONTIS.filter(c => c.teamId === teamId).map(getContiDetailData));
     }
 
     if (teamContisMatch && methodUpper === 'POST') {
@@ -74,40 +170,113 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             title: body.title,
             worshipDate: body.worshipDate,
             memo: body.memo,
+            status: 'DRAFT',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
         MOCK_CONTIS.push(newConti);
-        return success(newConti);
+        return success(getContiDetailData(newConti));
     }
 
     const contiDetailMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)$/);
     if (contiDetailMatch && methodUpper === 'GET') {
         const id = contiDetailMatch[1];
         const conti = MOCK_CONTIS.find(c => c.id === id);
-        return success(conti);
+        if (!conti) return failure(404, 'Conti not found');
+        return success(getContiDetailData(conti));
+    }
+
+    if (contiDetailMatch && methodUpper === 'PATCH') {
+        const id = contiDetailMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+        if (!conti) return failure(404, 'Conti not found');
+        if (!isContiEditable(conti)) {
+            return failure(409, 'Conti is not editable', 'CONTI_NOT_EDITABLE');
+        }
+
+        Object.assign(conti, body, {
+            updatedAt: new Date().toISOString(),
+        });
+        return success(getContiDetailData(conti));
+    }
+
+    const contiStatusMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/status$/);
+    if (contiStatusMatch && methodUpper === 'PATCH') {
+        const id = contiStatusMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const targetStatus = body.status as ContiStatus | undefined;
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+
+        if (!conti) return failure(404, 'Conti not found');
+        if (!targetStatus) return failure(400, 'Missing status', 'CONTI_INVALID_STATUS_TRANSITION');
+
+        const currentStatus = normalizeContiStatus(conti.status);
+        if (currentStatus === targetStatus) {
+            return success(getContiDetailData(conti));
+        }
+
+        const isAllowedTransition =
+            (currentStatus === 'DRAFT' && targetStatus === 'PUBLISHED') ||
+            (currentStatus === 'PUBLISHED' && targetStatus === 'ARCHIVED');
+
+        if (!isAllowedTransition) {
+            return failure(409, 'Invalid conti status transition', 'CONTI_INVALID_STATUS_TRANSITION');
+        }
+
+        if (currentStatus === 'DRAFT' && targetStatus === 'PUBLISHED') {
+            const songs = getContiSongs(conti.id);
+            const isSequential = songs.every((song, index) => song.orderIndex === index + 1);
+
+            if (songs.length === 0 || !isSequential) {
+                return failure(
+                    400,
+                    'Publish precondition failed',
+                    'CONTI_PUBLISH_PRECONDITION_FAILED',
+                );
+            }
+
+            Object.assign(conti, {
+                status: targetStatus,
+                publishedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
+            return success(getContiDetailData(conti));
+        }
+
+        Object.assign(conti, {
+            status: targetStatus,
+            updatedAt: new Date().toISOString(),
+        });
+        return success(getContiDetailData(conti));
     }
 
     // --- Conti Songs API ---
     const contiSongsMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs$/);
     if (contiSongsMatch && methodUpper === 'GET') {
         const contiId = contiSongsMatch[1];
-        return success(MOCK_CONTI_SONGS.filter(cs => cs.contiId === contiId));
+        return success(getContiSongs(contiId));
     }
 
     if (contiSongsMatch && methodUpper === 'POST') {
         const contiId = contiSongsMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === contiId);
+        if (!isContiEditable(conti)) {
+            return failure(409, 'Conti is not editable', 'CONTI_NOT_EDITABLE');
+        }
+
         const body = data ? JSON.parse(data) : {};
         const teamSong = MOCK_TEAM_SONGS.find(ts => ts.id === body.teamSongId);
+        const existingSongs = getContiSongs(contiId);
 
         const newContiSong: ContiSong = {
-            songTitle: 'New Song', // Default title, or fetch from teamSong if available in real logic
+            songTitle: teamSong?.title || body.customTitle || 'New Song',
             songArtist: teamSong?.artist || 'Unknown',
             songForm: [],
             id: `cs-${Date.now()}`,
             contiId,
             teamSongId: body.teamSongId,
-            orderIndex: body.orderIndex,
+            orderIndex: body.orderIndex || existingSongs.length + 1,
             keyOverride: body.keyOverride,
             bpmOverride: body.bpmOverride,
             note: body.note,
@@ -121,6 +290,12 @@ export const mockAdapter: AxiosAdapter = async (config) => {
 
     const contiSongDetailMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs\/([a-zA-Z0-9-]+)$/);
     if (contiSongDetailMatch && methodUpper === 'DELETE') {
+        const contiId = contiSongDetailMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === contiId);
+        if (!isContiEditable(conti)) {
+            return failure(409, 'Conti is not editable', 'CONTI_NOT_EDITABLE');
+        }
+
         const id = contiSongDetailMatch[2];
         const index = MOCK_CONTI_SONGS.findIndex(cs => cs.id === id);
         if (index > -1) MOCK_CONTI_SONGS.splice(index, 1);
@@ -128,6 +303,12 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     }
 
     if (contiSongDetailMatch && methodUpper === 'PATCH') {
+        const contiId = contiSongDetailMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === contiId);
+        if (!isContiEditable(conti)) {
+            return failure(409, 'Conti is not editable', 'CONTI_NOT_EDITABLE');
+        }
+
         const id = contiSongDetailMatch[2];
         const body = data ? JSON.parse(data) : {};
         const song = MOCK_CONTI_SONGS.find(cs => cs.id === id);
@@ -140,6 +321,11 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     const contiSongsOrderMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs\/order$/);
     if (contiSongsOrderMatch && methodUpper === 'PUT') {
         const contiId = contiSongsOrderMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === contiId);
+        if (!isContiEditable(conti)) {
+            return failure(409, 'Conti is not editable', 'CONTI_NOT_EDITABLE');
+        }
+
         const body = data ? JSON.parse(data) : {};
         const { contiSongIds } = body;
 
@@ -148,7 +334,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             // In mock, we can just re-sort MOCK_CONTI_SONGS for this conti, or update orderIndex on items.
             contiSongIds.forEach((id, index) => {
                 const match = MOCK_CONTI_SONGS.find(cs => cs.id === id);
-                if (match) match.orderIndex = index;
+                if (match) match.orderIndex = index + 1;
             });
             // Sort mock storage to reflect order if needed, but orderIndex is what matters.
         }

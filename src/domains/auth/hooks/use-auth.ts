@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
-import { useUserQuery, useLogoutMutation } from './use-auth-query';
-import { getGoogleLoginUrl, refreshToken } from '@/domains/auth/api/auth.api';
+import { useUserQuery, useLogoutMutation, useSessionRecoveryQuery } from './use-auth-query';
+import { getGoogleLoginUrl } from '@/domains/auth/api/auth.api';
 
 /**
  * [D] Logic Layer (Custom Hooks)
@@ -14,42 +14,44 @@ import { getGoogleLoginUrl, refreshToken } from '@/domains/auth/api/auth.api';
  * Attempts to recover session from refresh token cookie
  */
 export function useInitialAuth() {
-  const { accessToken, setAccessToken } = useAuthStore();
-  const [hasChecked, setHasChecked] = useState(false);
+  const { accessToken, setAccessToken, hasCheckedSession, setHasCheckedSession } = useAuthStore();
+  const shouldRecoverSession = !hasCheckedSession && !accessToken;
+  const sessionRecoveryQuery = useSessionRecoveryQuery(shouldRecoverSession);
 
   useEffect(() => {
-    const checkSession = async () => {
-      // Only check once and only if no token exists
-      if (hasChecked || accessToken) return;
+    if (hasCheckedSession) return;
 
-      try {
-        console.log('[useInitialAuth] Checking for existing session...');
-        const refreshData = await refreshToken();
-        if (refreshData) {
-          console.log('[useInitialAuth] Session recovered');
-          setAccessToken(refreshData.accessToken);
-        }
-      } catch (error) {
-        // Silent fail - no session to recover
-        console.log('[useInitialAuth] No session to recover');
-      } finally {
-        setHasChecked(true);
-      }
-    };
+    if (accessToken) {
+      setHasCheckedSession(true);
+      return;
+    }
 
-    checkSession();
-  }, [accessToken, setAccessToken, hasChecked]);
+    if (sessionRecoveryQuery.isPending) return;
 
-  return { hasChecked };
+    if (sessionRecoveryQuery.data?.accessToken) {
+      setAccessToken(sessionRecoveryQuery.data.accessToken);
+    }
+
+    setHasCheckedSession(true);
+  }, [
+    accessToken,
+    hasCheckedSession,
+    setAccessToken,
+    setHasCheckedSession,
+    sessionRecoveryQuery.data,
+    sessionRecoveryQuery.isPending,
+  ]);
+
+  return { hasChecked: hasCheckedSession };
 }
 
 export function useAuth(redirectTo?: string) {
-  const { isAuthenticated, error, clearError } = useAuthStore();
+  const { isAuthenticated, error, clearError, hasCheckedSession } = useAuthStore();
   const { data: user, isLoading: isUserLoading, isFetching } = useUserQuery();
   const logoutMutation = useLogoutMutation();
   const router = useRouter();
 
-  const isLoading = isUserLoading || isFetching;
+  const isLoading = !hasCheckedSession || isUserLoading || isFetching;
 
   useEffect(() => {
     // Only redirect if we are sure about the auth state (not loading)
@@ -79,11 +81,11 @@ export function useRequireAuth(redirectTo: string = '/login') {
 }
 
 export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard') {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, hasCheckedSession } = useAuthStore();
   const { isLoading: isUserLoading, isFetching } = useUserQuery();
   const router = useRouter();
 
-  const isLoading = isUserLoading || isFetching;
+  const isLoading = !hasCheckedSession || isUserLoading || isFetching;
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {

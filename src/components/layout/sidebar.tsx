@@ -11,7 +11,6 @@ import {
   FileText, 
   Library, 
   Settings, 
-  ChevronDown,
   LogOut,
   User,
   Users
@@ -22,7 +21,11 @@ import { cn } from '@/lib/utils';
 
 const ADD_TEAM_VALUE = '__add__';
 
-const Sidebar = () => {
+interface SidebarProps {
+  className?: string;
+}
+
+const Sidebar = ({ className }: SidebarProps) => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -65,7 +68,7 @@ const Sidebar = () => {
       requiresTeam: true,
     },
     {
-      title: 'Song Library',
+      title: '곡 라이브러리',
       href: '/dashboard/songs',
       icon: Library,
       requiresTeam: false,
@@ -85,7 +88,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-white">
+    <div className={cn("flex h-full w-64 flex-col border-r bg-white", className)}>
       {/* Logo */}
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" className="flex items-center space-x-2">

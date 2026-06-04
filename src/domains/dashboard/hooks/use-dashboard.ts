@@ -47,7 +47,7 @@ export function useDashboard(): DashboardData {
     // The query key includes selectedTeamId, so changing teams will trigger a refetch
     const { data: dashboardData, isLoading, isError, error } = useQuery({
         queryKey: dashboardKeys.data(selectedTeamId),
-        queryFn: getDashboardData,
+        queryFn: () => getDashboardData(selectedTeamId!),
         enabled: hasTeam && !!selectedTeamId, // Only fetch if user has a team and one is selected
         staleTime: STALE_TIME.FIVE_MINUTES,
     });

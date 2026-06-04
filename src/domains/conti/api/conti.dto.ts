@@ -1,4 +1,5 @@
 import type { TeamSongResponseDto } from '@/domains/song/api/song.dto';
+import type { ContiStatus } from '@/domains/conti/models/conti-status';
 
 export type ContiSongPartTypeDto =
   | 'INTRO'
@@ -49,7 +50,9 @@ export interface ContiResponseDto {
   title: string;
   worshipDate: string;
   memo?: string;
-  status?: 'DRAFT' | 'CONFIRMED';
+  bibleVerse?: string;
+  sharingInfo?: string;
+  status?: ContiStatus;
   songCount?: number;
   totalDuration?: number;
   createdAt?: string;
@@ -87,6 +90,8 @@ export interface CreateContiRequestDto {
   title: string;
   worshipDate: string;
   memo?: string;
+  bibleVerse?: string;
+  sharingInfo?: string;
   contiSongs?: ContiSongRequestItemDto[];
 }
 
@@ -94,6 +99,8 @@ export interface UpdateContiRequestDto {
   title?: string;
   worshipDate?: string;
   memo?: string;
+  bibleVerse?: string;
+  sharingInfo?: string;
   contiSongs?: ContiSongRequestItemDto[];
 }
 
@@ -125,4 +132,9 @@ export interface ReorderContiSongsRequestDto {
     contiSongId: string;
     order: number;
   }[];
+  contiSongIds?: string[];
+}
+
+export interface UpdateContiStatusRequestDto {
+  status: ContiStatus;
 }

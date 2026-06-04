@@ -1,15 +1,9 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import { ConditionalHeader } from '@/components/layout/conditional-header'
 import { ConditionalFooter } from '@/components/layout/conditional-footer'
 import { AuthProvider } from '@/components/auth/auth-provider'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-})
 
 export const metadata: Metadata = {
   title: 'Contee',
@@ -38,9 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
+      <body className="antialiased">
         <QueryProvider>
           <AuthProvider>
             <div className="relative flex min-h-dvh flex-col bg-background">
@@ -64,8 +56,21 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js').catch(() => {});
+                window.addEventListener('load', async () => {
+                  const isProduction = ${process.env.NODE_ENV === 'production'};
+
+                  if (isProduction) {
+                    navigator.serviceWorker.register('/sw.js').catch(() => {});
+                    return;
+                  }
+
+                  const registrations = await navigator.serviceWorker.getRegistrations();
+                  await Promise.all(registrations.map((registration) => registration.unregister()));
+
+                  if ('caches' in window) {
+                    const cacheKeys = await caches.keys();
+                    await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+                  }
                 });
               }
             `,

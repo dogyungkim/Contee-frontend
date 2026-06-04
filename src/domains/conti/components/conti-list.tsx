@@ -6,7 +6,8 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 import { Conti } from '@/types/conti'
-import { useContis, useDeleteConti } from '../hooks/use-conti'
+import { useContis } from '../hooks/use-conti'
+import { useContiActions } from '../hooks/use-conti-actions'
 import { useTeam } from '@/context/team-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,11 +18,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  CONTI_STATUS_BADGE_CLASS,
+  CONTI_STATUS_LABEL,
+  normalizeContiStatus,
+} from '@/domains/conti/models/conti-status'
+import { cn } from '@/lib/utils'
 
 export function ContiList() {
   const { selectedTeamId } = useTeam()
   const { data: contis = [], isLoading, isError } = useContis(selectedTeamId)
-  const { mutate: deleteContiMutate } = useDeleteConti()
+  const { handleDeleteConti } = useContiActions()
 
   if (isLoading) {
     return (
@@ -63,55 +70,64 @@ export function ContiList() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {contis.map((conti: Conti) => (
-        <Card key={conti.id} className="group relative overflow-hidden transition-all hover:border-primary/50">
-          <Link href={`/dashboard/contis/${conti.id}`} className="absolute inset-0 z-0">
-            <span className="sr-only">상세 보기</span>
-          </Link>
-          <CardHeader className="pb-2">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <CardTitle className="line-clamp-1">{conti.title}</CardTitle>
-                <CardDescription className="flex items-center gap-1.5 text-xs">
-                  <Calendar className="h-3 w-3" />
-                  {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
-                </CardDescription>
+      {contis.map((conti: Conti) => {
+        const status = normalizeContiStatus(conti.status)
+        return (
+          <Card key={conti.id} className="group relative overflow-hidden transition-all hover:border-primary/50">
+            <Link href={`/dashboard/contis/${conti.id}`} className="absolute inset-0 z-0">
+              <span className="sr-only">상세 보기</span>
+            </Link>
+            <CardHeader className="pb-2">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="line-clamp-1">{conti.title}</CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 text-xs">
+                    <Calendar className="h-3 w-3" />
+                    {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
+                  </CardDescription>
+                  <span
+                    className={cn(
+                      'inline-flex w-fit items-center rounded-md px-2 py-0.5 text-[11px] font-semibold',
+                      CONTI_STATUS_BADGE_CLASS[status],
+                    )}
+                  >
+                    {CONTI_STATUS_LABEL[status]}
+                  </span>
+                </div>
+                <div className="z-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/contis/${conti.id}`}>편집</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => {
+                          void handleDeleteConti(conti.id)
+                        }}
+                      >
+                        지우기
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-              <div className="z-10">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/contis/${conti.id}`}>편집</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => {
-                        if (confirm('정말로 이 콘티를 삭제하시겠습니까?')) {
-                          deleteContiMutate(conti.id)
-                        }
-                      }}
-                    >
-                      지우기
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {conti.memo && (
-              <p className="line-clamp-2 text-xs text-muted-foreground">
-                {conti.memo}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+            </CardHeader>
+            <CardContent>
+              {conti.memo && (
+                <p className="line-clamp-2 text-xs text-muted-foreground">
+                  {conti.memo}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }

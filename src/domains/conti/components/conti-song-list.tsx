@@ -4,6 +4,7 @@ import { closestCenter, DndContext, DragEndEvent, KeyboardSensor, PointerSensor,
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ContiSong } from '@/types/conti'
 import { ContiSongItem } from './conti-song-item'
+import { DND_CONFIG } from '@/constants/ui-constants'
 
 interface ContiSongListProps {
   contiId: string
@@ -16,7 +17,7 @@ interface ContiSongListProps {
 export function ContiSongList({ contiId, songs, isEditMode, onRemove, onUpdateOrder }: ContiSongListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: isEditMode ? undefined : { distance: 999999 },
+      activationConstraint: isEditMode ? undefined : { distance: DND_CONFIG.DISABLED_POINTER_DISTANCE },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,

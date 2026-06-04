@@ -1,27 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Settings, LayoutList, Share2, Info, Music } from 'lucide-react'
+import { Plus, Settings, LayoutList, Share2, Info, Music, BookOpen, Archive, Upload, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
-import { 
-  useContiDetail, 
-  useAddContiSong, 
+import {
+  useContiDetail,
+  useAddContiSong,
   useRemoveContiSong,
-  useUpdateContiSongOrder 
+  useUpdateContiSongOrder,
+  useUpdateContiStatus,
 } from '../hooks/use-conti'
-import { useCreateTeamSong } from '@/domains/song/hooks/use-songs'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Loader2 } from 'lucide-react'
 import { ContiSongList } from './conti-song-list'
-// import { SongSearchDialog } from './song-search-dialog'
-// import { SongCreateDialog } from './song-create-dialog'
-import { TeamSong, CreateTeamSongRequest, Song } from '@/types/song'
+import { SongSearchDialog } from './song-search-dialog'
+import { TeamSong } from '@/types/song'
 import { ContiSong } from '@/types/conti'
 import { useTeam } from '@/context/team-context'
+import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
+import { useAuth } from '@/domains/auth/hooks/use-auth'
+import { cn } from '@/lib/utils'
+import { toast } from '@/lib/toast'
+import {
+  CONTI_STATUS_BADGE_CLASS,
+  CONTI_STATUS_LABEL,
+  getNextContiStatus,
+  isContiEditableStatus,
+  normalizeContiStatus,
+} from '@/domains/conti/models/conti-status'
+import { getContiApiErrorMessage } from '@/domains/conti/utils/conti-error'
 
 interface ContiDetailProps {
   contiId: string
@@ -29,24 +39,33 @@ interface ContiDetailProps {
 
 export function ContiDetail({ contiId }: ContiDetailProps) {
   const { selectedTeamId } = useTeam()
-  const { data: conti, isLoading: isContiLoading } = useContiDetail(contiId)
+  const { user } = useAuth()
+  const { data: conti, isLoading: isContiLoading, refetch: refetchConti } = useContiDetail(contiId)
   // Songs are included in the conti detail response
   const songs = conti?.contiSongs || []
-  
-  const { mutate: addSongMutate } = useAddContiSong()
-  const { mutate: removeSongMutate } = useRemoveContiSong()
-  const { mutate: createSongMutate, isPending: isCreatingSong } = useCreateTeamSong()
+  const permissionTeamId = conti?.teamId || selectedTeamId || ''
+  const { data: teamMembers = [] } = useTeamMembersQuery(permissionTeamId)
+
+  const { mutateAsync: addSongMutateAsync } = useAddContiSong()
+  const { mutateAsync: removeSongMutateAsync } = useRemoveContiSong()
   const { mutateAsync: updateOrderMutateAsync } = useUpdateContiSongOrder()
+  const { mutateAsync: updateStatusMutateAsync, isPending: isStatusUpdating } = useUpdateContiStatus()
 
   const [searchOpen, setSearchOpen] = useState(false)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [initialTitle, setInitialTitle] = useState('')
   const [isEditMode, setIsEditMode] = useState(true)
 
-  // TODO: Replace with actual permission check based on user role
-  // For now, we'll allow editing for everyone
-  // In the future: check if user role is OWNER or ADMIN
-  const canEdit = true // selectedTeam?.role === 'OWNER' || selectedTeam?.role === 'ADMIN'
+  const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
+  const canEdit = currentMember?.role === 'OWNER' || currentMember?.role === 'ADMIN'
+  const contiStatus = normalizeContiStatus(conti?.status)
+  const isEditableByStatus = isContiEditableStatus(conti?.status)
+  const isEditable = canEdit && isEditMode && isEditableByStatus
+  const nextStatus = getNextContiStatus(conti?.status)
+
+  useEffect(() => {
+    if (!isContiEditableStatus(conti?.status)) {
+      setIsEditMode(false)
+    }
+  }, [conti?.status])
 
   if (isContiLoading) {
     return (
@@ -69,73 +88,106 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     )
   }
 
-  const handleSelectExisting = (song: TeamSong) => {
-    const nextOrder = songs.length > 0 
-      ? Math.max(...songs.map(s => s.orderIndex)) + 1 
-      : 0
-    
-    addSongMutate({
-      contiId,
-      request: {
-        teamSongId: song.id,
-        customKeySignature: song.keySignature,
-        customBpm: song.bpm
-      }
-    })
+  const handleSelectExisting = async (song: TeamSong) => {
+    if (!isEditable) {
+      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      return
+    }
+
+    try {
+      await addSongMutateAsync({
+        contiId,
+        request: {
+          teamSongId: song.id,
+          customKeySignature: song.keySignature,
+          customBpm: song.bpm,
+        },
+      })
+    } catch (error) {
+      toast.error(getContiApiErrorMessage(error, '곡 추가에 실패했습니다.'))
+      console.error('Failed to add song:', error)
+      void refetchConti()
+    }
   }
 
-  const handleSelectMaster = (song: Song) => {
-    if (!selectedTeamId) return
+  const handleRemoveSong = async (songId: string) => {
+    if (!isEditable) {
+      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      return
+    }
 
-    createSongMutate({
-      teamId: selectedTeamId,
-      request: {
-        songId: song.id,
-        title: song.title,
-        artist: song.artist,
-        customKeySignature: song.keySignature,
-        customBpm: song.bpm,
-        youtubeUrl: song.youtubeUrl,
-        sheetMusicUrl: song.sheetMusicUrl
-      }
-    }, {
-      onSuccess: (newSong) => {
-        handleSelectExisting(newSong)
-      }
-    })
+    try {
+      await removeSongMutateAsync({ contiId, contiSongId: songId })
+    } catch (error) {
+      toast.error(getContiApiErrorMessage(error, '곡 삭제에 실패했습니다.'))
+      console.error('Failed to remove song:', error)
+      void refetchConti()
+    }
   }
 
-  const handleCreateNew = (query: string) => {
-    setInitialTitle(query)
-    setSearchOpen(false)
-    setCreateOpen(true)
-  }
+  const handleUpdateStatus = async () => {
+    if (!conti || !canEdit || !nextStatus) return
 
-  const handleCreateSubmit = (data: CreateTeamSongRequest) => {
-    if (!selectedTeamId) return
+    const confirmMessage =
+      nextStatus === 'PUBLISHED'
+        ? '콘티를 발행하시겠습니까? 발행 후에는 수정할 수 없습니다.'
+        : '콘티를 보관하시겠습니까? 보관 후에는 수정할 수 없습니다.'
 
-    createSongMutate({
-      teamId: selectedTeamId,
-      request: data
-    }, {
-      onSuccess: (newSong) => {
-        handleSelectExisting(newSong)
-        setCreateOpen(false)
-      }
-    })
+    if (typeof window !== 'undefined' && !window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      await updateStatusMutateAsync({ contiId, status: nextStatus })
+      setIsEditMode(false)
+      toast.success(nextStatus === 'PUBLISHED' ? '콘티를 발행했습니다.' : '콘티를 보관했습니다.')
+    } catch (error) {
+      toast.error(
+        getContiApiErrorMessage(
+          error,
+          nextStatus === 'PUBLISHED' ? '콘티 발행에 실패했습니다.' : '콘티 보관에 실패했습니다.',
+        ),
+      )
+      console.error('Failed to update conti status:', error)
+      void refetchConti()
+    }
   }
 
   const handleUpdateOrder = async (reorderedSongs: ContiSong[]) => {
+    if (!isEditable) {
+      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      return
+    }
+
     try {
-      const songIds = reorderedSongs.map(s => s.id)
+      const songIds = reorderedSongs.map((song) => song.id)
       await updateOrderMutateAsync({
         contiId,
-        songIds
+        songIds,
       })
     } catch (error) {
+      toast.error(getContiApiErrorMessage(error, '곡 순서 변경에 실패했습니다.'))
       console.error('Failed to update song order:', error)
+      void refetchConti()
     }
   }
+
+  const handleOpenSearch = () => {
+    if (!isEditable) {
+      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      return
+    }
+    setSearchOpen(true)
+  }
+
+  const bibleVerseLines = conti.bibleVerse
+    ? conti.bibleVerse
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    : []
+  const bibleVerseReference = bibleVerseLines[0]
+  const bibleVerseContent = bibleVerseLines.slice(1).join('\n')
 
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col -m-6 sm:-m-8">
@@ -147,23 +199,36 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
               <LayoutList className="h-3 w-3" />
               Service Continuity Editor
             </div>
-            <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold',
+                  CONTI_STATUS_BADGE_CLASS[contiStatus],
+                )}
+              >
+                {CONTI_STATUS_LABEL[contiStatus]}
+              </span>
+            </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="font-semibold text-primary/80">
                 {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
               </span>
               <Separator orientation="vertical" className="h-3" />
               <span className="flex items-center gap-1">
-                  총 <span className="font-bold text-foreground">{songs.length}</span>곡
+                총 <span className="font-bold text-foreground">{songs.length}</span>곡
               </span>
             </div>
+            {!isEditableByStatus && (
+              <p className="text-xs font-medium text-amber-700">발행/보관된 콘티는 읽기 전용입니다.</p>
+            )}
           </div>
-          
+
           <div className="flex items-center gap-2">
-            {canEdit && (
-              <Button 
-                variant={isEditMode ? "default" : "outline"} 
-                size="sm" 
+            {canEdit && isEditableByStatus && (
+              <Button
+                variant={isEditMode ? 'default' : 'outline'}
+                size="sm"
                 className="h-9 gap-2"
                 onClick={() => setIsEditMode(!isEditMode)}
               >
@@ -175,8 +240,26 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
               <Share2 className="h-4 w-4" />
               <span className="hidden sm:inline">공유</span>
             </Button>
-            {isEditMode && (
-              <Button className="h-9 gap-2" onClick={() => setSearchOpen(true)}>
+            {canEdit && nextStatus && (
+              <Button
+                variant={nextStatus === 'PUBLISHED' ? 'default' : 'outline'}
+                size="sm"
+                className="h-9 gap-2"
+                onClick={handleUpdateStatus}
+                disabled={isStatusUpdating}
+              >
+                {isStatusUpdating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : nextStatus === 'PUBLISHED' ? (
+                  <Upload className="h-4 w-4" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
+                <span>{nextStatus === 'PUBLISHED' ? '발행하기' : '보관하기'}</span>
+              </Button>
+            )}
+            {isEditable && (
+              <Button className="h-9 gap-2" onClick={handleOpenSearch}>
                 <Plus className="h-4 w-4" />
                 곡 추가
               </Button>
@@ -187,78 +270,102 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
 
       {/* Main Content: Full Width Song List */}
       <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 max-w-[1200px] mx-auto w-full">
-         {/* Summary Card */}
+        {/* Summary Card */}
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <p className="text-xs text-neutral-500 mb-1">콘티명</p>
+              <p className="font-medium">{conti.title}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500 mb-1">예배일</p>
+              <p className="font-medium">{format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500 mb-1">예배 시간</p>
+              <p className="font-medium">-</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-500 mb-1">진행 상태</p>
+              <span
+                className={cn(
+                  'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold',
+                  CONTI_STATUS_BADGE_CLASS[contiStatus],
+                )}
+              >
+                {CONTI_STATUS_LABEL[contiStatus]}
+              </span>
+            </div>
+          </div>
+          {conti.memo && (
+            <div className="mt-4 pt-4 border-t border-neutral-200 space-y-4">
               <div>
-                <p className="text-xs text-neutral-500 mb-1">콘티명</p>
-                <p className="font-medium">{conti.title}</p>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">예배일</p>
-                <p className="font-medium">{format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}</p>
-              </div>
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">예배 시간</p>
-                {/* worshipDate is YYYY-MM-DD, so no time info unless we kept it? 
-                    API doc says worshipDate is just Date. 
-                    If we lost time info in API, we can't show it from worshipDate. 
-                    Checking API doc again: "worshipDate": "2023-11-26". 
-                    It seems we lost specific time or it's separate?
-                    Doc overview: "모든 날짜 필드(worshipDate 등)는 YYYY-MM-DD 형식을 사용합니다."
-                    Wait, previous CreateContiRequest had hour/minute UI but sent as ISO string.
-                    New CreateContiRequest has "worshipDate": "2023-11-26".
-                    Does it mean we don't support time anymore? Or is it just implied?
-                    The doc says "worshipDate" (Required) 예배 일자 (YYYY-MM-DD).
-                    If time is not supported, I should remove "예배 시간" display or use a placeholder.
-                    Or maybe check if there's another field?
-                    Checking Type Definition I wrote: `worshipDate: string`.
-                    Let's comment out or header handle time differently if not available.
-                    For now, I'll just remove the time display if it's not in the data.
-                 */}
-                <p className="font-medium">-</p> 
-              </div>
-               {/* Placeholder for future fields */}
-              <div>
-                 <p className="text-xs text-neutral-500 mb-1">진행 상태</p>
-                 <span className="inline-block px-2 py-0.5 text-xs bg-emerald-50 text-emerald-600 rounded font-medium">예정</span>
+                <p className="text-xs text-amber-600 mb-1 font-bold">특이사항</p>
+                <p className="text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap">{conti.memo}</p>
               </div>
             </div>
-            {conti.memo && (
-              <div className="mt-4 pt-4 border-t border-neutral-200">
-                <p className="text-xs text-amber-600 mb-1 font-bold">특이사항</p>
-                <p className="text-sm text-neutral-600 leading-relaxed">{conti.memo}</p>
+          )}
+        </div>
+
+        {(conti.bibleVerse || conti.sharingInfo) && (
+          <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-5">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-sky-200 bg-white">
+                  <BookOpen className="h-4 w-4 text-sky-700" />
+                </div>
+                <h3 className="text-sm font-bold text-sky-900">말씀 & 나눔</h3>
               </div>
-            )}
+            </div>
+            <div className="space-y-4">
+              {conti.bibleVerse && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
+                  <p className="mb-1 text-xs font-bold text-emerald-800">본문</p>
+                  {bibleVerseReference && (
+                    <p className="text-sm font-semibold text-emerald-900">{bibleVerseReference}</p>
+                  )}
+                  {bibleVerseContent && (
+                    <p className="mt-1 text-sm text-emerald-950/80 leading-relaxed whitespace-pre-wrap">{bibleVerseContent}</p>
+                  )}
+                </div>
+              )}
+              {conti.sharingInfo && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4">
+                  <p className="mb-1 text-xs font-bold text-amber-800">나눔</p>
+                  <p className="text-sm text-amber-950/80 leading-relaxed whitespace-pre-wrap">{conti.sharingInfo}</p>
+                </div>
+              )}
+            </div>
           </div>
+        )}
 
         <div className="space-y-4 pb-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-               <Music className="h-4 w-4 text-neutral-500" />
-               <h3 className="font-semibold text-neutral-900">곡 목록</h3>
+              <Music className="h-4 w-4 text-neutral-500" />
+              <h3 className="font-semibold text-neutral-900">곡 목록</h3>
             </div>
           </div>
-          
-          <ContiSongList 
+
+          <ContiSongList
             contiId={contiId}
-            songs={songs} 
-            isEditMode={isEditMode}
+            songs={songs}
+            isEditMode={isEditable}
             onRemove={(songId) => {
-              removeSongMutate({ contiId, contiSongId: songId })
+              void handleRemoveSong(songId)
             }}
-            onUpdateOrder={handleUpdateOrder} 
+            onUpdateOrder={handleUpdateOrder}
           />
-          
-          {isEditMode && (
-            <Button 
-              variant="outline" 
+
+          {isEditable && (
+            <Button
+              variant="outline"
               className="w-full border-dashed py-10 bg-muted/5 hover:bg-muted/10 group transition-all"
-              onClick={() => setSearchOpen(true)}
+              onClick={handleOpenSearch}
             >
               <div className="flex flex-col items-center gap-2">
                 <div className="h-8 w-8 rounded-full border border-dashed flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Plus className="h-4 w-4 text-muted-foreground" />
+                  <Plus className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">새로운 찬양 추가하기</span>
               </div>
@@ -266,6 +373,16 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
           )}
         </div>
       </div>
+
+      <SongSearchDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onSelect={(song) => {
+          void handleSelectExisting(song)
+          setSearchOpen(false)
+        }}
+        existingSongIds={songs.map((song) => song.teamSongId).filter(Boolean) as string[]}
+      />
     </div>
   )
 }
