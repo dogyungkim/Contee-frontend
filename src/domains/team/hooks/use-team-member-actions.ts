@@ -25,7 +25,7 @@ interface UseTeamMemberActionsParams {
   selectedTeamId: string | null
   selectedTeamShortCode?: string
   members: TeamMember[]
-  currentUserId?: string | number
+  currentUserId?: string
 }
 
 export function useTeamMemberActions({
@@ -39,7 +39,7 @@ export function useTeamMemberActions({
   const updateTeamMemberRoleMutation = useUpdateTeamMemberRoleMutation()
   const [copiedCode, setCopiedCode] = useState(false)
 
-  const currentUserMember = members.find((member) => member.userId === String(currentUserId))
+  const currentUserMember = members.find((member) => member.userId === currentUserId)
   const canManageMembers =
     currentUserMember?.role === 'OWNER' || currentUserMember?.role === 'ADMIN'
 

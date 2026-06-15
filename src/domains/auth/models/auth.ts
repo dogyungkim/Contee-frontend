@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   email: string;
   name: string;
   profileImageUrl: string;
@@ -12,7 +12,7 @@ export interface AuthResponse {
 }
 
 export interface UserResponse {
-  id: number;
+  id: string;
   email: string;
   name: string;
   profileImageUrl: string;
