@@ -78,7 +78,7 @@ export const useNewContiForm = (teamId: string | null) => {
             // 2. Map tempSongs to API Request Items
             const contiSongsRequest: ContiSongRequestItem[] = tempSongs.map((song, idx) => {
                 const base = {
-                    orderIndex: idx + 1, // 1-based index
+                    orderIndex: idx,
                     keyOverride: song.keySignature,
                     bpmOverride: song.bpm,
                     contiNote: song.contiNote

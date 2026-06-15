@@ -9,14 +9,18 @@ import type {
   AddContiSongRequestDto,
   UpdateContiSongRequestDto,
   ReorderContiSongsRequestDto,
-  UpdateContiStatusRequestDto,
+  ContiSearchParamsDto,
 } from '@/domains/conti/api/conti.dto';
 import { toContiModel, toContiSongModel } from '@/domains/conti/api/conti.mapper';
 
-export async function getContis(page = 0, size = 20): Promise<PageDto<Conti>> {
-  const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(`/api/v1/contis`, {
-    params: { page, size },
-  });
+export async function getTeamContis(
+  teamId: string,
+  params: ContiSearchParamsDto = {},
+): Promise<PageDto<Conti>> {
+  const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(
+    `/api/v1/teams/${teamId}/contis`,
+    { params },
+  );
   return {
     ...data.data,
     content: data.data.content.map(toContiModel),
@@ -35,17 +39,6 @@ export async function createConti(request: CreateContiRequestDto): Promise<Conti
 
 export async function updateConti(contiId: string, request: UpdateContiRequestDto): Promise<Conti> {
   const { data } = await apiClient.patch<ApiResponse<ContiResponseDto>>(`/api/v1/contis/${contiId}`, request);
-  return toContiModel(data.data);
-}
-
-export async function updateContiStatus(
-  contiId: string,
-  request: UpdateContiStatusRequestDto,
-): Promise<Conti> {
-  const { data } = await apiClient.patch<ApiResponse<ContiResponseDto>>(
-    `/api/v1/contis/${contiId}/status`,
-    request,
-  );
   return toContiModel(data.data);
 }
 

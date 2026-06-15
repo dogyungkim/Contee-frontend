@@ -176,7 +176,13 @@ interface DashboardDataDto {
     thisWeekContiCount: number;
     totalSongCount: number;
   };
-  recentContis: ContiResponseDto[];
+  recentContis: {
+    id: string;
+    title: string;
+    worshipDate: string;
+    updatedAt: string;
+    songCount: number;
+  }[];
   songs: SongResponseDto[];
   activities: {
     id: string;
@@ -292,18 +298,19 @@ interface DashboardDataDto {
 
 | 상태 | Method | Endpoint | 용도 |
 |---|---|---|---|
-| 사용 중 | `GET` | `/api/v1/contis?page={page}&size={size}` | 콘티 페이지 조회 |
+| 사용 중 | `GET` | `/api/v1/teams/{teamId}/contis` | 팀 콘티 검색 |
 | 사용 중 | `GET` | `/api/v1/contis/{contiId}` | 콘티 상세 조회 |
 | 사용 중 | `POST` | `/api/v1/contis` | 콘티 생성 |
 | 사용 중 | `PATCH` | `/api/v1/contis/{contiId}` | 콘티 정보 수정 |
-| 사용 중 | `PATCH` | `/api/v1/contis/{contiId}/status` | 콘티 상태 변경 |
 | 사용 중 | `DELETE` | `/api/v1/contis/{contiId}` | 콘티 삭제 |
 | 사용 중 | `POST` | `/api/v1/contis/{contiId}/songs` | 콘티에 곡 추가 |
 | 사용 중 | `DELETE` | `/api/v1/contis/{contiId}/songs/{contiSongId}` | 콘티 곡 제거 |
 | 사용 중 | `PATCH` | `/api/v1/contis/{contiId}/songs/{contiSongId}` | 콘티 곡 설정 수정 |
 | 사용 중 | `PUT` | `/api/v1/contis/{contiId}/songs/order` | 콘티 곡 순서 변경 |
 
-현재 콘티 목록 화면은 `page=0&size=100`으로 전체에 가깝게 조회한 뒤, 응답의 `teamId`를 프론트엔드에서 필터링한다.
+팀 콘티 검색은 `q`, `from`, `to`, `page`, `size` 쿼리 파라미터를 지원한다. 콘티 상태 필드와 상태 검색 조건은 사용하지 않는다.
+
+송폼 응답의 `id`와 `partOrder`는 저장 전 상태에서 `null`일 수 있다.
 
 ### 콘티 생성
 
@@ -349,15 +356,6 @@ interface DashboardDataDto {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
-  contiSongs?: ContiSongRequestItemDto[];
-}
-```
-
-### 콘티 상태 변경
-
-```ts
-{
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }
 ```
 
@@ -433,7 +431,7 @@ HTTP method별 전체 개수:
 
 1. Mock adapter에는 현재 사용 중인 `GET /api/v1/teams/{teamId}/dashboard`가 없다. 대신 실제 API 코드에서 호출하지 않는 `GET /api/v1/dashboard` mock route가 있다.
 2. Mock adapter에는 인증, 팀 상세, 팀 멤버, 팀 곡 상세 조회/삭제, 곡 구성 API 등이 구현되어 있지 않다.
-3. Mock adapter에는 실제 API 모듈에 없는 `GET/POST /api/v1/teams/{teamId}/contis`와 `GET /api/v1/contis/{contiId}/songs` route가 남아 있다.
+3. Mock adapter에는 실제 API 모듈에 없는 `POST /api/v1/teams/{teamId}/contis`와 `GET /api/v1/contis/{contiId}/songs` route가 남아 있다.
 4. `NEXT_PUBLIC_API_LOG = true`처럼 `.env.local`의 등호 주변에 공백이 있다. 일반적으로 파싱되지만 `KEY=value` 형태로 통일하는 편이 안전하다.
 5. API 응답의 `success`가 `false`여도 HTTP status가 2xx라면 공통 Axios client는 자동으로 에러 처리하지 않는다.
 6. 콘티 목록은 팀별 endpoint가 아니라 전체 `/api/v1/contis`를 조회하고 클라이언트에서 팀을 필터링한다.

@@ -10,8 +10,6 @@ import {
   Plus,
   Minus,
   RotateCcw,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react'
 import { ContiSong } from '@/types/conti'
 import { Button } from '@/components/ui/button'
@@ -43,7 +41,6 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
     form,
     setForm,
     isTeamNoteOpen,
-    setIsTeamNoteOpen,
     teamSong,
     songFormParts,
     groupedFlow,
@@ -250,7 +247,6 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
                       </div>
                     ))}
                   </div>
-                )}
 
                 {teamSong?.note && <div className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">{teamSong.note}</div>}
 

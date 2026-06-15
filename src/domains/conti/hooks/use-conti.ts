@@ -1,17 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getContis,
+    getTeamContis,
     getConti,
     createConti,
     updateConti,
-    updateContiStatus,
     deleteConti,
     addContiSong,
     removeContiSong,
     updateContiSong,
     reorderContiSongs
 } from '@/domains/conti/api/conti.api';
-import { Conti, ContiStatus, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
+import { Conti, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
 
 export const contiKeys = {
     all: ['contis'] as const,
@@ -23,13 +22,9 @@ export const contiKeys = {
 export const useContis = (teamId: string | null) => {
     return useQuery({
         queryKey: contiKeys.list(teamId || ''),
-        queryFn: () => getContis(0, 100), // TODO: Implement proper pagination
+        queryFn: () => getTeamContis(teamId!, { page: 0, size: 100 }),
         enabled: !!teamId,
-        select: (data) => {
-            const contis = data.content || [];
-            if (!teamId) return contis;
-            return contis.filter(c => c.teamId === teamId);
-        },
+        select: (data) => data.content || [],
     });
 };
 
@@ -84,19 +79,6 @@ export const useUpdateConti = () => {
     });
 };
 
-export const useUpdateContiStatus = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ contiId, status }: { contiId: string; status: ContiStatus }) =>
-            updateContiStatus(contiId, { status }),
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: contiKeys.detail(data.id) });
-            queryClient.invalidateQueries({ queryKey: contiKeys.list(data.teamId) });
-        },
-    });
-};
-
 export const useDeleteConti = () => {
     const queryClient = useQueryClient();
 
@@ -138,13 +120,8 @@ export const useUpdateContiSongOrder = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) => {
-            const songOrders = songIds.map((id, index) => ({
-                contiSongId: id,
-                order: index + 1 // 1-based index per API doc
-            }));
-            return reorderContiSongs(contiId, { songOrders, contiSongIds: songIds });
-        },
+        mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) =>
+            reorderContiSongs(contiId, { contiSongIds: songIds }),
         onSuccess: (_, { contiId }) => {
             // Invalidate conti detail to refresh the contiSongs array
             queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });

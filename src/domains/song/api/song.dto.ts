@@ -56,8 +56,8 @@ export type SongPartTypeDto =
   | 'CUSTOM';
 
 export interface ApiSongFormPartDto {
-  id: number;
-  partOrder: number;
+  id: number | null;
+  partOrder: number | null;
   partType: SongPartTypeDto;
   customPartName?: string;
   repeatCount: number;

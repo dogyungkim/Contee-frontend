@@ -1,5 +1,4 @@
 import type { TeamSongResponseDto } from '@/domains/song/api/song.dto';
-import type { ContiStatus } from '@/domains/conti/models/conti-status';
 
 export type ContiSongPartTypeDto =
   | 'INTRO'
@@ -15,8 +14,8 @@ export type ContiSongPartTypeDto =
   | 'CUSTOM';
 
 export interface ContiSongFormPartDto {
-  id: number;
-  partOrder: number;
+  id: number | null;
+  partOrder: number | null;
   partType: ContiSongPartTypeDto;
   customPartName?: string;
   repeatCount: number;
@@ -29,15 +28,15 @@ export interface ContiSongResponseDto {
   contiId?: string;
   teamSongId?: string;
   customTitle?: string;
-  songTitle: string;
-  songArtist: string;
+  songTitle?: string;
+  songArtist?: string;
   orderIndex: number;
   keyOverride?: string;
   bpmOverride?: number;
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
-  songForm: ContiSongFormPartDto[];
+  songForm?: ContiSongFormPartDto[];
   teamSong?: TeamSongResponseDto;
   createdAt?: string;
   updatedAt?: string;
@@ -52,12 +51,19 @@ export interface ContiResponseDto {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
-  status?: ContiStatus;
   songCount?: number;
   totalDuration?: number;
   createdAt?: string;
   updatedAt?: string;
   contiSongs?: ContiSongResponseDto[];
+}
+
+export interface ContiSearchParamsDto {
+  q?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  size?: number;
 }
 
 export interface ContiSongFormPartRequestDto {
@@ -101,7 +107,6 @@ export interface UpdateContiRequestDto {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
-  contiSongs?: ContiSongRequestItemDto[];
 }
 
 export interface AddContiSongRequestDto {
@@ -128,13 +133,5 @@ export interface UpdateContiSongRequestDto {
 }
 
 export interface ReorderContiSongsRequestDto {
-  songOrders: {
-    contiSongId: string;
-    order: number;
-  }[];
-  contiSongIds?: string[];
-}
-
-export interface UpdateContiStatusRequestDto {
-  status: ContiStatus;
+  contiSongIds: string[];
 }

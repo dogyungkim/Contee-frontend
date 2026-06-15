@@ -18,12 +18,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  CONTI_STATUS_BADGE_CLASS,
-  CONTI_STATUS_LABEL,
-  normalizeContiStatus,
-} from '@/domains/conti/models/conti-status'
-import { cn } from '@/lib/utils'
 
 export function ContiList() {
   const { selectedTeamId } = useTeam()
@@ -70,9 +64,7 @@ export function ContiList() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {contis.map((conti: Conti) => {
-        const status = normalizeContiStatus(conti.status)
-        return (
+      {contis.map((conti: Conti) => (
           <Card key={conti.id} className="group relative overflow-hidden transition-all hover:border-primary/50">
             <Link href={`/dashboard/contis/${conti.id}`} className="absolute inset-0 z-0">
               <span className="sr-only">상세 보기</span>
@@ -85,14 +77,6 @@ export function ContiList() {
                     <Calendar className="h-3 w-3" />
                     {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
                   </CardDescription>
-                  <span
-                    className={cn(
-                      'inline-flex w-fit items-center rounded-md px-2 py-0.5 text-[11px] font-semibold',
-                      CONTI_STATUS_BADGE_CLASS[status],
-                    )}
-                  >
-                    {CONTI_STATUS_LABEL[status]}
-                  </span>
                 </div>
                 <div className="z-10">
                   <DropdownMenu>
@@ -126,8 +110,7 @@ export function ContiList() {
               )}
             </CardContent>
           </Card>
-        )
-      })}
+      ))}
     </div>
   )
 }

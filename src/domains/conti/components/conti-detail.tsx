@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, Settings, LayoutList, Share2, Info, Music, BookOpen, Archive, Upload, Loader2 } from 'lucide-react'
+import { Plus, Settings, LayoutList, Share2, Info, Music, BookOpen, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -11,7 +11,6 @@ import {
   useAddContiSong,
   useRemoveContiSong,
   useUpdateContiSongOrder,
-  useUpdateContiStatus,
 } from '../hooks/use-conti'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -22,15 +21,7 @@ import { ContiSong } from '@/types/conti'
 import { useTeam } from '@/context/team-context'
 import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
 import { useAuth } from '@/domains/auth/hooks/use-auth'
-import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
-import {
-  CONTI_STATUS_BADGE_CLASS,
-  CONTI_STATUS_LABEL,
-  getNextContiStatus,
-  isContiEditableStatus,
-  normalizeContiStatus,
-} from '@/domains/conti/models/conti-status'
 import { getContiApiErrorMessage } from '@/domains/conti/utils/conti-error'
 
 interface ContiDetailProps {
@@ -49,23 +40,13 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   const { mutateAsync: addSongMutateAsync } = useAddContiSong()
   const { mutateAsync: removeSongMutateAsync } = useRemoveContiSong()
   const { mutateAsync: updateOrderMutateAsync } = useUpdateContiSongOrder()
-  const { mutateAsync: updateStatusMutateAsync, isPending: isStatusUpdating } = useUpdateContiStatus()
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(true)
 
   const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
   const canEdit = currentMember?.role === 'OWNER' || currentMember?.role === 'ADMIN'
-  const contiStatus = normalizeContiStatus(conti?.status)
-  const isEditableByStatus = isContiEditableStatus(conti?.status)
-  const isEditable = canEdit && isEditMode && isEditableByStatus
-  const nextStatus = getNextContiStatus(conti?.status)
-
-  useEffect(() => {
-    if (!isContiEditableStatus(conti?.status)) {
-      setIsEditMode(false)
-    }
-  }, [conti?.status])
+  const isEditable = canEdit && isEditMode
 
   if (isContiLoading) {
     return (
@@ -90,7 +71,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
 
   const handleSelectExisting = async (song: TeamSong) => {
     if (!isEditable) {
-      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      toast.error('편집 권한이 없거나 보기 모드입니다.')
       return
     }
 
@@ -112,7 +93,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
 
   const handleRemoveSong = async (songId: string) => {
     if (!isEditable) {
-      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      toast.error('편집 권한이 없거나 보기 모드입니다.')
       return
     }
 
@@ -125,37 +106,9 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     }
   }
 
-  const handleUpdateStatus = async () => {
-    if (!conti || !canEdit || !nextStatus) return
-
-    const confirmMessage =
-      nextStatus === 'PUBLISHED'
-        ? '콘티를 발행하시겠습니까? 발행 후에는 수정할 수 없습니다.'
-        : '콘티를 보관하시겠습니까? 보관 후에는 수정할 수 없습니다.'
-
-    if (typeof window !== 'undefined' && !window.confirm(confirmMessage)) {
-      return
-    }
-
-    try {
-      await updateStatusMutateAsync({ contiId, status: nextStatus })
-      setIsEditMode(false)
-      toast.success(nextStatus === 'PUBLISHED' ? '콘티를 발행했습니다.' : '콘티를 보관했습니다.')
-    } catch (error) {
-      toast.error(
-        getContiApiErrorMessage(
-          error,
-          nextStatus === 'PUBLISHED' ? '콘티 발행에 실패했습니다.' : '콘티 보관에 실패했습니다.',
-        ),
-      )
-      console.error('Failed to update conti status:', error)
-      void refetchConti()
-    }
-  }
-
   const handleUpdateOrder = async (reorderedSongs: ContiSong[]) => {
     if (!isEditable) {
-      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      toast.error('편집 권한이 없거나 보기 모드입니다.')
       return
     }
 
@@ -174,7 +127,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
 
   const handleOpenSearch = () => {
     if (!isEditable) {
-      toast.error('발행/보관된 콘티는 수정할 수 없습니다.')
+      toast.error('편집 권한이 없거나 보기 모드입니다.')
       return
     }
     setSearchOpen(true)
@@ -201,14 +154,6 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
             </div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
-              <span
-                className={cn(
-                  'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold',
-                  CONTI_STATUS_BADGE_CLASS[contiStatus],
-                )}
-              >
-                {CONTI_STATUS_LABEL[contiStatus]}
-              </span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <span className="font-semibold text-primary/80">
@@ -219,13 +164,17 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                 총 <span className="font-bold text-foreground">{songs.length}</span>곡
               </span>
             </div>
-            {!isEditableByStatus && (
-              <p className="text-xs font-medium text-amber-700">발행/보관된 콘티는 읽기 전용입니다.</p>
-            )}
           </div>
 
           <div className="flex items-center gap-2">
-            {canEdit && isEditableByStatus && (
+
+            {isEditable && (
+              <Button className="h-9 gap-2" onClick={handleOpenSearch}>
+                <Plus className="h-4 w-4" />
+                곡 추가
+              </Button>
+            )}
+            {canEdit && (
               <Button
                 variant={isEditMode ? 'default' : 'outline'}
                 size="sm"
@@ -240,30 +189,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
               <Share2 className="h-4 w-4" />
               <span className="hidden sm:inline">공유</span>
             </Button>
-            {canEdit && nextStatus && (
-              <Button
-                variant={nextStatus === 'PUBLISHED' ? 'default' : 'outline'}
-                size="sm"
-                className="h-9 gap-2"
-                onClick={handleUpdateStatus}
-                disabled={isStatusUpdating}
-              >
-                {isStatusUpdating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : nextStatus === 'PUBLISHED' ? (
-                  <Upload className="h-4 w-4" />
-                ) : (
-                  <Archive className="h-4 w-4" />
-                )}
-                <span>{nextStatus === 'PUBLISHED' ? '발행하기' : '보관하기'}</span>
-              </Button>
-            )}
-            {isEditable && (
-              <Button className="h-9 gap-2" onClick={handleOpenSearch}>
-                <Plus className="h-4 w-4" />
-                곡 추가
-              </Button>
-            )}
+
           </div>
         </div>
       </div>
@@ -272,7 +198,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 max-w-[1200px] mx-auto w-full">
         {/* Summary Card */}
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             <div>
               <p className="text-xs text-neutral-500 mb-1">콘티명</p>
               <p className="font-medium">{conti.title}</p>
@@ -284,17 +210,6 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
             <div>
               <p className="text-xs text-neutral-500 mb-1">예배 시간</p>
               <p className="font-medium">-</p>
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 mb-1">진행 상태</p>
-              <span
-                className={cn(
-                  'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold',
-                  CONTI_STATUS_BADGE_CLASS[contiStatus],
-                )}
-              >
-                {CONTI_STATUS_LABEL[contiStatus]}
-              </span>
             </div>
           </div>
           {conti.memo && (

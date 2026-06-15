@@ -31,7 +31,7 @@ interface UseContiSongItemParams {
 
 const toUiSongForm = (apiParts: ApiSongFormPart[]): SongFormPart[] => {
   return apiParts.map((part, index) => ({
-    id: `${part.id || index}`,
+    id: `${part.id ?? index}`,
     type: PART_TYPE_MAP[part.partType] || 'Intro',
     label: part.customPartName || part.partType,
     bars: SONG_FORM_CONFIG.DEFAULT_BARS,
