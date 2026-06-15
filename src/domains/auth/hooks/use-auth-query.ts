@@ -50,10 +50,10 @@ export const useUserQuery = () => {
 
 export const useLogoutMutation = () => {
     const queryClient = useQueryClient();
-    const { accessToken, reset } = useAuthStore();
+    const { reset } = useAuthStore();
 
     return useMutation({
-        mutationFn: () => logout(accessToken),
+        mutationFn: logout,
         onSuccess: () => {
             reset();
             queryClient.setQueryData(authKeys.user(), null);

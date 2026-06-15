@@ -8,14 +8,8 @@ export const getGoogleLoginUrl = (): string => {
   return `${process.env.NEXT_PUBLIC_API_URL}/oauth2/authorization/google`;
 };
 
-export const logout = async (accessToken?: string | null): Promise<void> => {
-  if (!accessToken) return;
-
-  await apiClient.post('/api/v1/auth/logout', {}, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+export const logout = async (): Promise<void> => {
+  await apiClient.post('/api/v1/auth/logout');
 };
 
 export const refreshToken = async (): Promise<AuthResponse | null> => {
