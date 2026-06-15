@@ -9,7 +9,4 @@ export const toTeamSummaryModel = (dto: TeamSummaryResponseDto): TeamSummary => 
 
 export const toTeamMemberModel = (dto: TeamMemberResponseDto): TeamMember => ({ ...dto });
 
-export const toTeamModel = (dto: TeamResponseDto): Team => ({
-  ...dto,
-  members: dto.members.map(toTeamMemberModel),
-});
+export const toTeamModel = (dto: TeamResponseDto): Team => ({ ...dto });

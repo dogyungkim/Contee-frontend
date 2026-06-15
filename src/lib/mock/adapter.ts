@@ -72,7 +72,6 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     if (url === '/api/v1/teams' && methodUpper === 'POST') {
         const body = data ? JSON.parse(data) : {};
         const newTeam: Team = {
-            members: [],
             id: `team-${Date.now()}`,
             name: body.name || 'New Team',
             shortCode: 'NEW12345',

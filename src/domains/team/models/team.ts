@@ -15,7 +15,6 @@ export interface Team {
   createdAt: string;
   updatedAt: string;
   memberCount: number;
-  members: TeamMember[];
 }
 
 export interface TeamMember {

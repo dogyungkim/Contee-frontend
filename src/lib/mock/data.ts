@@ -39,7 +39,6 @@ export const MOCK_TEAMS: Team[] = [
         createdAt: '2023-01-01T09:00:00Z',
         updatedAt: '2023-01-15T10:00:00Z',
         memberCount: 5,
-        members: [],
     },
     {
         id: 'team-2',
@@ -49,7 +48,6 @@ export const MOCK_TEAMS: Team[] = [
         createdAt: '2023-02-01T14:00:00Z',
         updatedAt: '2023-02-01T14:00:00Z',
         memberCount: 12,
-        members: [],
     },
 ];
 

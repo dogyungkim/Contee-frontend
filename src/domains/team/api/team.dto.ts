@@ -10,7 +10,6 @@ export interface TeamResponseDto {
   createdAt: string;
   updatedAt: string;
   memberCount: number;
-  members: TeamMember[];
 }
 
 export type TeamMemberResponseDto = TeamMember;
