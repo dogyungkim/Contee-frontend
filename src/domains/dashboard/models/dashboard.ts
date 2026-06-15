@@ -1,4 +1,3 @@
-import type { Conti } from '@/domains/conti/models/conti';
 import type { Song } from '@/domains/song/models/song';
 
 export interface DashboardSummary {
@@ -14,9 +13,17 @@ export interface Activity {
   message: string;
 }
 
+export interface DashboardConti {
+  id: string;
+  title: string;
+  worshipDate: string;
+  updatedAt: string;
+  songCount: number;
+}
+
 export interface DashboardData {
   summary: DashboardSummary;
-  recentContis: Conti[];
+  recentContis: DashboardConti[];
   songs: Song[];
   activities: Activity[];
 }

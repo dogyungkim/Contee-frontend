@@ -23,11 +23,11 @@ export default function DashboardGroupLayout({
     <RequireAuth>
       <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
         <TeamProvider>
-          <div className="flex h-screen overflow-hidden">
+          <div className="bg-grid-soft flex h-screen overflow-hidden bg-[#fcfcfc]">
             <Sidebar className="hidden md:flex" />
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-              <header className="flex h-14 items-center justify-between border-b px-4 md:hidden">
-                <Link href="/dashboard" className="font-semibold">Contee</Link>
+              <header className="surface-panel flex h-16 items-center justify-between border-b-0 px-4 md:hidden">
+                <Link href="/dashboard" className="font-semibold tracking-[-0.03em]">Contee</Link>
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button variant="outline" size="icon" aria-label="메뉴 열기">
@@ -42,7 +42,7 @@ export default function DashboardGroupLayout({
                   </SheetContent>
                 </Sheet>
               </header>
-              <main className="flex-1 overflow-y-auto p-4 md:p-8">
+              <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
                 {children}
               </main>
             </div>

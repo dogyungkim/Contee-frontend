@@ -218,15 +218,9 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
             />
           </div>
 
-          {(songFormParts.length > 0 || teamSong?.note) && (
+          {songFormParts.length > 0 && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">팀 곡 정보 (공유)</Label>
-                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1" onClick={() => setIsTeamNoteOpen(!isTeamNoteOpen)}>
-                  {isTeamNoteOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  {isTeamNoteOpen ? '접기' : '전체 보기'}
-                </Button>
-              </div>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">송폼</Label>
 
               <div
                 className={cn(
@@ -234,7 +228,6 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
                   isTeamNoteOpen ? 'max-h-[500px]' : 'max-h-32'
                 )}
               >
-                {songFormParts.length > 0 && (
                   <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {groupedFlow.map((group, groupIndex) => (
                       <div key={groupIndex} className="flex items-center gap-1.5 shrink-0">

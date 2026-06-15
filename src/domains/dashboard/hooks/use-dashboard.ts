@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getDashboardData } from '@/domains/dashboard/api/dashboard.api';
 import { useTeam } from '@/context/team-context';
 import { STALE_TIME } from '@/constants/time';
-import type { DashboardSummary, Activity } from '@/domains/dashboard/models/dashboard';
-import type { Conti } from '@/types/conti';
+import type { DashboardSummary, Activity, DashboardConti } from '@/domains/dashboard/models/dashboard';
 import type { Song } from '@/types/song';
 
 /**
@@ -24,7 +23,7 @@ import type { Song } from '@/types/song';
 export interface DashboardData {
     hasTeam: boolean;
     summary: DashboardSummary;
-    recentContis: Conti[];
+    recentContis: DashboardConti[];
     songs: Song[];
     activities: Activity[];
     isLoading: boolean;

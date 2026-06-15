@@ -12,10 +12,10 @@ import type {
 } from '@/domains/dashboard/api/dashboard.dto';
 import {
   toActivityModel,
+  toDashboardContiModel,
   toDashboardDataModel,
   toDashboardSummaryModel,
 } from '@/domains/dashboard/api/dashboard.mapper';
-import { toContiModel } from '@/domains/conti/api/conti.mapper';
 
 export const getDashboardSummary = async (): Promise<DashboardSummary> => {
   const response = await apiClient.get<ApiResponse<DashboardSummaryDto>>('/api/v1/dashboard/summary');
@@ -24,7 +24,7 @@ export const getDashboardSummary = async (): Promise<DashboardSummary> => {
 
 export const getRecentContis = async () => {
   const response = await apiClient.get<ApiResponse<DashboardDataDto['recentContis']>>('/api/v1/dashboard/contis/recent');
-  return response.data.data.map(toContiModel);
+  return response.data.data.map(toDashboardContiModel);
 };
 
 export const getSongs = async () => {

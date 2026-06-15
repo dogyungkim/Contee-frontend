@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import Link from 'next/link';
@@ -88,20 +89,25 @@ const Sidebar = ({ className }: SidebarProps) => {
   ];
 
   return (
-    <div className={cn("flex h-full w-64 flex-col border-r bg-white", className)}>
+    <div className={cn("surface-panel flex h-full w-72 flex-col rounded-none border-r border-border/80 bg-sidebar/95", className)}>
       {/* Logo */}
-      <div className="flex h-14 items-center border-b px-4">
-        <Link href="/dashboard" className="flex items-center space-x-2">
-          <Music className="h-6 w-6" />
-          <span className="font-bold">Contee</span>
+      <div className="flex h-16 items-center border-b border-border/80 px-5">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white">
+            <Music className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold tracking-[-0.03em]">Contee</div>
+            <div className="text-caption text-muted-foreground">Team workspace</div>
+          </div>
         </Link>
       </div>
 
       {/* Team Selector or Create Team Button */}
-      <div className="p-4 pb-3">
+      <div className="p-5 pb-3">
         {hasTeams ? (
           <Select value={selectedTeamId || ''} onValueChange={handleTeamChange}>
-            <SelectTrigger className="w-full" aria-label="팀 선택">
+            <SelectTrigger className="h-11 w-full rounded-2xl border-border bg-white" aria-label="팀 선택">
               <SelectValue placeholder="팀 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -125,22 +131,25 @@ const Sidebar = ({ className }: SidebarProps) => {
       </div>
 
       {/* User Profile */}
-      <div className="px-4 pb-4">
-        <div className="flex items-center gap-3 rounded-lg bg-accent/30 p-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            {user?.profileImageUrl ? (
-              <img
-                src={user.profileImageUrl}
-                alt={user.name}
-                className="h-8 w-8 rounded-full"
-              />
-            ) : (
-              <User className="h-4 w-4" />
-            )}
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium">{user?.name || '사용자'}</p>
-            <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+      <div className="px-5 pb-5">
+        <div className="rounded-[24px] border border-border bg-white p-4 shadow-[0_1px_2px_rgba(23,23,23,0.04)]">
+          <div className="text-caption text-muted-foreground">Signed in</div>
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              {user?.profileImageUrl ? (
+                <img
+                  src={user.profileImageUrl}
+                  alt={user.name}
+                  className="h-10 w-10 rounded-full"
+                />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-medium">{user?.name || '사용자'}</p>
+              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -163,8 +172,8 @@ const Sidebar = ({ className }: SidebarProps) => {
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                   isDisabled && 'pointer-events-none opacity-50',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(23,23,23,0.08)]'
+                    : 'text-muted-foreground hover:bg-white hover:text-accent-foreground'
                 )}
                 aria-disabled={isDisabled}
               >
@@ -180,7 +189,7 @@ const Sidebar = ({ className }: SidebarProps) => {
       {/* Logout Button */}
       <div className="p-4">
         <Button
-          variant="ghost"
+          variant="outline"
           className="w-full justify-start"
           onClick={handleLogout}
         >
