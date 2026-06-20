@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Clock, ListMusic, Search } from 'lucide-react'
+import { Clock, ListMusic, Search, ChevronRight, Layers3 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -54,23 +54,26 @@ export function DashboardContent() {
       <DashboardHeader />
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="grid gap-6 lg:col-span-8">
-          <div className="surface-panel overflow-hidden rounded-[28px] p-6 sm:p-7">
+          <div className="surface-card overflow-hidden rounded-xl p-6 sm:p-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <div className="text-caption text-muted-foreground">This week</div>
+                <div className="text-caption-upper text-muted-foreground">This week</div>
                 <div className="mt-3 text-3xl font-semibold tracking-[-0.05em]">
                   팀의 최근 준비 흐름을
                   <br className="hidden sm:block" />
                   한 화면에서 확인하세요.
                 </div>
+                <p className="mt-3 max-w-xl text-sm text-muted-foreground">
+                  콘티 작성, 곡 확인, 공유 상태를 하나의 작업 표면 안에서 관리할 수 있습니다.
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:w-[320px]">
-                <div className="rounded-2xl border border-border bg-white p-4">
-                  <div className="text-caption text-muted-foreground">Contis</div>
+                <div className="rounded-xl border border-border bg p-4">
+                  <div className="text-caption-upper text-muted-foreground">Contis</div>
                   <div className="mt-2 text-2xl font-semibold">{summary.thisWeekContiCount}</div>
                 </div>
-                <div className="rounded-2xl border border-border bg-white p-4">
-                  <div className="text-caption text-muted-foreground">Songs</div>
+                <div className="rounded-xl border border-border bg p-4">
+                  <div className="text-caption-upper text-muted-foreground">Songs</div>
                   <div className="mt-2 text-2xl font-semibold">{summary.totalSongCount}</div>
                 </div>
               </div>
@@ -78,7 +81,7 @@ export function DashboardContent() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="rounded-[24px]">
+            <Card className="rounded-xl">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">다가오는 예배</CardTitle>
                 <CardDescription>
@@ -104,25 +107,25 @@ export function DashboardContent() {
               )}
             </Card>
 
-            <Card className="rounded-[24px]">
+            <Card className="rounded-xl">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">이번 주 요약</CardTitle>
                 <CardDescription>진행 현황을 빠르게 확인하세요</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border p-4">
-                  <div className="text-caption text-muted-foreground">이번 주 콘티</div>
+                <div className="rounded-xl border p-4">
+                  <div className="text-caption-upper text-muted-foreground">이번 주 콘티</div>
                   <div className="mt-1 text-xl font-semibold">{summary.thisWeekContiCount}</div>
                 </div>
-                <div className="rounded-2xl border p-4">
-                  <div className="text-caption text-muted-foreground">등록된 곡</div>
+                <div className="rounded-xl border p-4">
+                  <div className="text-caption-upper text-muted-foreground">등록된 곡</div>
                   <div className="mt-1 text-xl font-semibold">{summary.totalSongCount}</div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="rounded-[24px]">
+          <Card className="rounded-xl">
             <CardHeader>
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -141,16 +144,19 @@ export function DashboardContent() {
                 </div>
               ) : (
                 recentContis.map((conti) => (
-                  <div key={conti.id} className="flex items-center justify-between rounded-2xl border p-4">
+                  <div key={conti.id} className="group flex items-center justify-between rounded-xl border p-4 transition-colors hover:bg-[#f3f3f3]">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{conti.title}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
+                      <div className="mt-1 font-[var(--font-caption)] text-[12px] text-muted-foreground">
                         {format(new Date(conti.worshipDate), 'yyyy. M. d', { locale: ko })} ·{' '}
                         {conti.songCount}곡
                       </div>
                     </div>
                     <Button asChild size="sm" variant="outline">
-                      <Link href={`/dashboard/contis/${conti.id}`}>열기</Link>
+                      <Link href={`/dashboard/contis/${conti.id}`}>
+                        열기
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
                     </Button>
                   </div>
                 ))
@@ -158,7 +164,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[24px]">
+          <Card className="rounded-xl">
             <CardHeader>
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -191,11 +197,16 @@ export function DashboardContent() {
                   </div>
                 ) : (
                   filteredSongs.map((song) => (
-                    <div key={song.id} className="rounded-2xl border p-4">
-                      <div className="text-sm font-medium">{song.title}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
+                    <div key={song.id} className="rounded-xl border p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="text-sm font-medium">{song.title}</div>
+                        <div className="rounded-md bg-white px-2 py-1 font-[var(--font-caption)] text-[12px] text-foreground">
+                          <Layers3 className="mr-1 inline h-3 w-3" />
+                          {song.keySignature || '-'}
+                        </div>
+                      </div>
+                      <div className="mt-1 font-[var(--font-caption)] text-[12px] text-muted-foreground">
                         {song.artist}
-                        {song.keySignature ? ` · Key ${song.keySignature}` : ''}
                         {typeof song.bpm === 'number' ? ` · ${song.bpm}bpm` : ''}
                       </div>
                       <div className="mt-3">
@@ -212,7 +223,7 @@ export function DashboardContent() {
         </div>
 
         <div className="grid gap-6 lg:col-span-4">
-          <Card className="rounded-[24px]">
+          <Card className="rounded-xl">
             <CardHeader>
               <CardTitle className="text-base">빠른 작업</CardTitle>
               <CardDescription>자주 쓰는 기능으로 바로 이동</CardDescription>
@@ -239,7 +250,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[24px]">
+          <Card className="rounded-xl">
             <CardHeader>
               <CardTitle className="text-base">최근 활동</CardTitle>
               <CardDescription>최근 상태를 확인하세요</CardDescription>
@@ -251,8 +262,8 @@ export function DashboardContent() {
                 </div>
               ) : (
                 activities.map((a) => (
-                  <div key={a.id} className="rounded-2xl border p-4">
-                    <div className="text-caption text-muted-foreground">{a.timeLabel}</div>
+                  <div key={a.id} className="rounded-xl border p-4">
+                    <div className="font-[var(--font-caption)] text-[12px] text-muted-foreground">{a.timeLabel}</div>
                     <div className="mt-1 text-sm">{a.message}</div>
                   </div>
                 ))

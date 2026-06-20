@@ -3,64 +3,63 @@ import { ArrowUpRight, Library, ListMusic, Share2 } from 'lucide-react'
 const features = [
   {
     eyebrow: 'Plan',
-    title: '드래그 앤 드롭으로 콘티 흐름을 설계',
+    title: '콘티를 예배 흐름 중심으로 정리',
     description:
-      '곡 순서를 빠르게 조정하고 예배의 리듬을 시각적으로 정리합니다. 리허설 직전 변경도 부담 없이 반영할 수 있습니다.',
-    bullets: ['직관적인 순서 변경', '모바일에서도 동일한 흐름 유지', '팀과 동시에 최신본 확인'],
+      '곡 순서를 빠르게 조정하고 예배의 호흡을 화면 안에서 확인합니다. 수정이 생겨도 전체 팀이 같은 구조를 따라갑니다.',
+    bullets: ['드래그로 순서 조정', '리허설 직전 수정 반영', '모바일에서도 동일한 구조'],
     icon: ListMusic,
-    accent:
-      'from-[rgba(0,124,240,0.16)] via-[rgba(80,227,194,0.12)] to-transparent',
   },
   {
     eyebrow: 'Search',
-    title: '곡 데이터베이스를 팀의 기준 정보로',
+    title: '곡 정보를 기준 데이터로 축적',
     description:
-      '곡명, 아티스트, 키, BPM, 링크를 한 곳에 쌓아두고 다음 예배를 위한 검색 시간을 줄입니다.',
-    bullets: ['곡 속성별 빠른 탐색', '자주 쓰는 조합 재사용', '악보와 참고 링크 연결'],
+      '곡명, 아티스트, 키, BPM, 링크를 함께 쌓아두고 다음 예배 준비 시간을 줄입니다.',
+    bullets: ['곡 메타데이터 정리', '조합 재사용', '링크와 자료 연결'],
     icon: Library,
-    accent:
-      'from-[rgba(121,40,202,0.14)] via-[rgba(255,0,128,0.14)] to-transparent',
   },
   {
-    eyebrow: 'Ship',
-    title: '최종본 공유를 한 번의 전달로',
+    eyebrow: 'Share',
+    title: '최종 공유를 더 조용하게 끝내기',
     description:
-      '완성된 콘티를 링크와 출력 포맷으로 정리해 팀 전체가 같은 버전을 보게 만듭니다.',
-    bullets: ['공유 링크 중심 전달', 'PDF 출력 준비', '수정 이후 즉시 반영'],
+      '링크와 출력본을 기준으로 팀 전체가 최신 상태를 확인할 수 있어 전달 과정의 확인 비용이 줄어듭니다.',
+    bullets: ['링크 중심 공유', 'PDF 출력 준비', '수정 후 즉시 최신화'],
     icon: Share2,
-    accent:
-      'from-[rgba(255,77,77,0.14)] via-[rgba(249,203,40,0.14)] to-transparent',
   },
 ]
 
 const FeatureSection = () => {
   return (
-    <section id="workflow" className="border-b border-border/80 bg-white">
-      <div className="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+    <section id="workflow" className="border-b border-border bg-white">
+      <div className="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="text-caption text-muted-foreground">Workflow</div>
-          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
-            계획하고, 찾고, 공유하는 전 과정을 하나의 제품 흐름으로.
+          <div className="text-caption-upper text-muted-foreground">Workflow</div>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+            계획, 검색, 공유가 하나의 흐름으로 이어집니다.
           </h2>
           <p className="mt-5 text-lg leading-8 text-muted-foreground">
-            단순히 예쁜 랜딩이 아니라 실제 운영 화면으로 이어지는 구조를 담았습니다. Contee의 핵심은
-            팀이 작업을 덜 잃어버리게 만드는 데 있습니다.
+            문서가 바뀔 때마다 팀이 다시 정렬되지 않도록, Contee는 준비 과정 전체를 같은 작업 문맥 안에 둡니다.
           </p>
         </div>
 
         <div className="mt-16 grid gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon
+            const dark = index === 1
+
             return (
               <div
                 key={feature.title}
-                className="surface-panel grid gap-8 rounded-[28px] p-6 sm:p-8 lg:grid-cols-[0.95fr_1.05fr]"
+                className={dark ? 'grid gap-8 rounded-xl border border-[#1a1a1a] bg-[#171717] p-6 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]' : 'surface-card grid gap-8 rounded-xl p-6 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]'}
               >
                 <div className="flex flex-col justify-between gap-6">
                   <div>
-                    <div className="text-caption text-muted-foreground">{feature.eyebrow}</div>
-                    <h3 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">{feature.title}</h3>
-                    <p className="mt-4 max-w-xl text-base leading-7 text-muted-foreground">
+                    <div className={dark ? 'text-caption-upper text-white/60' : 'text-caption-upper text-muted-foreground'}>
+                      {feature.eyebrow}
+                    </div>
+                    <h3 className={dark ? 'mt-4 text-3xl font-semibold tracking-[-0.05em] text-white' : 'mt-4 text-3xl font-semibold tracking-[-0.05em] text-foreground'}>
+                      {feature.title}
+                    </h3>
+                    <p className={dark ? 'mt-4 max-w-xl text-base leading-7 text-white/72' : 'mt-4 max-w-xl text-base leading-7 text-muted-foreground'}>
                       {feature.description}
                     </p>
                   </div>
@@ -68,32 +67,33 @@ const FeatureSection = () => {
                     {feature.bullets.map((bullet) => (
                       <div
                         key={bullet}
-                        className="flex items-center justify-between rounded-2xl border border-border bg-white px-4 py-3"
+                        className={dark ? 'flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3' : 'flex items-center justify-between rounded-lg border border-border bg-[#fafafa] px-4 py-3'}
                       >
-                        <span className="text-sm text-foreground">{bullet}</span>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                        <span className={dark ? 'text-sm text-white' : 'text-sm text-foreground'}>{bullet}</span>
+                        <ArrowUpRight className={dark ? 'h-4 w-4 text-white/55' : 'h-4 w-4 text-muted-foreground'} />
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className={`relative overflow-hidden rounded-[24px] border border-border bg-gradient-to-br ${feature.accent} p-5`}>
-                  <div className="absolute inset-0 bg-grid-soft opacity-60" />
-                  <div className="relative rounded-[20px] border border-border bg-white/90 p-5 shadow-[0_1px_2px_rgba(23,23,23,0.04)]">
+                <div className={dark ? 'rounded-xl border border-white/10 bg-[#1a1a1a] p-5' : 'rounded-xl border border-border bg-[#fafafa] p-5'}>
+                  <div className={dark ? 'rounded-xl border border-white/10 bg-[#171717] p-5' : 'rounded-xl border border-border bg-white p-5'}>
                     <div className="flex items-center justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-accent">
-                        <Icon className="h-5 w-5" />
+                      <div className={dark ? 'flex h-10 w-10 items-center justify-center rounded-md bg-white/10' : 'flex h-10 w-10 items-center justify-center rounded-md bg-accent'}>
+                        <Icon className={dark ? 'h-5 w-5 text-white' : 'h-5 w-5 text-foreground'} />
                       </div>
-                      <div className="text-caption text-muted-foreground">0{index + 1}</div>
+                      <div className={dark ? 'text-caption text-white/55' : 'text-caption text-muted-foreground'}>
+                        0{index + 1}
+                      </div>
                     </div>
                     <div className="mt-8 space-y-3">
-                      <div className="h-3 w-24 rounded-full bg-foreground/10" />
-                      <div className="h-10 rounded-2xl border border-border bg-white" />
+                      <div className={dark ? 'h-3 w-24 rounded-full bg-white/14' : 'h-3 w-24 rounded-full bg-foreground/10'} />
+                      <div className={dark ? 'h-11 rounded-lg border border-white/10 bg-[#1a1a1a]' : 'h-11 rounded-lg border border-border bg-white'} />
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="h-24 rounded-2xl border border-border bg-[#fafafa]" />
-                        <div className="h-24 rounded-2xl border border-border bg-white" />
+                        <div className={dark ? 'h-24 rounded-lg border border-white/10 bg-[#202020]' : 'h-24 rounded-lg border border-border bg-[#fafafa]'} />
+                        <div className={dark ? 'h-24 rounded-lg border border-white/10 bg-[#171717]' : 'h-24 rounded-lg border border-border bg-white'} />
                       </div>
-                      <div className="h-20 rounded-2xl border border-border bg-white" />
+                      <div className={dark ? 'h-20 rounded-lg border border-white/10 bg-[#171717]' : 'h-20 rounded-lg border border-border bg-white'} />
                     </div>
                   </div>
                 </div>

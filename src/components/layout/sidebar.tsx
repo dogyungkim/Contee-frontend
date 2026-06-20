@@ -89,25 +89,25 @@ const Sidebar = ({ className }: SidebarProps) => {
   ];
 
   return (
-    <div className={cn("surface-panel flex h-full w-72 flex-col rounded-none border-r border-border/80 bg-sidebar/95", className)}>
+    <div className={cn("flex h-full w-72 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-border/80 px-5">
+      <div className="flex h-16 shrink-0 items-center px-5">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1c1c] text-white">
             <Music className="h-4 w-4" />
           </div>
           <div>
             <div className="text-sm font-semibold tracking-[-0.03em]">Contee</div>
-            <div className="text-caption text-muted-foreground">Team workspace</div>
+            <div className="text-caption-upper text-muted-foreground">Team workspace</div>
           </div>
         </Link>
       </div>
 
       {/* Team Selector or Create Team Button */}
-      <div className="p-5 pb-3">
+      <div className="px-4 pb-3 pt-2">
         {hasTeams ? (
           <Select value={selectedTeamId || ''} onValueChange={handleTeamChange}>
-            <SelectTrigger className="h-11 w-full rounded-2xl border-border bg-white" aria-label="팀 선택">
+            <SelectTrigger className="h-11 w-full rounded-xl border-[#dcdee0] bg-white/80" aria-label="팀 선택">
               <SelectValue placeholder="팀 선택" />
             </SelectTrigger>
             <SelectContent>
@@ -131,9 +131,9 @@ const Sidebar = ({ className }: SidebarProps) => {
       </div>
 
       {/* User Profile */}
-      <div className="px-5 pb-5">
-        <div className="rounded-[24px] border border-border bg-white p-4 shadow-[0_1px_2px_rgba(23,23,23,0.04)]">
-          <div className="text-caption text-muted-foreground">Signed in</div>
+      <div className="px-4 pb-4">
+        <div className="rounded-xl border border-[#dcdee0] bg-white/60 p-4">
+          <div className="text-caption-upper text-muted-foreground">Signed in</div>
           <div className="mt-3 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
               {user?.profileImageUrl ? (
@@ -154,10 +154,8 @@ const Sidebar = ({ className }: SidebarProps) => {
         </div>
       </div>
 
-      <Separator />
-
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 px-4 py-2">
         {navItems
           .filter((item) => !item.requiresTeam || hasTeams)
           .map((item) => {
@@ -169,11 +167,11 @@ const Sidebar = ({ className }: SidebarProps) => {
                 key={item.href}
                 href={isDisabled ? '#' : item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   isDisabled && 'pointer-events-none opacity-50',
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(23,23,23,0.08)]'
-                    : 'text-muted-foreground hover:bg-white hover:text-accent-foreground'
+                    ? 'bg-white/80 text-foreground'
+                    : 'text-muted-foreground hover:bg-white/55 hover:text-foreground'
                 )}
                 aria-disabled={isDisabled}
               >
@@ -184,13 +182,11 @@ const Sidebar = ({ className }: SidebarProps) => {
           })}
       </nav>
 
-      <Separator />
-
       {/* Logout Button */}
-      <div className="p-4">
+      <div className="p-4 pt-2">
         <Button
-          variant="outline"
-          className="w-full justify-start"
+          variant="ghost"
+          className="w-full justify-start rounded-lg"
           onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
