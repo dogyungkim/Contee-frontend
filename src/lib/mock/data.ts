@@ -138,13 +138,13 @@ export const MOCK_CONTI_SONGS: ContiSong[] = [
         contiId: 'conti-1',
         teamSongId: 'ts-1',
         orderIndex: 0,
-        keyOverride: 'G',
-        bpmOverride: 120,
+        key: 'G',
+        bpm: 120,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         teamSong: MOCK_TEAM_SONGS[0],
-        songTitle: 'Mock Song 1',
-        songArtist: 'Mock Artist',
+        title: 'Mock Song 1',
+        artist: 'Mock Artist',
         songForm: []
     },
 ];
@@ -162,7 +162,7 @@ export const MOCK_SONGS = MOCK_TEAM_SONGS.map(ts => ({
     id: ts.id,
     title: ts.title,
     artist: ts.artist || '',
-    defaultKey: ts.keySignature,
+    keySignature: ts.keySignature,
     bpm: ts.bpm
 }));
 

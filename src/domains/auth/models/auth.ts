@@ -3,7 +3,7 @@ export interface User {
   email: string;
   name: string;
   profileImageUrl: string;
-  provider: string;
+  provider?: string;
 }
 
 export interface AuthResponse {

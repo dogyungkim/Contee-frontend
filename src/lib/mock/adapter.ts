@@ -3,12 +3,10 @@ import {
     MOCK_TEAMS,
     MOCK_CONTIS,
     MOCK_CONTI_SONGS,
-    MOCK_TEAM_SONGS,
-    MOCK_MASTER_SONGS
+    MOCK_TEAM_SONGS
 } from './data';
 import { Conti, ContiSong } from '@/types/conti';
 import { Team } from '@/types/team';
-import { TeamSong } from '@/types/song';
 
 // Helper to create successful response
 const success = (data: unknown): AxiosResponse => {
@@ -119,20 +117,19 @@ export const mockAdapter: AxiosAdapter = async (config) => {
                 id: `cs-${Date.now()}-${index}`,
                 contiId: newConti.id,
                 teamSongId: typeof song.teamSongId === 'string' ? song.teamSongId : undefined,
-                customTitle: typeof song.customTitle === 'string' ? song.customTitle : undefined,
-                songTitle:
-                    (typeof song.customTitle === 'string' && song.customTitle) ||
+                title:
+                    (typeof song.title === 'string' && song.title) ||
                     teamSong?.title ||
                     'New Song',
-                songArtist:
+                artist:
                     (typeof song.artist === 'string' && song.artist) ||
                     teamSong?.artist ||
                     'Unknown',
                 orderIndex:
                     typeof song.orderIndex === 'number' ? song.orderIndex : index,
-                keyOverride: typeof song.keyOverride === 'string' ? song.keyOverride : undefined,
-                bpmOverride: typeof song.bpmOverride === 'number' ? song.bpmOverride : undefined,
-                note: typeof song.contiNote === 'string' ? song.contiNote : undefined,
+                key: typeof song.key === 'string' ? song.key : undefined,
+                bpm: typeof song.bpm === 'number' ? song.bpm : undefined,
+                note: typeof song.note === 'string' ? song.note : undefined,
                 songForm: [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -203,6 +200,75 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         return success(getContiDetailData(conti));
     }
 
+    if (contiDetailMatch && methodUpper === 'PUT') {
+        const id = contiDetailMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+        if (!conti) return failure(404, 'Conti not found');
+
+        Object.assign(conti, {
+            title: body.title ?? conti.title,
+            worshipDate: body.worshipDate ?? conti.worshipDate,
+            memo: body.memo,
+            bibleVerse: body.bibleVerse,
+            sharingInfo: body.sharingInfo,
+            updatedAt: new Date().toISOString(),
+        });
+
+        const existingSongs = MOCK_CONTI_SONGS.filter((song) => song.contiId === id);
+        const existingSongMap = new Map(existingSongs.map((song) => [song.id, song]));
+        const nextSongs = Array.isArray(body.contiSongs) ? body.contiSongs : [];
+
+        for (let index = MOCK_CONTI_SONGS.length - 1; index >= 0; index -= 1) {
+            if (MOCK_CONTI_SONGS[index].contiId === id) {
+                MOCK_CONTI_SONGS.splice(index, 1);
+            }
+        }
+
+        nextSongs.forEach((song: Record<string, unknown>, index: number) => {
+            const existingSong = typeof song.id === 'string' ? existingSongMap.get(song.id) : undefined;
+            const teamSong = song.teamSongId
+                ? MOCK_TEAM_SONGS.find((ts) => ts.id === String(song.teamSongId))
+                : existingSong?.teamSong;
+
+            const nextSong: ContiSong = {
+                id: typeof song.id === 'string' ? song.id : `cs-${Date.now()}-${index}`,
+                contiId: id,
+                teamSongId: typeof song.teamSongId === 'string' ? song.teamSongId : undefined,
+                title:
+                    (typeof song.title === 'string' && song.title) ||
+                    teamSong?.title ||
+                    existingSong?.title ||
+                    'New Song',
+                artist:
+                    (typeof song.artist === 'string' && song.artist) ||
+                    teamSong?.artist ||
+                    existingSong?.artist ||
+                    'Unknown',
+                orderIndex: typeof song.orderIndex === 'number' ? song.orderIndex : index,
+                key: typeof song.key === 'string' ? song.key : undefined,
+                bpm: typeof song.bpm === 'number' ? song.bpm : undefined,
+                note: typeof song.note === 'string' ? song.note : undefined,
+                youtubeUrl:
+                    typeof song.youtubeUrl === 'string'
+                        ? song.youtubeUrl
+                        : teamSong?.youtubeUrl || existingSong?.youtubeUrl,
+                sheetMusicUrl:
+                    typeof song.sheetMusicUrl === 'string'
+                        ? song.sheetMusicUrl
+                        : teamSong?.sheetMusicUrl || existingSong?.sheetMusicUrl,
+                songForm: Array.isArray(song.songForm) ? song.songForm as ContiSong['songForm'] : existingSong?.songForm ?? [],
+                createdAt: existingSong?.createdAt ?? new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                teamSong,
+            };
+
+            MOCK_CONTI_SONGS.push(nextSong);
+        });
+
+        return success(getContiDetailData(conti));
+    }
+
     // --- Conti Songs API ---
     const contiSongsMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/songs$/);
     if (contiSongsMatch && methodUpper === 'GET') {
@@ -217,16 +283,18 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const existingSongs = getContiSongs(contiId);
 
         const newContiSong: ContiSong = {
-            songTitle: teamSong?.title || body.customTitle || 'New Song',
-            songArtist: teamSong?.artist || 'Unknown',
+            title: teamSong?.title || body.title || 'New Song',
+            artist: body.artist || teamSong?.artist || 'Unknown',
             songForm: [],
             id: `cs-${Date.now()}`,
             contiId,
             teamSongId: body.teamSongId,
             orderIndex: existingSongs.length,
-            keyOverride: body.keyOverride,
-            bpmOverride: body.bpmOverride,
-            note: body.contiNote,
+            key: body.key,
+            bpm: body.bpm,
+            note: body.note,
+            youtubeUrl: body.youtubeUrl,
+            sheetMusicUrl: body.sheetMusicUrl,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             teamSong: teamSong,
@@ -249,9 +317,13 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const song = MOCK_CONTI_SONGS.find(cs => cs.id === id);
         if (song) {
             Object.assign(song, {
-                keyOverride: body.keyOverride,
-                bpmOverride: body.bpmOverride,
-                note: body.contiNote,
+                ...(body.title !== undefined ? { title: body.title } : {}),
+                ...(body.artist !== undefined ? { artist: body.artist } : {}),
+                ...(body.key !== undefined ? { key: body.key } : {}),
+                ...(body.bpm !== undefined ? { bpm: body.bpm } : {}),
+                ...(body.note !== undefined ? { note: body.note } : {}),
+                ...(body.youtubeUrl !== undefined ? { youtubeUrl: body.youtubeUrl } : {}),
+                ...(body.sheetMusicUrl !== undefined ? { sheetMusicUrl: body.sheetMusicUrl } : {}),
                 songForm: body.songForm ?? song.songForm,
                 updatedAt: new Date().toISOString(),
             });
@@ -280,29 +352,12 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     const teamSongsMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs$/);
     if (teamSongsMatch && methodUpper === 'GET') {
         const teamId = teamSongsMatch[1];
-        return success(MOCK_TEAM_SONGS.filter(ts => ts.teamId === teamId));
-    }
-
-    if (teamSongsMatch && methodUpper === 'POST') {
-        const teamId = teamSongsMatch[1];
-        const body = data ? JSON.parse(data) : {};
-        const resolvedTitle = body.title ?? body.customTitle ?? '';
-        const newTeamSong: TeamSong = {
-            id: `ts-${Date.now()}`,
-            teamId,
-            title: resolvedTitle,
-            artist: body.artist,
-            keySignature: body.customKeySignature,
-            bpm: body.customBpm,
-            youtubeUrl: body.youtubeUrl,
-            sheetMusicUrl: body.sheetMusicUrl,
-            note: body.note,
-            isFavorite: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
-        MOCK_TEAM_SONGS.push(newTeamSong);
-        return success(newTeamSong);
+        const content = MOCK_TEAM_SONGS.filter(ts => ts.teamId === teamId);
+        return success({
+            content,
+            totalPages: 1,
+            totalElements: content.length,
+        });
     }
 
     const teamSongDetailMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs\/([a-zA-Z0-9-]+)$/);
@@ -321,9 +376,8 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             };
         }
 
-        const resolvedTitle = body.title ?? body.customTitle;
         Object.assign(teamSong, {
-            ...(resolvedTitle !== undefined ? { title: resolvedTitle } : {}),
+            ...(body.title !== undefined ? { title: body.title } : {}),
             ...(body.artist !== undefined ? { artist: body.artist } : {}),
             ...(body.customKeySignature !== undefined ? { keySignature: body.customKeySignature } : {}),
             ...(body.customBpm !== undefined ? { bpm: body.customBpm } : {}),
@@ -338,33 +392,32 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     }
 
     // --- Master Songs API (Search) ---
-    if (url === '/api/v1/songs' && methodUpper === 'GET') {
-        const query = config.params?.q;
-        if (!query) return success(MOCK_MASTER_SONGS.slice(0, 10)); // return recent/popular if no query
-
-        const filtered = MOCK_MASTER_SONGS.filter(s =>
-            s.title.includes(query) || s.artist.includes(query)
-        );
-        return success(filtered);
-    }
-
     // --- Dashboard API ---
-    if (url === '/api/v1/dashboard/summary' && methodUpper === 'GET') {
-        const { MOCK_DASHBOARD_SUMMARY } = await import('./data');
-        return success(MOCK_DASHBOARD_SUMMARY);
-    }
-
-    if (url === '/api/v1/dashboard' && methodUpper === 'GET') {
+    const teamDashboardMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/dashboard$/);
+    if (teamDashboardMatch && methodUpper === 'GET') {
+        const teamId = teamDashboardMatch[1];
         const {
             MOCK_DASHBOARD_SUMMARY,
-            MOCK_RECENT_CONTIS,
-            MOCK_SONGS,
             MOCK_ACTIVITIES,
         } = await import('./data');
+        const recentContis = MOCK_CONTIS
+            .filter((conti) => conti.teamId === teamId)
+            .map((conti) => ({
+                id: conti.id,
+                title: conti.title,
+                worshipDate: conti.worshipDate,
+                updatedAt: conti.updatedAt || conti.worshipDate,
+                songCount: getContiSongs(conti.id).length,
+            }));
+        const songs = MOCK_TEAM_SONGS.filter((song) => song.teamId === teamId);
+
         return success({
-            summary: MOCK_DASHBOARD_SUMMARY,
-            recentContis: MOCK_RECENT_CONTIS,
-            songs: MOCK_SONGS,
+            summary: {
+                ...MOCK_DASHBOARD_SUMMARY,
+                totalSongCount: songs.length,
+            },
+            recentContis,
+            songs,
             activities: MOCK_ACTIVITIES,
         });
     }

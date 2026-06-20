@@ -2,10 +2,7 @@ import type { Song, TeamSong } from '../models/song';
 
 export type SongResponseDto = Song;
 
-export interface TeamSongResponseDto extends Omit<TeamSong, 'title'> {
-  title?: string;
-  customTitle?: string;
-}
+export type TeamSongResponseDto = TeamSong;
 
 export interface CreateTeamSongRequestDto {
   songId?: string;
