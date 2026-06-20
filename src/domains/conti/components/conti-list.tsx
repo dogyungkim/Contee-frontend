@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Plus, Calendar, Music, MoreVertical } from 'lucide-react'
+import { Plus, Calendar, Music, MoreVertical, FileText } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -26,17 +26,27 @@ export function ContiList() {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-40 w-full" />
-        ))}
+      <div className="surface-card overflow-hidden rounded-2xl">
+        <div className="border-b border-border px-6 py-4">
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <div className="divide-y divide-border">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[1.8fr_1fr_100px_56px] md:items-center">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-8 w-8" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
 
   if (isError) {
     return (
-      <div className="flex h-40 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+      <div className="surface-card flex h-40 items-center justify-center rounded-2xl text-sm text-muted-foreground">
         콘티 목록을 불러오는 중 오류가 발생했습니다.
       </div>
     )
@@ -44,8 +54,8 @@ export function ContiList() {
 
   if (contis.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+      <div className="surface-card flex flex-col items-center justify-center rounded-2xl py-16 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent">
           <Music className="h-6 w-6 text-muted-foreground" />
         </div>
         <h3 className="mt-4 text-lg font-semibold">생성된 콘티가 없습니다</h3>
@@ -63,54 +73,95 @@ export function ContiList() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {contis.map((conti: Conti) => (
-          <Card key={conti.id} className="group relative overflow-hidden transition-all hover:border-primary/50">
-            <Link href={`/dashboard/contis/${conti.id}`} className="absolute inset-0 z-0">
-              <span className="sr-only">상세 보기</span>
-            </Link>
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="line-clamp-1">{conti.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-1.5 text-xs">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
-                  </CardDescription>
-                </div>
-                <div className="z-10">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/contis/${conti.id}`}>편집</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => {
-                          void handleDeleteConti(conti.id)
-                        }}
-                      >
-                        지우기
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+    <Card className="overflow-hidden rounded-2xl">
+      <CardHeader className="border-b border-border pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg">예배 콘티</CardTitle>
+            <CardDescription className="mt-1">
+              총 {contis.length}개의 콘티가 등록되어 있습니다.
+            </CardDescription>
+          </div>
+          <div className="hidden rounded-md bg-accent px-3 py-2 text-caption-upper text-muted-foreground sm:block">
+            List view
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="px-0">
+        <div className="hidden grid-cols-[minmax(0,1.8fr)_180px_100px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+          <div>Conti</div>
+          <div>Worship date</div>
+          <div>Songs</div>
+          <div className="text-right">Menu</div>
+        </div>
+
+        <div className="divide-y divide-border">
+          {contis.map((conti: Conti) => (
+            <div
+              key={conti.id}
+              className="group relative grid cursor-pointer gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_180px_100px_56px] md:items-center"
+            >
+              <Link
+                href={`/dashboard/contis/${conti.id}`}
+                className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                aria-label={`${conti.title} 콘티 상세 보기`}
+              />
+
+              <div className="pointer-events-none relative z-10 min-w-0">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md bg-accent text-foreground">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-foreground">{conti.title}</div>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
+                    </div>
+                    {conti.memo ? (
+                      <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{conti.memo}</p>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              {conti.memo && (
-                <p className="line-clamp-2 text-xs text-muted-foreground">
-                  {conti.memo}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-      ))}
-    </div>
+
+              <div className="pointer-events-none relative z-10 hidden text-sm text-foreground md:block">
+                {format(new Date(conti.worshipDate), 'yyyy.MM.dd', { locale: ko })}
+              </div>
+
+              <div className="pointer-events-none relative z-10">
+                <div className="inline-flex rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-foreground">
+                  {conti.songCount ?? conti.contiSongs?.length ?? 0}곡
+                </div>
+              </div>
+
+              <div className="relative z-10 flex justify-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/contis/${conti.id}`}>편집</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => {
+                        void handleDeleteConti(conti.id)
+                      }}
+                    >
+                      지우기
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }

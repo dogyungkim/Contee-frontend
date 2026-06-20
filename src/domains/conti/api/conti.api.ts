@@ -38,7 +38,7 @@ export async function createConti(request: CreateContiRequestDto): Promise<Conti
 }
 
 export async function updateConti(contiId: string, request: UpdateContiRequestDto): Promise<Conti> {
-  const { data } = await apiClient.patch<ApiResponse<ContiResponseDto>>(`/api/v1/contis/${contiId}`, request);
+  const { data } = await apiClient.put<ApiResponse<ContiResponseDto>>(`/api/v1/contis/${contiId}`, request);
   return toContiModel(data.data);
 }
 

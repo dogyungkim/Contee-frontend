@@ -16,24 +16,27 @@ const toContiSongFormPartModel = (dto: ContiSongFormPartDto) => ({
   note: dto.note,
 });
 
-export const toContiSongModel = (dto: ContiSongResponseDto): ContiSong => ({
-  id: dto.id,
-  contiId: dto.contiId,
-  teamSongId: dto.teamSongId,
-  customTitle: dto.customTitle,
-  songTitle: dto.songTitle ?? dto.customTitle ?? '',
-  songArtist: dto.songArtist ?? '',
-  orderIndex: dto.orderIndex,
-  keyOverride: dto.keyOverride,
-  bpmOverride: dto.bpmOverride,
-  note: dto.note,
-  youtubeUrl: dto.youtubeUrl,
-  sheetMusicUrl: dto.sheetMusicUrl,
-  songForm: dto.songForm?.map(toContiSongFormPartModel) ?? [],
-  teamSong: dto.teamSong ? toTeamSongModel(dto.teamSong) : undefined,
-  createdAt: dto.createdAt,
-  updatedAt: dto.updatedAt,
-});
+export const toContiSongModel = (dto: ContiSongResponseDto): ContiSong => {
+  const mappedTeamSong = dto.teamSong ? toTeamSongModel(dto.teamSong) : undefined;
+
+  return {
+    id: dto.id,
+    contiId: dto.contiId,
+    teamSongId: dto.teamSongId,
+    title: dto.title ?? mappedTeamSong?.title ?? '',
+    artist: dto.artist ?? mappedTeamSong?.artist,
+    orderIndex: dto.orderIndex,
+    key: dto.key ?? mappedTeamSong?.keySignature,
+    bpm: dto.bpm ?? mappedTeamSong?.bpm,
+    note: dto.note,
+    youtubeUrl: dto.youtubeUrl ?? mappedTeamSong?.youtubeUrl,
+    sheetMusicUrl: dto.sheetMusicUrl ?? mappedTeamSong?.sheetMusicUrl,
+    songForm: dto.songForm?.map(toContiSongFormPartModel) ?? [],
+    teamSong: mappedTeamSong,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+  };
+};
 
 export const toContiModel = (dto: ContiResponseDto): Conti => ({
   id: dto.id,

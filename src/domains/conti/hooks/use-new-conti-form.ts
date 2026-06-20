@@ -79,22 +79,22 @@ export const useNewContiForm = (teamId: string | null) => {
             const contiSongsRequest: ContiSongRequestItem[] = tempSongs.map((song, idx) => {
                 const base = {
                     orderIndex: idx,
-                    keyOverride: song.keySignature,
-                    bpmOverride: song.bpm,
-                    contiNote: song.contiNote
+                    key: song.keySignature,
+                    bpm: song.bpm,
+                    note: song.contiNote
                 }
 
                 if (song.isNewSong) {
                     // Case 2: New Song
                     return {
                         ...base,
-                        customTitle: song.customTitle,
+                        title: song.customTitle,
                         artist: song.artist,
-                        customKeySignature: song.keySignature,
-                        customBpm: song.bpm,
+                        defaultKey: song.keySignature,
+                        defaultBpm: song.bpm,
                         youtubeUrl: song.youtubeUrl,
                         sheetMusicUrl: song.sheetMusicUrl,
-                        note: song.note,
+                        teamNote: song.note,
                         songForm: song.songForm,
                     }
                 } else {

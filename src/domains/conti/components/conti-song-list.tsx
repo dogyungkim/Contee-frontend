@@ -7,14 +7,14 @@ import { ContiSongItem } from './conti-song-item'
 import { DND_CONFIG } from '@/constants/ui-constants'
 
 interface ContiSongListProps {
-  contiId: string
   songs: ContiSong[]
   isEditMode: boolean
   onRemove: (id: string) => void
   onUpdateOrder: (songs: ContiSong[]) => void
+  onChangeSong: (song: ContiSong) => void
 }
 
-export function ContiSongList({ contiId, songs, isEditMode, onRemove, onUpdateOrder }: ContiSongListProps) {
+export function ContiSongList({ songs, isEditMode, onRemove, onUpdateOrder, onChangeSong }: ContiSongListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: isEditMode ? undefined : { distance: DND_CONFIG.DISABLED_POINTER_DISTANCE },
@@ -59,11 +59,11 @@ export function ContiSongList({ contiId, songs, isEditMode, onRemove, onUpdateOr
             <ContiSongItem
               key={song.id}
               id={song.id}
-              contiId={contiId}
               contiSong={song}
               index={index}
               isEditMode={isEditMode}
               onRemove={onRemove}
+              onChange={onChangeSong}
             />
           ))}
         </div>

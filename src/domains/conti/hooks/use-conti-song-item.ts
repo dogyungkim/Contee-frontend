@@ -58,26 +58,26 @@ export function useContiSongItem({ contiId, contiSong }: UseContiSongItemParams)
 
   useEffect(() => {
     setForm({
-      keySignature: contiSong.keyOverride || '',
-      bpm: contiSong.bpmOverride || 0,
+      keySignature: contiSong.key || '',
+      bpm: contiSong.bpm || 0,
       note: contiSong.note || '',
     });
-  }, [contiSong.keyOverride, contiSong.bpmOverride, contiSong.note]);
+  }, [contiSong.key, contiSong.bpm, contiSong.note]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (
-        form.keySignature !== (contiSong.keyOverride || '') ||
-        form.bpm !== (contiSong.bpmOverride || 0) ||
+        form.keySignature !== (contiSong.key || '') ||
+        form.bpm !== (contiSong.bpm || 0) ||
         form.note !== (contiSong.note || '')
       ) {
         updateDetail({
           contiId,
           contiSongId: contiSong.id,
           request: {
-            keyOverride: form.keySignature,
-            bpmOverride: form.bpm,
-            contiNote: form.note,
+            key: form.keySignature,
+            bpm: form.bpm,
+            note: form.note,
           },
         });
       }

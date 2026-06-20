@@ -27,12 +27,11 @@ export interface ContiSongResponseDto {
   id: string;
   contiId?: string;
   teamSongId?: string;
-  customTitle?: string;
-  songTitle?: string;
-  songArtist?: string;
+  title?: string;
+  artist?: string;
   orderIndex: number;
-  keyOverride?: string;
-  bpmOverride?: number;
+  key?: string;
+  bpm?: number;
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
@@ -77,17 +76,17 @@ export interface ContiSongFormPartRequestDto {
 export interface ContiSongRequestItemDto {
   id?: string;
   teamSongId?: string;
-  customTitle?: string;
+  title?: string;
   artist?: string;
-  customKeySignature?: string;
-  customBpm?: number;
+  defaultKey?: string;
+  defaultBpm?: number;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
-  note?: string;
+  teamNote?: string;
   orderIndex: number;
-  keyOverride?: string;
-  bpmOverride?: number;
-  contiNote?: string;
+  key?: string;
+  bpm?: number;
+  note?: string;
   songForm?: ContiSongFormPartRequestDto[];
 }
 
@@ -107,28 +106,32 @@ export interface UpdateContiRequestDto {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
+  contiSongs?: ContiSongRequestItemDto[];
 }
 
 export interface AddContiSongRequestDto {
   teamSongId?: string;
-  customTitle?: string;
+  title?: string;
   artist?: string;
-  customKeySignature?: string;
-  customBpm?: number;
-  ccliNumber?: string;
+  defaultKey?: string;
+  defaultBpm?: number;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
+  teamNote?: string;
+  key?: string;
+  bpm?: number;
   note?: string;
-  keyOverride?: string;
-  bpmOverride?: number;
-  contiNote?: string;
   songForm?: ContiSongFormPartRequestDto[];
 }
 
 export interface UpdateContiSongRequestDto {
-  keyOverride?: string;
-  bpmOverride?: number;
-  contiNote?: string;
+  title?: string;
+  artist?: string;
+  key?: string;
+  bpm?: number;
+  note?: string;
+  youtubeUrl?: string;
+  sheetMusicUrl?: string;
   songForm?: ContiSongFormPartRequestDto[];
 }
 

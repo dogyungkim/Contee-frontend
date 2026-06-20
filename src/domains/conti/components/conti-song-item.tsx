@@ -11,6 +11,7 @@ import {
   Minus,
   RotateCcw,
 } from 'lucide-react'
+import { useMemo } from 'react'
 import { ContiSong } from '@/types/conti'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -19,37 +20,89 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Toggle } from '@/components/ui/toggle'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useContiSongItem } from '../hooks/use-conti-song-item'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
+import { useUpdateTeamSong } from '@/domains/song/hooks/use-songs'
+import { getSongFormSummary } from '@/domains/song/utils/song-form'
+import { SONG_FORM_CONFIG } from '@/constants/ui-constants'
+import type { SongFormPart, ApiSongFormPart } from '@/types/song'
 
 const COMMON_KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 
 interface ContiSongItemProps {
   id: string
-  contiId: string
   contiSong: ContiSong
   index: number
   isEditMode: boolean
   onRemove: (id: string) => void
+  onChange: (song: ContiSong) => void
 }
 
-export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRemove }: ContiSongItemProps) {
+const PART_TYPE_MAP: Record<string, SongFormPart['type']> = {
+  INTRO: 'Intro',
+  VERSE: 'Verse',
+  PRE_CHORUS: 'Pre-chorus',
+  CHORUS: 'Chorus',
+  BRIDGE: 'Bridge',
+  INTERLUDE: 'Interlude',
+  OUTRO: 'Outro',
+  TAG: 'Tag',
+  INSTRUMENTAL: 'Instrumental',
+}
+
+const toUiSongForm = (apiParts: ApiSongFormPart[]): SongFormPart[] =>
+  apiParts.map((part, index) => ({
+    id: `${part.id ?? index}`,
+    type: PART_TYPE_MAP[part.partType] || 'Intro',
+    label: part.customPartName || part.partType,
+    bars: SONG_FORM_CONFIG.DEFAULT_BARS,
+    abbr: part.customPartName?.substring(0, SONG_FORM_CONFIG.CUSTOM_ABBR_MAX_LENGTH),
+  }))
+
+export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onChange }: ContiSongItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const {
-    form,
-    setForm,
-    isTeamNoteOpen,
-    teamSong,
-    songFormParts,
-    groupedFlow,
-    isKeyOverridden,
-    isBpmOverridden,
-    isNoteOverridden,
-    handleToggleFavorite,
-    resetField,
-  } = useContiSongItem({ contiId, contiSong })
+  const { mutate: updateTeamSong } = useUpdateTeamSong()
+  const teamSong = contiSong.teamSong
+  const isTeamNoteOpen = false
+  const form = {
+    keySignature: contiSong.key || '',
+    bpm: contiSong.bpm || 0,
+    note: contiSong.note || '',
+  }
+  const setForm = (updater: (prev: typeof form) => typeof form) => {
+    const next = updater(form)
+    onChange({
+      ...contiSong,
+      key: next.keySignature || undefined,
+      bpm: next.bpm || undefined,
+      note: next.note || undefined,
+    })
+  }
+  const songFormParts = useMemo(
+    () => toUiSongForm((contiSong.songForm as ApiSongFormPart[]) ?? []),
+    [contiSong.songForm]
+  )
+  const groupedFlow = useMemo(() => getSongFormSummary(songFormParts), [songFormParts])
+  const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
+  const isBpmOverridden = !!form.bpm && form.bpm !== teamSong?.bpm
+  const isNoteOverridden = !!form.note
+  const handleToggleFavorite = () => {
+    if (!teamSong) return
+    updateTeamSong({
+      teamId: teamSong.teamId,
+      songId: teamSong.id,
+      request: { isFavorite: !teamSong.isFavorite },
+    })
+  }
+  const resetField = (field: 'keySignature' | 'bpm') => {
+    if (!teamSong) return
+    if (field === 'keySignature') {
+      onChange({ ...contiSong, key: teamSong.keySignature })
+      return
+    }
+    onChange({ ...contiSong, bpm: teamSong.bpm })
+  }
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -85,10 +138,7 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
           </div>
 
           <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-base truncate">{contiSong.customTitle || contiSong.songTitle}</h4>
-            {contiSong.customTitle && contiSong.customTitle !== contiSong.songTitle && (
-              <p className="text-xs text-muted-foreground truncate -mt-0.5 mb-1">Orig: {contiSong.songTitle}</p>
-            )}
+            <h4 className="font-bold text-base truncate">{contiSong.title}</h4>
             <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
               <span className={cn('flex items-center gap-1', isKeyOverridden && 'text-amber-600 font-medium')}>
                 <Music className="h-3 w-3" />
@@ -101,10 +151,10 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
                 {form.bpm || '-'}
                 {isBpmOverridden && <span className="opacity-50 text-[10px]">({teamSong?.bpm})</span>}
               </span>
-              {teamSong?.artist && (
+              {(contiSong.artist || teamSong?.artist) && (
                 <>
                   <Separator orientation="vertical" className="h-3" />
-                  <span className="truncate max-w-[100px]">{teamSong.artist}</span>
+                  <span className="truncate max-w-[100px]">{contiSong.artist || teamSong?.artist}</span>
                 </>
               )}
             </div>
@@ -221,11 +271,11 @@ export function ContiSongItem({ id, contiId, contiSong, index, isEditMode, onRem
 
               <div
                 className={cn(
-                  'relative rounded-md border bg-muted/30 p-3 transition-all duration-200 overflow-hidden space-y-3',
+                  'relative flex min-h-16 flex-col justify-center gap-3 rounded-md border bg-muted/30 p-3 transition-all duration-200 overflow-hidden',
                   isTeamNoteOpen ? 'max-h-[500px]' : 'max-h-32'
                 )}
               >
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                     {groupedFlow.map((group, groupIndex) => (
                       <div key={groupIndex} className="flex items-center gap-1.5 shrink-0">
                         <div

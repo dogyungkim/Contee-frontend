@@ -12,14 +12,14 @@ export default function EditContiPage() {
   const id = params.id as string
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="sm" asChild>
           <Link href="/dashboard/contis">
             <ChevronLeft className="h-4 w-4" />
+            <span className="text-sm font-medium">콘티 목록으로</span>
           </Link>
         </Button>
-        <span className="text-sm font-medium text-muted-foreground">콘티 목록으로</span>
       </div>
 
       <ContiDetail contiId={id} />

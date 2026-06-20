@@ -43,12 +43,11 @@ export interface ContiSong {
   id: string;
   contiId?: string;
   teamSongId?: string;
-  customTitle?: string;
-  songTitle: string;
-  songArtist: string;
+  title: string;
+  artist?: string;
   orderIndex: number;
-  keyOverride?: string;
-  bpmOverride?: number;
+  key?: string;
+  bpm?: number;
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
