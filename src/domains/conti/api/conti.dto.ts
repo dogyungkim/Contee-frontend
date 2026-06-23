@@ -101,40 +101,10 @@ export interface CreateContiRequestDto {
 }
 
 export interface UpdateContiRequestDto {
-  title?: string;
-  worshipDate?: string;
+  title: string;
+  worshipDate: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
-  contiSongs?: ContiSongRequestItemDto[];
-}
-
-export interface AddContiSongRequestDto {
-  teamSongId?: string;
-  title?: string;
-  artist?: string;
-  defaultKey?: string;
-  defaultBpm?: number;
-  youtubeUrl?: string;
-  sheetMusicUrl?: string;
-  teamNote?: string;
-  key?: string;
-  bpm?: number;
-  note?: string;
-  songForm?: ContiSongFormPartRequestDto[];
-}
-
-export interface UpdateContiSongRequestDto {
-  title?: string;
-  artist?: string;
-  key?: string;
-  bpm?: number;
-  note?: string;
-  youtubeUrl?: string;
-  sheetMusicUrl?: string;
-  songForm?: ContiSongFormPartRequestDto[];
-}
-
-export interface ReorderContiSongsRequestDto {
-  contiSongIds: string[];
+  contiSongs: ContiSongRequestItemDto[];
 }

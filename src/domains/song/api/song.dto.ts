@@ -8,8 +8,8 @@ export interface CreateTeamSongRequestDto {
   songId?: string;
   title: string;
   artist?: string;
-  customKeySignature?: string;
-  customBpm?: number;
+  keySignature?: string;
+  bpm?: number;
   ccliNumber?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
@@ -20,8 +20,8 @@ export interface CreateTeamSongRequestDto {
 export interface UpdateTeamSongRequestDto {
   title?: string;
   artist?: string;
-  customKeySignature?: string;
-  customBpm?: number;
+  keySignature?: string;
+  bpm?: number;
   ccliNumber?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;

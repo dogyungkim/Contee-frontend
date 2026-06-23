@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
+import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 
 interface ContiDetailProps {
   contiId: string
@@ -79,6 +80,46 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     setDraftSharingInfo(conti.sharingInfo ?? '')
     setDraftSongs(conti.contiSongs ?? [])
   }, [conti])
+
+  const bibleVerseLines = conti?.bibleVerse
+    ? conti.bibleVerse
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    : []
+  const bibleVerseReference = bibleVerseLines[0]
+  const bibleVerseContent = bibleVerseLines.slice(1).join('\n')
+  const normalizeSongs = (items: ContiSong[]) =>
+    items.map((song, index) => ({
+      id: song.id.startsWith('draft-song-') ? undefined : song.id,
+      teamSongId: song.teamSongId,
+      title: song.title,
+      artist: song.artist,
+      key: song.key,
+      bpm: song.bpm,
+      note: song.note,
+      youtubeUrl: song.youtubeUrl,
+      sheetMusicUrl: song.sheetMusicUrl,
+      orderIndex: index,
+      songForm: song.songForm,
+    }))
+  const hasMetaChanges =
+    !!conti &&
+    (draftTitle !== conti.title ||
+      (draftDate ? format(draftDate, 'yyyy-MM-dd') : '') !== conti.worshipDate ||
+      draftMemo !== (conti.memo ?? '') ||
+      draftBibleVerseReference !== (bibleVerseReference ?? '') ||
+      draftBibleVerseContent !== bibleVerseContent ||
+      draftSharingInfo !== (conti.sharingInfo ?? ''))
+  const hasSongChanges =
+    !!conti &&
+    JSON.stringify(normalizeSongs(draftSongs)) !== JSON.stringify(normalizeSongs(conti.contiSongs ?? []))
+  const hasChanges = canEdit && (hasMetaChanges || hasSongChanges)
+  const displayedSongs = canEdit ? draftSongs : songs
+
+  useUnsavedChangesGuard({
+    enabled: hasChanges && !isSavingMeta,
+  })
 
   if (isContiLoading) {
     return (
@@ -220,40 +261,6 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       setIsSavingMeta(false)
     }
   }
-
-  const bibleVerseLines = conti.bibleVerse
-    ? conti.bibleVerse
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-    : []
-  const bibleVerseReference = bibleVerseLines[0]
-  const bibleVerseContent = bibleVerseLines.slice(1).join('\n')
-  const hasMetaChanges =
-    draftTitle !== conti.title ||
-    format(draftDate ?? new Date(conti.worshipDate), 'yyyy-MM-dd') !== conti.worshipDate ||
-    draftMemo !== (conti.memo ?? '') ||
-    draftBibleVerseReference !== (bibleVerseReference ?? '') ||
-    draftBibleVerseContent !== bibleVerseContent ||
-    draftSharingInfo !== (conti.sharingInfo ?? '')
-  const normalizeSongs = (items: ContiSong[]) =>
-    items.map((song, index) => ({
-      id: song.id.startsWith('draft-song-') ? undefined : song.id,
-      teamSongId: song.teamSongId,
-      title: song.title,
-      artist: song.artist,
-      key: song.key,
-      bpm: song.bpm,
-      note: song.note,
-      youtubeUrl: song.youtubeUrl,
-      sheetMusicUrl: song.sheetMusicUrl,
-      orderIndex: index,
-      songForm: song.songForm,
-    }))
-  const hasSongChanges =
-    JSON.stringify(normalizeSongs(draftSongs)) !== JSON.stringify(normalizeSongs(conti.contiSongs ?? []))
-  const hasChanges = hasMetaChanges || hasSongChanges
-  const displayedSongs = canEdit ? draftSongs : songs
 
   return (
     <div className="flex flex-col gap-6">

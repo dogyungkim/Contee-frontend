@@ -81,9 +81,20 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     if (url === '/api/v1/contis' && methodUpper === 'GET') {
         const page = Number(config.params?.page ?? 0);
         const size = Number(config.params?.size ?? 20);
+        const teamId = config.params?.teamId ? String(config.params.teamId) : undefined;
+        const q = config.params?.q ? String(config.params.q).toLowerCase() : '';
+        const from = config.params?.from ? String(config.params.from) : undefined;
+        const to = config.params?.to ? String(config.params.to) : undefined;
+        const filteredContis = MOCK_CONTIS.filter((conti) => {
+            if (teamId && conti.teamId !== teamId) return false;
+            if (q && !conti.title.toLowerCase().includes(q)) return false;
+            if (from && conti.worshipDate < from) return false;
+            if (to && conti.worshipDate > to) return false;
+            return true;
+        });
         const start = page * size;
-        const content = MOCK_CONTIS.slice(start, start + size).map(getContiDetailData);
-        const totalElements = MOCK_CONTIS.length;
+        const content = filteredContis.slice(start, start + size).map(getContiDetailData);
+        const totalElements = filteredContis.length;
         const totalPages = Math.max(1, Math.ceil(totalElements / size));
 
         return success({
@@ -379,8 +390,8 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         Object.assign(teamSong, {
             ...(body.title !== undefined ? { title: body.title } : {}),
             ...(body.artist !== undefined ? { artist: body.artist } : {}),
-            ...(body.customKeySignature !== undefined ? { keySignature: body.customKeySignature } : {}),
-            ...(body.customBpm !== undefined ? { bpm: body.customBpm } : {}),
+            ...(body.keySignature !== undefined ? { keySignature: body.keySignature } : {}),
+            ...(body.bpm !== undefined ? { bpm: body.bpm } : {}),
             ...(body.note !== undefined ? { note: body.note } : {}),
             ...(body.youtubeUrl !== undefined ? { youtubeUrl: body.youtubeUrl } : {}),
             ...(body.sheetMusicUrl !== undefined ? { sheetMusicUrl: body.sheetMusicUrl } : {}),
