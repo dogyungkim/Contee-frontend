@@ -43,17 +43,39 @@ export interface ContiSongResponseDto {
 
 export interface ContiResponseDto {
   id: string;
-  teamId: string;
+  teamId?: string;
   createdById?: string;
+  createdByName?: string;
   title: string;
   worshipDate: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
   songCount?: number;
+  songPreview?: string[];
+  externalShareEnabled?: boolean;
+  externalShare?: ExternalShareResponseDto;
   totalDuration?: number;
   createdAt?: string;
   updatedAt?: string;
+  contiSongs?: ContiSongResponseDto[];
+}
+
+export interface ExternalShareResponseDto {
+  enabled: boolean;
+  token?: string | null;
+  url?: string | null;
+  createdAt?: string | null;
+  createdById?: string | null;
+}
+
+export interface SharedContiResponseDto {
+  id: string;
+  title: string;
+  worshipDate: string;
+  memo?: string;
+  bibleVerse?: string;
+  sharingInfo?: string;
   contiSongs?: ContiSongResponseDto[];
 }
 

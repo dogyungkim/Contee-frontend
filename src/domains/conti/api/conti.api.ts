@@ -1,21 +1,23 @@
 import apiClient from '@/lib/api';
 import type { ApiResponse, PageDto } from '@/types/api';
-import type { Conti } from '@/domains/conti/models/conti';
+import type { Conti, ExternalShare, SharedConti } from '@/domains/conti/models/conti';
 import type {
   ContiResponseDto,
   CreateContiRequestDto,
+  ExternalShareResponseDto,
+  SharedContiResponseDto,
   UpdateContiRequestDto,
   ContiSearchParamsDto,
 } from '@/domains/conti/api/conti.dto';
-import { toContiModel } from '@/domains/conti/api/conti.mapper';
+import { toContiModel, toSharedContiModel } from '@/domains/conti/api/conti.mapper';
 
 export async function getTeamContis(
   teamId: string,
   params: ContiSearchParamsDto = {},
 ): Promise<PageDto<Conti>> {
   const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(
-    '/api/v1/contis',
-    { params: { ...params, teamId } },
+    `/api/v1/teams/${teamId}/contis`,
+    { params },
   );
   return {
     ...data.data,
@@ -40,4 +42,22 @@ export async function updateConti(contiId: string, request: UpdateContiRequestDt
 
 export async function deleteConti(contiId: string): Promise<void> {
   await apiClient.delete<ApiResponse<void>>(`/api/v1/contis/${contiId}`);
+}
+
+export async function enableExternalShare(contiId: string): Promise<ExternalShare> {
+  const { data } = await apiClient.post<ApiResponse<ExternalShareResponseDto>>(
+    `/api/v1/contis/${contiId}/external-share`,
+  );
+  return data.data;
+}
+
+export async function disableExternalShare(contiId: string): Promise<void> {
+  await apiClient.delete<ApiResponse<void>>(`/api/v1/contis/${contiId}/external-share`);
+}
+
+export async function getSharedConti(token: string): Promise<SharedConti> {
+  const { data } = await apiClient.get<ApiResponse<SharedContiResponseDto>>(
+    `/api/v1/share/contis/${token}`,
+  );
+  return toSharedContiModel(data.data);
 }

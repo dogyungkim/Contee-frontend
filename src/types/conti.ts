@@ -1,5 +1,7 @@
 export type {
   Conti,
+  ExternalShare,
+  SharedConti,
   ContiSong,
 } from '@/domains/conti/models/conti';
 export type {

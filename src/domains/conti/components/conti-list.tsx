@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Plus, Calendar, Music, MoreVertical, FileText } from 'lucide-react'
+import { Plus, Calendar, Music, MoreVertical, FileText, Share2, UserRound } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -11,6 +11,7 @@ import { useContiActions } from '../hooks/use-conti-actions'
 import { useTeam } from '@/context/team-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,9 +90,10 @@ export function ContiList() {
       </CardHeader>
 
       <CardContent className="px-0">
-        <div className="hidden grid-cols-[minmax(0,1.8fr)_180px_100px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+        <div className="hidden grid-cols-[minmax(0,1.8fr)_180px_110px_100px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
           <div>Conti</div>
           <div>Worship date</div>
+          <div>Share</div>
           <div>Songs</div>
           <div className="text-right">Menu</div>
         </div>
@@ -100,7 +102,7 @@ export function ContiList() {
           {contis.map((conti: Conti) => (
             <div
               key={conti.id}
-              className="group relative grid cursor-pointer gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_180px_100px_56px] md:items-center"
+              className="group relative grid cursor-pointer gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_180px_110px_100px_56px] md:items-center"
             >
               <Link
                 href={`/dashboard/contis/${conti.id}`}
@@ -122,6 +124,24 @@ export function ContiList() {
                     {conti.memo ? (
                       <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{conti.memo}</p>
                     ) : null}
+                    {conti.songPreview && conti.songPreview.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {conti.songPreview.slice(0, 3).map((title) => (
+                          <span
+                            key={title}
+                            className="rounded-md border border-border bg-[#fafafa] px-2 py-0.5 text-[11px] text-muted-foreground"
+                          >
+                            {title}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    {conti.createdByName ? (
+                      <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <UserRound className="h-3 w-3" />
+                        {conti.createdByName}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -131,8 +151,19 @@ export function ContiList() {
               </div>
 
               <div className="pointer-events-none relative z-10">
+                {conti.externalShareEnabled ? (
+                  <Badge variant="outline" className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700">
+                    <Share2 className="h-3 w-3" />
+                    외부
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground">팀 전용</span>
+                )}
+              </div>
+
+              <div className="pointer-events-none relative z-10">
                 <div className="inline-flex rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-foreground">
-                  {conti.songCount ?? conti.contiSongs?.length ?? 0}곡
+                  {conti.songCount ?? 0}곡
                 </div>
               </div>
 

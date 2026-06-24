@@ -1,8 +1,9 @@
-import type { Conti, ContiSong } from '../models/conti';
+import type { Conti, ContiSong, SharedConti } from '../models/conti';
 import type {
   ContiResponseDto,
   ContiSongResponseDto,
   ContiSongFormPartDto,
+  SharedContiResponseDto,
 } from './conti.dto';
 import { toTeamSongModel } from '@/domains/song/api/song.mapper';
 
@@ -40,16 +41,30 @@ export const toContiSongModel = (dto: ContiSongResponseDto): ContiSong => {
 
 export const toContiModel = (dto: ContiResponseDto): Conti => ({
   id: dto.id,
-  teamId: dto.teamId,
+  teamId: dto.teamId ?? '',
   createdById: dto.createdById,
+  createdByName: dto.createdByName,
   title: dto.title,
   worshipDate: dto.worshipDate,
   memo: dto.memo,
   bibleVerse: dto.bibleVerse,
   sharingInfo: dto.sharingInfo,
   songCount: dto.songCount,
+  songPreview: dto.songPreview,
+  externalShareEnabled: dto.externalShareEnabled,
+  externalShare: dto.externalShare,
   totalDuration: dto.totalDuration,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   contiSongs: dto.contiSongs?.map(toContiSongModel),
+});
+
+export const toSharedContiModel = (dto: SharedContiResponseDto): SharedConti => ({
+  id: dto.id,
+  title: dto.title,
+  worshipDate: dto.worshipDate,
+  memo: dto.memo,
+  bibleVerse: dto.bibleVerse,
+  sharingInfo: dto.sharingInfo,
+  contiSongs: dto.contiSongs?.map(toContiSongModel) ?? [],
 });

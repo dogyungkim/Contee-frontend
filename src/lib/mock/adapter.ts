@@ -45,8 +45,26 @@ const getContiSongs = (contiId: string) =>
 
 const getContiDetailData = (conti: Conti): Conti => ({
     ...conti,
+    externalShare: conti.externalShare ?? {
+        enabled: false,
+        token: null,
+        url: null,
+        createdAt: null,
+        createdById: null,
+    },
     contiSongs: getContiSongs(conti.id),
 });
+
+const getContiListData = (conti: Conti): Conti => {
+    const songs = getContiSongs(conti.id);
+    return {
+        ...conti,
+        createdByName: conti.createdByName ?? 'Bryan',
+        songCount: songs.length,
+        songPreview: songs.slice(0, 3).map((song) => song.title),
+        externalShareEnabled: conti.externalShare?.enabled ?? false,
+    };
+};
 
 export const mockAdapter: AxiosAdapter = async (config) => {
     const { url, method, data } = config;
@@ -93,7 +111,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             return true;
         });
         const start = page * size;
-        const content = filteredContis.slice(start, start + size).map(getContiDetailData);
+        const content = filteredContis.slice(start, start + size).map(getContiListData);
         const totalElements = filteredContis.length;
         const totalPages = Math.max(1, Math.ceil(totalElements / size));
 
@@ -169,7 +187,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         });
         const start = page * size;
         return success({
-            content: filtered.slice(start, start + size).map(getContiDetailData),
+            content: filtered.slice(start, start + size).map(getContiListData),
             totalPages: Math.max(1, Math.ceil(filtered.length / size)),
             totalElements: filtered.length,
         });
@@ -278,6 +296,60 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         });
 
         return success(getContiDetailData(conti));
+    }
+
+    const contiExternalShareMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/external-share$/);
+    if (contiExternalShareMatch && methodUpper === 'POST') {
+        const id = contiExternalShareMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+        if (!conti) return failure(404, 'Conti not found');
+
+        const token = conti.externalShare?.token ?? `share-${Date.now()}`;
+        conti.externalShare = {
+            enabled: true,
+            token,
+            url: `/share/contis/${token}`,
+            createdAt: conti.externalShare?.createdAt ?? new Date().toISOString(),
+            createdById: conti.createdById ?? 'mock-user',
+        };
+        conti.externalShareEnabled = true;
+
+        return success(conti.externalShare);
+    }
+
+    if (contiExternalShareMatch && methodUpper === 'DELETE') {
+        const id = contiExternalShareMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+        if (!conti) return failure(404, 'Conti not found');
+
+        conti.externalShare = {
+            enabled: false,
+            token: null,
+            url: null,
+            createdAt: null,
+            createdById: null,
+        };
+        conti.externalShareEnabled = false;
+
+        return success(null);
+    }
+
+    const sharedContiMatch = url?.match(/^\/api\/v1\/share\/contis\/([^/]+)$/);
+    if (sharedContiMatch && methodUpper === 'GET') {
+        const token = sharedContiMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.externalShare?.enabled && c.externalShare.token === token);
+        if (!conti) return failure(404, 'Share link not found', 'SHARE_LINK_NOT_FOUND');
+
+        const detail = getContiDetailData(conti);
+        return success({
+            id: detail.id,
+            title: detail.title,
+            worshipDate: detail.worshipDate,
+            memo: detail.memo,
+            bibleVerse: detail.bibleVerse,
+            sharingInfo: detail.sharingInfo,
+            contiSongs: detail.contiSongs,
+        });
     }
 
     // --- Conti Songs API ---

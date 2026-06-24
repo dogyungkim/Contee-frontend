@@ -4,14 +4,18 @@ import {
     getConti,
     createConti,
     updateConti,
-    deleteConti
+    deleteConti,
+    enableExternalShare,
+    disableExternalShare,
+    getSharedConti
 } from '@/domains/conti/api/conti.api';
-import { CreateContiRequest, UpdateContiRequest } from '@/types/conti';
+import { Conti, CreateContiRequest, UpdateContiRequest } from '@/types/conti';
 
 export const contiKeys = {
     all: ['contis'] as const,
     list: (teamId: string) => [...contiKeys.all, 'list', teamId] as const,
     detail: (id: string) => [...contiKeys.all, 'detail', id] as const,
+    shared: (token: string) => [...contiKeys.all, 'shared', token] as const,
 };
 
 export const useContis = (teamId: string | null) => {
@@ -28,6 +32,14 @@ export const useContiDetail = (contiId: string | null) => {
         queryKey: contiKeys.detail(contiId || ''),
         queryFn: () => getConti(contiId!),
         enabled: !!contiId,
+    });
+};
+
+export const useSharedConti = (token: string | null) => {
+    return useQuery({
+        queryKey: contiKeys.shared(token || ''),
+        queryFn: () => getSharedConti(token!),
+        enabled: !!token,
     });
 };
 
@@ -63,6 +75,56 @@ export const useDeleteConti = () => {
         mutationFn: (contiId: string) => deleteConti(contiId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: contiKeys.all });
+        },
+    });
+};
+
+export const useEnableExternalShare = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (contiId: string) => enableExternalShare(contiId),
+        onSuccess: (externalShare, contiId) => {
+            const previous = queryClient.getQueryData<Conti>(contiKeys.detail(contiId));
+
+            if (previous) {
+                queryClient.setQueryData(contiKeys.detail(contiId), {
+                    ...previous,
+                    externalShare,
+                    externalShareEnabled: externalShare.enabled,
+                });
+                queryClient.invalidateQueries({ queryKey: contiKeys.list(previous.teamId) });
+            } else {
+                queryClient.invalidateQueries({ queryKey: contiKeys.all });
+            }
+        },
+    });
+};
+
+export const useDisableExternalShare = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (contiId: string) => disableExternalShare(contiId),
+        onSuccess: (_, contiId) => {
+            const previous = queryClient.getQueryData<Conti>(contiKeys.detail(contiId));
+
+            if (previous) {
+                queryClient.setQueryData(contiKeys.detail(contiId), {
+                    ...previous,
+                    externalShare: {
+                        enabled: false,
+                        token: null,
+                        url: null,
+                        createdAt: null,
+                        createdById: null,
+                    },
+                    externalShareEnabled: false,
+                });
+                queryClient.invalidateQueries({ queryKey: contiKeys.list(previous.teamId) });
+            } else {
+                queryClient.invalidateQueries({ queryKey: contiKeys.all });
+            }
         },
     });
 };
