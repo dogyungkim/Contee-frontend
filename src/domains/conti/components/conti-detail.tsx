@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Settings, LayoutList, Share2, Info, Music, BookOpen, Loader2, ChevronDown } from 'lucide-react'
+import { Clipboard, Link2, Plus, LayoutList, Share2, Info, Music, BookOpen, Loader2, ChevronDown, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 import {
   useContiDetail,
+  useDisableExternalShare,
+  useEnableExternalShare,
   useUpdateConti,
 } from '../hooks/use-conti'
 import { Button } from '@/components/ui/button'
@@ -26,8 +28,16 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
+import { Badge } from '@/components/ui/badge'
 
 interface ContiDetailProps {
   contiId: string
@@ -42,9 +52,11 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   const { data: teamMembers = [] } = useTeamMembersQuery(permissionTeamId)
 
   const { mutateAsync: updateContiMutateAsync } = useUpdateConti()
+  const { mutateAsync: enableExternalShareAsync, isPending: isEnablingExternalShare } = useEnableExternalShare()
+  const { mutateAsync: disableExternalShareAsync, isPending: isDisablingExternalShare } = useDisableExternalShare()
 
   const [searchOpen, setSearchOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(true)
+  const [isEditMode, setIsEditMode] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const [draftDate, setDraftDate] = useState<Date | undefined>(undefined)
   const [draftMemo, setDraftMemo] = useState('')
@@ -60,6 +72,9 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     currentMember?.role === 'OWNER' ||
     currentMember?.role === 'ADMIN' ||
     currentMember?.role === 'MEMBER'
+  const canManageExternalShare =
+    currentMember?.role === 'OWNER' ||
+    currentMember?.role === 'ADMIN'
   const isEditable = canEdit && isEditMode
 
   useEffect(() => {
@@ -115,7 +130,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     !!conti &&
     JSON.stringify(normalizeSongs(draftSongs)) !== JSON.stringify(normalizeSongs(conti.contiSongs ?? []))
   const hasChanges = canEdit && (hasMetaChanges || hasSongChanges)
-  const displayedSongs = canEdit ? draftSongs : songs
+  const displayedSongs = isEditable ? draftSongs : songs
 
   useUnsavedChangesGuard({
     enabled: hasChanges && !isSavingMeta,
@@ -215,6 +230,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     setDraftBibleVerseContent(verseLines.slice(1).join('\n'))
     setDraftSharingInfo(conti.sharingInfo ?? '')
     setDraftSongs(conti.contiSongs ?? [])
+    setIsEditMode(false)
   }
 
   const handleSaveMeta = async () => {
@@ -255,10 +271,93 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         },
       })
       toast.success('콘티 정보를 저장했습니다.')
+      setIsEditMode(false)
     } catch (error) {
       toast.error(getContiApiErrorMessage(error, '콘티 정보 저장에 실패했습니다.'))
     } finally {
       setIsSavingMeta(false)
+    }
+  }
+
+  const handleStartEdit = () => {
+    if (!conti) return
+
+    const verseLines = conti.bibleVerse
+      ? conti.bibleVerse
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+      : []
+
+    setDraftTitle(conti.title)
+    setDraftDate(new Date(conti.worshipDate))
+    setDraftMemo(conti.memo ?? '')
+    setDraftBibleVerseReference(verseLines[0] ?? '')
+    setDraftBibleVerseContent(verseLines.slice(1).join('\n'))
+    setDraftSharingInfo(conti.sharingInfo ?? '')
+    setDraftSongs(conti.contiSongs ?? [])
+    setIsEditMode(true)
+  }
+
+  const copyToClipboard = async (value: string, successMessage: string) => {
+    if (typeof window === 'undefined') return
+
+    try {
+      await window.navigator.clipboard.writeText(value)
+      toast.success(successMessage)
+    } catch {
+      toast.error('링크 복사에 실패했습니다.')
+    }
+  }
+
+  const buildUrl = (path: string) => {
+    if (typeof window === 'undefined') return path
+    if (/^https?:\/\//.test(path)) return path
+    return `${window.location.origin}${path}`
+  }
+
+  const handleCopyTeamShare = async () => {
+    await copyToClipboard(buildUrl(`/dashboard/contis/${contiId}`), '팀 공유 링크를 복사했습니다.')
+  }
+
+  const handleEnableExternalShare = async () => {
+    if (hasChanges) {
+      toast.error('외부 공유 전에 변경사항을 먼저 저장해주세요.')
+      return
+    }
+
+    if (!window.confirm('외부 공유를 켜면 링크를 가진 누구나 이 콘티를 볼 수 있습니다.')) return
+
+    try {
+      const externalShare = await enableExternalShareAsync(contiId)
+      if (externalShare.url) {
+        await copyToClipboard(buildUrl(externalShare.url), '외부 공유 링크를 만들고 복사했습니다.')
+        return
+      }
+      toast.success('외부 공유를 켰습니다.')
+    } catch (error) {
+      toast.error(getContiApiErrorMessage(error, '외부 공유를 켜지 못했습니다.'))
+    }
+  }
+
+  const handleCopyExternalShare = async () => {
+    const shareUrl = conti.externalShare?.url
+    if (!shareUrl) {
+      toast.error('활성화된 외부 공유 링크가 없습니다.')
+      return
+    }
+
+    await copyToClipboard(buildUrl(shareUrl), '외부 공유 링크를 복사했습니다.')
+  }
+
+  const handleDisableExternalShare = async () => {
+    if (!window.confirm('외부 공유를 끄면 기존 링크로 더 이상 콘티를 볼 수 없습니다.')) return
+
+    try {
+      await disableExternalShareAsync(contiId)
+      toast.success('외부 공유를 껐습니다.')
+    } catch (error) {
+      toast.error(getContiApiErrorMessage(error, '외부 공유를 끄지 못했습니다.'))
     }
   }
 
@@ -314,11 +413,11 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
             ) : (
               <>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold tracking-tight">{draftTitle || conti.title}</h2>
+                  <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="font-semibold text-primary/80">
-                    {format(draftDate ?? new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
+                    {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
                   </span>
                   <Separator orientation="vertical" className="h-3" />
                   <span className="flex items-center gap-1">
@@ -337,48 +436,59 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                 곡 추가
               </Button>
             )}
-            {canEdit && (
-              <>
-                {isEditMode && (
+            {canEdit && !isEditMode && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  onClick={handleStartEdit}
+                >
+                  수정
+                </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 gap-2">
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">공유</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => { void handleCopyTeamShare() }}>
+                  <Clipboard className="mr-2 h-4 w-4" />
+                  팀 공유 링크 복사
+                </DropdownMenuItem>
+                {canManageExternalShare && (
                   <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9"
-                      onClick={handleCancelMeta}
-                      disabled={isSavingMeta}
-                    >
-                      변경 취소
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-9"
-                      onClick={() => {
-                        void handleSaveMeta()
-                      }}
-                      disabled={isSavingMeta || !hasChanges}
-                    >
-                      {isSavingMeta ? '저장 중...' : '정보 저장'}
-                    </Button>
+                    <DropdownMenuSeparator />
+                    {conti.externalShare?.enabled ? (
+                      <>
+                        <DropdownMenuItem onClick={() => { void handleCopyExternalShare() }}>
+                          <Link2 className="mr-2 h-4 w-4" />
+                          외부 공유 링크 복사
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          disabled={isDisablingExternalShare}
+                          onClick={() => { void handleDisableExternalShare() }}
+                        >
+                          <X className="mr-2 h-4 w-4" />
+                          외부 공유 끄기
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem
+                        disabled={isEnablingExternalShare}
+                        onClick={() => { void handleEnableExternalShare() }}
+                      >
+                        <Link2 className="mr-2 h-4 w-4" />
+                        외부 공유 링크 만들기
+                      </DropdownMenuItem>
+                    )}
                   </>
                 )}
-                <Button
-                  variant={isEditMode ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-9 gap-2"
-                  onClick={() => {
-                    setIsEditMode(!isEditMode)
-                  }}
-                >
-                  <Settings className="h-4 w-4" />
-                  <span className="hidden sm:inline">{isEditMode ? '편집 중' : '보기 모드'}</span>
-                </Button>
-              </>
-            )}
-            <Button variant="outline" size="sm" className="h-9 gap-2">
-              <Share2 className="h-4 w-4" />
-              <span className="hidden sm:inline">공유</span>
-            </Button>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
           </div>
         </div>
@@ -486,7 +596,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
           </div>
         )}
 
-        <div className="space-y-4 pb-20">
+        <div className={cn('space-y-4', isEditMode ? 'pb-32' : 'pb-20')}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Music className="h-4 w-4 text-neutral-500" />
@@ -532,6 +642,48 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         }}
         existingSongIds={draftSongs.map((song) => song.teamSongId).filter(Boolean) as string[]}
       />
+
+      {canEdit && isEditMode && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 px-4">
+          <div className="pointer-events-auto mx-auto flex w-full max-w-[1200px] flex-col gap-3 rounded-2xl border bg-background/95 px-4 py-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-700">
+                  수정 중
+                </Badge>
+                {hasChanges && (
+                  <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                    변경사항 있음
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                저장 전에는 변경사항이 반영되지 않습니다.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={handleCancelMeta}
+                disabled={isSavingMeta}
+              >
+                취소
+              </Button>
+              <Button
+                className="flex-1 sm:flex-none"
+                onClick={() => {
+                  void handleSaveMeta()
+                }}
+                disabled={isSavingMeta || !hasChanges}
+              >
+                {isSavingMeta ? '저장 중...' : '저장 후 닫기'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

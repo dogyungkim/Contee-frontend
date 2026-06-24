@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 import { getMe, logout, refreshToken } from '@/domains/auth/api/auth.api';
 import { useAuthStore } from '@/stores/auth-store';
 import { STALE_TIME } from '@/constants/time';
+import { DEV_AUTH_BYPASS_ENABLED, DEV_AUTH_BYPASS_USER } from '@/domains/auth/dev-auth';
 
 export const authKeys = {
     all: ['auth'] as const,
@@ -14,7 +15,7 @@ export const useSessionRecoveryQuery = (enabled: boolean) => {
     return useQuery({
         queryKey: authKeys.sessionRecovery(),
         queryFn: refreshToken,
-        enabled,
+        enabled: enabled && !DEV_AUTH_BYPASS_ENABLED,
         retry: false,
         staleTime: 0,
         gcTime: 0,
@@ -27,6 +28,7 @@ export const useUserQuery = () => {
     return useQuery({
         queryKey: authKeys.user(),
         queryFn: async () => {
+            if (DEV_AUTH_BYPASS_ENABLED) return DEV_AUTH_BYPASS_USER;
             if (!accessToken) return null;
 
             console.log('[useUserQuery] Fetching user data with token');
@@ -42,7 +44,7 @@ export const useUserQuery = () => {
                 throw error;
             }
         },
-        enabled: !!accessToken, // Only run when we have a token
+        enabled: DEV_AUTH_BYPASS_ENABLED || !!accessToken, // Only run when we have a token
         staleTime: STALE_TIME.FIVE_MINUTES,
         retry: false,
     });
@@ -53,7 +55,7 @@ export const useLogoutMutation = () => {
     const { reset } = useAuthStore();
 
     return useMutation({
-        mutationFn: logout,
+        mutationFn: DEV_AUTH_BYPASS_ENABLED ? async () => undefined : logout,
         onSuccess: () => {
             reset();
             queryClient.setQueryData(authKeys.user(), null);

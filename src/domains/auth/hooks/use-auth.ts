@@ -3,6 +3,11 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useUserQuery, useLogoutMutation, useSessionRecoveryQuery } from './use-auth-query';
 import { getGoogleLoginUrl } from '@/domains/auth/api/auth.api';
+import {
+  DEV_AUTH_BYPASS_ENABLED,
+  DEV_AUTH_BYPASS_TOKEN,
+  DEV_AUTH_BYPASS_USER,
+} from '@/domains/auth/dev-auth';
 
 /**
  * [D] Logic Layer (Custom Hooks)
@@ -19,6 +24,16 @@ export function useInitialAuth() {
   const sessionRecoveryQuery = useSessionRecoveryQuery(shouldRecoverSession);
 
   useEffect(() => {
+    if (DEV_AUTH_BYPASS_ENABLED) {
+      if (!accessToken) {
+        setAccessToken(DEV_AUTH_BYPASS_TOKEN);
+      }
+      if (!hasCheckedSession) {
+        setHasCheckedSession(true);
+      }
+      return;
+    }
+
     if (hasCheckedSession) return;
 
     if (accessToken) {
@@ -51,23 +66,26 @@ export function useAuth(redirectTo?: string) {
   const logoutMutation = useLogoutMutation();
   const router = useRouter();
 
-  const isLoading = !hasCheckedSession || isUserLoading || isFetching;
+  const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED ? true : isAuthenticated;
+  const bypassedUser = DEV_AUTH_BYPASS_ENABLED ? DEV_AUTH_BYPASS_USER : user;
+  const isLoading = DEV_AUTH_BYPASS_ENABLED ? false : !hasCheckedSession || isUserLoading || isFetching;
 
   useEffect(() => {
     // Only redirect if we are sure about the auth state (not loading)
-    if (!isLoading && !isAuthenticated && redirectTo) {
+    if (!isLoading && !bypassedIsAuthenticated && redirectTo) {
       router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, redirectTo, router]);
+  }, [bypassedIsAuthenticated, isLoading, redirectTo, router]);
 
   const login = () => {
+    if (DEV_AUTH_BYPASS_ENABLED) return;
     window.location.href = getGoogleLoginUrl();
   };
 
   return {
-    isAuthenticated,
+    isAuthenticated: bypassedIsAuthenticated,
     isLoading,
-    user,
+    user: bypassedUser,
     error,
     clearError,
     login,
@@ -85,13 +103,14 @@ export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard') {
   const { isLoading: isUserLoading, isFetching } = useUserQuery();
   const router = useRouter();
 
-  const isLoading = !hasCheckedSession || isUserLoading || isFetching;
+  const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED ? true : isAuthenticated;
+  const isLoading = DEV_AUTH_BYPASS_ENABLED ? false : !hasCheckedSession || isUserLoading || isFetching;
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && bypassedIsAuthenticated) {
       router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, redirectTo, router]);
+  }, [bypassedIsAuthenticated, isLoading, redirectTo, router]);
 
-  return { isAuthenticated, isLoading };
+  return { isAuthenticated: bypassedIsAuthenticated, isLoading };
 }

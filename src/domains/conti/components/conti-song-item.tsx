@@ -189,81 +189,108 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
         </div>
 
         <div className="px-4 py-4 space-y-4 bg-white">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key (조성)</Label>
-                {isEditMode && isKeyOverridden && (
-                  <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={() => resetField('keySignature')}>
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-              <Select value={form.keySignature} onValueChange={(val) => setForm((prev) => ({ ...prev, keySignature: val }))} disabled={!isEditMode}>
-                <SelectTrigger className={cn('w-full transition-colors', isEditMode && isKeyOverridden && 'bg-yellow-50 border-yellow-200 font-bold')}>
-                  <SelectValue placeholder="키 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COMMON_KEYS.map((k) => (
-                    <SelectItem key={k} value={k}>
-                      {k}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-muted-foreground px-1">
-                팀 기본: <span className="font-medium">{teamSong?.keySignature || '없음'}</span>
-              </p>
-            </div>
+          {isEditMode ? (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key (조성)</Label>
+                    {isKeyOverridden && (
+                      <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={() => resetField('keySignature')}>
+                        <RotateCcw className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  <Select value={form.keySignature} onValueChange={(val) => setForm((prev) => ({ ...prev, keySignature: val }))}>
+                    <SelectTrigger className={cn('w-full transition-colors', isKeyOverridden && 'bg-yellow-50 border-yellow-200 font-bold')}>
+                      <SelectValue placeholder="키 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMMON_KEYS.map((k) => (
+                        <SelectItem key={k} value={k}>
+                          {k}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground px-1">
+                    팀 기본: <span className="font-medium">{teamSong?.keySignature || '없음'}</span>
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tempo (BPM)</Label>
-                {isEditMode && isBpmOverridden && (
-                  <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={() => resetField('bpm')}>
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                )}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tempo (BPM)</Label>
+                    {isBpmOverridden && (
+                      <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={() => resetField('bpm')}>
+                        <RotateCcw className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((prev) => ({ ...prev, bpm: prev.bpm - 1 }))}>
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <Input
+                      type="number"
+                      value={form.bpm || ''}
+                      onChange={(e) => setForm((prev) => ({ ...prev, bpm: Number(e.target.value) }))}
+                      className={cn('text-center transition-colors px-2', isBpmOverridden && 'bg-yellow-50 border-yellow-200 font-bold font-mono')}
+                    />
+                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((prev) => ({ ...prev, bpm: prev.bpm + 1 }))}>
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground px-1">
+                    팀 기본: <span className="font-medium">{teamSong?.bpm || '없음'}</span>
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {isEditMode && (
-                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((prev) => ({ ...prev, bpm: prev.bpm - 1 }))}>
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                )}
-                <Input
-                  type="number"
-                  value={form.bpm || ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, bpm: Number(e.target.value) }))}
-                  disabled={!isEditMode}
-                  className={cn('text-center transition-colors px-2', isEditMode && isBpmOverridden && 'bg-yellow-50 border-yellow-200 font-bold font-mono')}
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">콘티 메모</Label>
+                <Textarea
+                  placeholder="이 예배에서만 참고할 사항을 입력하세요."
+                  className={cn(
+                    'min-h-[80px] resize-none transition-colors text-sm',
+                    isNoteOverridden && 'bg-yellow-50/50 border-yellow-100'
+                  )}
+                  value={form.note}
+                  onChange={(e) => setForm((prev) => ({ ...prev, note: e.target.value }))}
                 />
-                {isEditMode && (
-                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((prev) => ({ ...prev, bpm: prev.bpm + 1 }))}>
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                )}
               </div>
-              <p className="text-[10px] text-muted-foreground px-1">
-                팀 기본: <span className="font-medium">{teamSong?.bpm || '없음'}</span>
-              </p>
-            </div>
-          </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-lg border bg-muted/20 px-3 py-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Key</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">{form.keySignature || '-'}</p>
+                </div>
+                <div className="rounded-lg border bg-muted/20 px-3 py-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">BPM</p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">{form.bpm || '-'}</p>
+                </div>
+                <div className="rounded-lg border bg-muted/20 px-3 py-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">원곡 Key</p>
+                  <p className="mt-1 text-sm text-foreground">{teamSong?.keySignature || '-'}</p>
+                </div>
+                <div className="rounded-lg border bg-muted/20 px-3 py-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">원곡 BPM</p>
+                  <p className="mt-1 text-sm text-foreground">{teamSong?.bpm || '-'}</p>
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">콘티 메모</Label>
-            <Textarea
-              placeholder="이 예배에서만 참고할 사항을 입력하세요."
-              className={cn(
-                'min-h-[80px] resize-none transition-colors text-sm',
-                'disabled:opacity-100 disabled:cursor-default disabled:bg-muted/30 disabled:border-0 disabled:shadow-none',
-                isEditMode && isNoteOverridden && 'bg-yellow-50/50 border-yellow-100'
+              {form.note && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">콘티 메모</Label>
+                  <div className="rounded-lg border bg-muted/20 px-3 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                    {form.note}
+                  </div>
+                </div>
               )}
-              value={form.note}
-              onChange={(e) => setForm((prev) => ({ ...prev, note: e.target.value }))}
-              disabled={!isEditMode}
-            />
-          </div>
+            </>
+          )}
 
           {songFormParts.length > 0 && (
             <div className="space-y-2">
@@ -275,28 +302,28 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
                   isTeamNoteOpen ? 'max-h-[500px]' : 'max-h-32'
                 )}
               >
-                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                    {groupedFlow.map((group, groupIndex) => (
-                      <div key={groupIndex} className="flex items-center gap-1.5 shrink-0">
-                        <div
-                          className={cn('px-2 py-1 rounded text-xs font-bold border shadow-sm whitespace-nowrap', {
-                            'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
-                            'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
-                            'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
-                            'bg-amber-50 border-amber-200 text-amber-700': group.type === 'Bridge',
-                            'bg-emerald-50 border-emerald-200 text-emerald-700': group.type === 'Instrumental',
-                            'bg-rose-50 border-rose-200 text-rose-700': group.type === 'Tag',
-                            'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
-                          })}
-                        >
-                          {group.abbr}
-                          {group.showBars && <span className="ml-1 text-[10px] opacity-70 font-normal">({group.bars})</span>}
-                          {group.count > 1 && <span className="ml-1 text-[9px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
-                        </div>
-                        {groupIndex < groupedFlow.length - 1 && <span className="text-slate-300 text-[10px]">→</span>}
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                  {groupedFlow.map((group, groupIndex) => (
+                    <div key={groupIndex} className="flex items-center gap-1.5 shrink-0">
+                      <div
+                        className={cn('px-2 py-1 rounded text-xs font-bold border shadow-sm whitespace-nowrap', {
+                          'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
+                          'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
+                          'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
+                          'bg-amber-50 border-amber-200 text-amber-700': group.type === 'Bridge',
+                          'bg-emerald-50 border-emerald-200 text-emerald-700': group.type === 'Instrumental',
+                          'bg-rose-50 border-rose-200 text-rose-700': group.type === 'Tag',
+                          'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
+                        })}
+                      >
+                        {group.abbr}
+                        {group.showBars && <span className="ml-1 text-[10px] opacity-70 font-normal">({group.bars})</span>}
+                        {group.count > 1 && <span className="ml-1 text-[9px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
                       </div>
-                    ))}
-                  </div>
+                      {groupIndex < groupedFlow.length - 1 && <span className="text-slate-300 text-[10px]">→</span>}
+                    </div>
+                  ))}
+                </div>
 
                 {teamSong?.note && <div className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">{teamSong.note}</div>}
 
