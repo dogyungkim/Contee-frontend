@@ -6,6 +6,7 @@ import type {
   SharedContiResponseDto,
 } from './conti.dto';
 import { toTeamSongModel } from '@/domains/song/api/song.mapper';
+import { normalizeWorshipTime } from '@/domains/conti/utils/worship-time';
 
 const toContiSongFormPartModel = (dto: ContiSongFormPartDto) => ({
   id: dto.id,
@@ -46,6 +47,7 @@ export const toContiModel = (dto: ContiResponseDto): Conti => ({
   createdByName: dto.createdByName,
   title: dto.title,
   worshipDate: dto.worshipDate,
+  worshipTime: normalizeWorshipTime(dto.worshipTime),
   memo: dto.memo,
   bibleVerse: dto.bibleVerse,
   sharingInfo: dto.sharingInfo,
@@ -63,6 +65,7 @@ export const toSharedContiModel = (dto: SharedContiResponseDto): SharedConti => 
   id: dto.id,
   title: dto.title,
   worshipDate: dto.worshipDate,
+  worshipTime: normalizeWorshipTime(dto.worshipTime),
   memo: dto.memo,
   bibleVerse: dto.bibleVerse,
   sharingInfo: dto.sharingInfo,

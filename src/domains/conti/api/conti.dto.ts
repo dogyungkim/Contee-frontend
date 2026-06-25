@@ -48,6 +48,7 @@ export interface ContiResponseDto {
   createdByName?: string;
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
@@ -73,6 +74,7 @@ export interface SharedContiResponseDto {
   id: string;
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
@@ -116,6 +118,7 @@ export interface CreateContiRequestDto {
   teamId: string;
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
@@ -125,6 +128,7 @@ export interface CreateContiRequestDto {
 export interface UpdateContiRequestDto {
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;

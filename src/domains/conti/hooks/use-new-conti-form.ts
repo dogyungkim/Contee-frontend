@@ -7,6 +7,7 @@ import { useCreateConti } from '@/domains/conti/hooks/use-conti'
 import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/song'
 import { ContiSongRequestItem } from '@/types/conti'
 import { toast } from '@/lib/toast'
+import { formatWorshipTime } from '@/domains/conti/utils/worship-time'
 
 // Temp Song Type for UI State
 export interface TempContiSong {
@@ -71,6 +72,7 @@ export const useNewContiForm = (teamId: string | null) => {
         try {
             // API 계약: worshipDate는 YYYY-MM-DD 형식
             const worshipDate = format(date, 'yyyy-MM-dd')
+            const worshipTime = formatWorshipTime({ period, hour, minute })
             const formattedBibleVerse = [bibleVerseReference.trim(), bibleVerseContent.trim()]
                 .filter(Boolean)
                 .join('\n')
@@ -111,6 +113,7 @@ export const useNewContiForm = (teamId: string | null) => {
                 teamId,
                 title,
                 worshipDate,
+                worshipTime,
                 memo: memo.trim() || undefined,
                 bibleVerse: formattedBibleVerse || undefined,
                 sharingInfo: sharingInfo.trim() || undefined,
@@ -128,41 +131,85 @@ export const useNewContiForm = (teamId: string | null) => {
     }
 
     const addExistingSong = (song: TeamSong) => {
-        const newTempSong: TempContiSong = {
-            tempId: `temp-${Date.now()}`,
-            isNewSong: false,
-            orderIndex: tempSongs.length,
-            teamSongId: song.id,
-            teamSong: song,
-            customTitle: song.title,
-            artist: song.artist,
-            keySignature: song.keySignature,
-            bpm: song.bpm,
-            note: song.note,
-        }
-
-        setTempSongs([...tempSongs, newTempSong])
+        setTempSongs((prev) => [
+            ...prev,
+            {
+                tempId: `temp-${Date.now()}`,
+                isNewSong: false,
+                orderIndex: prev.length,
+                teamSongId: song.id,
+                teamSong: song,
+                customTitle: song.title,
+                artist: song.artist,
+                keySignature: song.keySignature,
+                bpm: song.bpm,
+                note: song.note,
+            },
+        ])
     }
 
     const addNewSong = (data: CreateTeamSongRequest) => {
-        const newTempSong: TempContiSong = {
-            tempId: `new-${Date.now()}`,
-            isNewSong: true,
-            orderIndex: tempSongs.length,
-            customTitle: data.title,
-            artist: data.artist,
-            keySignature: data.keySignature,
-            bpm: data.bpm,
-            youtubeUrl: data.youtubeUrl,
-            sheetMusicUrl: data.sheetMusicUrl,
-            note: data.note,
-            songForm: data.songForm,
-        }
-        setTempSongs([...tempSongs, newTempSong])
+        setTempSongs((prev) => [
+            ...prev,
+            {
+                tempId: `new-${Date.now()}`,
+                isNewSong: true,
+                orderIndex: prev.length,
+                customTitle: data.title,
+                artist: data.artist,
+                keySignature: data.keySignature,
+                bpm: data.bpm,
+                youtubeUrl: data.youtubeUrl,
+                sheetMusicUrl: data.sheetMusicUrl,
+                note: data.note,
+                songForm: data.songForm,
+            },
+        ])
     }
 
     const removeSong = (tempId: string) => {
-        setTempSongs(tempSongs.filter(s => s.tempId !== tempId))
+        setTempSongs((prev) =>
+            prev
+                .filter((song) => song.tempId !== tempId)
+                .map((song, index) => ({ ...song, orderIndex: index }))
+        )
+    }
+
+    const updateSong = (tempId: string, data: CreateTeamSongRequest) => {
+        setTempSongs((prev) =>
+            prev.map((song) => {
+                if (song.tempId !== tempId) return song
+
+                return {
+                    ...song,
+                    customTitle: data.title,
+                    artist: data.artist,
+                    keySignature: data.keySignature,
+                    bpm: data.bpm,
+                    youtubeUrl: song.isNewSong ? data.youtubeUrl : song.youtubeUrl,
+                    sheetMusicUrl: song.isNewSong ? data.sheetMusicUrl : song.sheetMusicUrl,
+                    note: song.isNewSong ? data.note : song.note,
+                    contiNote: song.isNewSong ? song.contiNote : data.note,
+                    songForm: song.isNewSong ? data.songForm : song.songForm,
+                }
+            })
+        )
+    }
+
+    const moveSong = (tempId: string, direction: 'up' | 'down') => {
+        setTempSongs((prev) => {
+            const currentIndex = prev.findIndex((song) => song.tempId === tempId)
+            if (currentIndex < 0) return prev
+
+            const nextIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+            if (nextIndex < 0 || nextIndex >= prev.length) return prev
+
+            const next = [...prev]
+            const [song] = next.splice(currentIndex, 1)
+            next.splice(nextIndex, 0, song)
+
+            return next.map((item, index) => ({ ...item, orderIndex: index }))
+        })
     }
 
     return {
@@ -190,6 +237,8 @@ export const useNewContiForm = (teamId: string | null) => {
         tempSongs,
         addExistingSong,
         addNewSong,
+        updateSong,
+        moveSong,
         removeSong,
 
         // Actions

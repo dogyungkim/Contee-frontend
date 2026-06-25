@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen } from 'lucide-react'
+import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen, X, Pencil, ArrowUp, ArrowDown } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
-import { useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
+import { TempContiSong, useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,22 +15,99 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
- import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
+import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
+import { ContiSongCard } from '@/domains/conti/components/conti-song-card'
+import { mapRequestSongFormToUi } from '@/domains/song/utils/song-form'
+import { PERIODS, HOURS, MINUTES } from '@/domains/conti/utils/worship-time'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 
-// Time Constants
-const PERIODS = [
-  { label: "오전", value: "AM" },
-  { label: "오후", value: "PM" }
-]
-
-const HOURS = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'))
-const MINUTES = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'))
+function NewContiSongCard({
+  song,
+  index,
+  onRemove,
+  onEdit,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+}: {
+  song: TempContiSong
+  index: number
+  onRemove: (tempId: string) => void
+  onEdit: (tempId: string) => void
+  onMoveUp: (tempId: string) => void
+  onMoveDown: (tempId: string) => void
+  canMoveUp: boolean
+  canMoveDown: boolean
+}) {
+  return (
+    <ContiSongCard
+      index={index}
+      title={song.customTitle}
+      artist={song.artist}
+      keySignature={song.keySignature}
+      bpm={song.bpm}
+      teamNote={song.note}
+      songForm={mapRequestSongFormToUi(song.songForm)}
+      youtubeUrl={song.youtubeUrl || song.teamSong?.youtubeUrl}
+      sheetMusicUrl={song.sheetMusicUrl || song.teamSong?.sheetMusicUrl}
+      showOriginalMeta={false}
+      badge={
+        song.isNewSong ? (
+          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">NEW</span>
+        ) : null
+      }
+      headerAction={
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-neutral-500"
+            onClick={() => onMoveUp(song.tempId)}
+            disabled={!canMoveUp}
+            aria-label={`${song.customTitle} 위로 이동`}
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-neutral-500"
+            onClick={() => onMoveDown(song.tempId)}
+            disabled={!canMoveDown}
+            aria-label={`${song.customTitle} 아래로 이동`}
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-neutral-500"
+            onClick={() => onEdit(song.tempId)}
+            aria-label={`${song.customTitle} 수정`}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-neutral-400 transition-colors hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onRemove(song.tempId)}
+            aria-label={`${song.customTitle} 삭제`}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      }
+    />
+  )
+}
 
 export default function NewContiPage() {
   const router = useRouter()
-  const { selectedTeamId, selectedTeam } = useTeam()
+  const { selectedTeamId, selectedTeam, isLoading: isTeamLoading } = useTeam()
   
   // Use the custom hook for all business logic
   const {
@@ -55,6 +132,8 @@ export default function NewContiPage() {
     tempSongs,
     addExistingSong,
     addNewSong,
+    updateSong,
+    moveSong,
     removeSong,
     handleSave,
     isSaving,
@@ -62,8 +141,34 @@ export default function NewContiPage() {
   
   // UI State (kept in component as it's purely UI-related)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchTab, setSearchTab] = useState<'team' | 'new'>('team')
   const [isAddingNewSong, setIsAddingNewSong] = useState(false)
+  const [editingSongId, setEditingSongId] = useState<string | null>(null)
+  const hasChanges =
+    !!title.trim() ||
+    !!memo.trim() ||
+    !!bibleVerseReference.trim() ||
+    !!bibleVerseContent.trim() ||
+    !!sharingInfo.trim() ||
+    tempSongs.length > 0
+
+  useUnsavedChangesGuard({
+    enabled: hasChanges && !isSaving,
+  })
+
+  const handleCancel = () => {
+    if (hasChanges && !window.confirm('저장하지 않은 콘티 작성 내용이 있습니다. 페이지를 떠나시겠습니까?')) {
+      return
+    }
+    router.push('/dashboard/contis')
+  }
+
+  if (isTeamLoading) {
+    return (
+      <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
+        <p className="text-sm font-medium text-muted-foreground">팀 정보를 불러오는 중...</p>
+      </div>
+    )
+  }
 
   if (!selectedTeamId || !selectedTeam) {
     return (
@@ -75,9 +180,9 @@ export default function NewContiPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col -m-6 sm:-m-8">
+    <div className="space-y-6">
       {/* Top Header Section */}
-      <div className="bg-background border-b px-6 sm:px-8 py-4 shrink-0">
+      <div className="sticky top-0 z-20 border-b bg-background/95 px-0 py-4 backdrop-blur">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between max-w-[1600px] mx-auto w-full">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -98,7 +203,7 @@ export default function NewContiPage() {
               variant="outline" 
               size="sm" 
               className="h-9"
-              onClick={() => router.back()}
+              onClick={handleCancel}
             >
               취소
             </Button>
@@ -115,7 +220,7 @@ export default function NewContiPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 max-w-[1200px] mx-auto w-full">
+      <div className="space-y-6 max-w-[1200px] mx-auto w-full">
         {/* Worship Info Card */}
         <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4">
           <h3 className="font-semibold text-lg">예배 정보</h3>
@@ -123,11 +228,13 @@ export default function NewContiPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Date Picker */}
             <div className="space-y-2">
-              <Label htmlFor="date">예배 날짜</Label>
+              <Label htmlFor="new-conti-date">예배 날짜</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    id="new-conti-date"
+                    aria-label="예배 날짜 선택"
                     className={cn(
                       "w-full justify-start text-left font-normal",
                       !date && "text-muted-foreground"
@@ -148,11 +255,11 @@ export default function NewContiPage() {
               </Popover>
             </div>
             {/* Time Picker */}
-            <div className="space-y-2">
-              <Label htmlFor="time">예배 시간</Label>
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium leading-none">예배 시간</legend>
               <div className="flex gap-2">
                 <Select value={period} onValueChange={setPeriod}>
-                  <SelectTrigger className="w-[80px]">
+                  <SelectTrigger className="w-[80px]" aria-label="오전 또는 오후">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -163,7 +270,7 @@ export default function NewContiPage() {
                 </Select>
                 
                 <Select value={hour} onValueChange={setHour}>
-                  <SelectTrigger className="flex-1">
+                  <SelectTrigger className="flex-1" aria-label="예배 시간 시">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -174,7 +281,7 @@ export default function NewContiPage() {
                 </Select>
 
                 <Select value={minute} onValueChange={setMinute}>
-                  <SelectTrigger className="flex-1">
+                  <SelectTrigger className="flex-1" aria-label="예배 시간 분">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -184,7 +291,7 @@ export default function NewContiPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            </fieldset>
           </div>
           {/* Title */}
           <div className="space-y-2">
@@ -211,46 +318,46 @@ export default function NewContiPage() {
         </div>
 
         {/* Bible Verse & Sharing Section */}
-        <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-6 space-y-4">
+        <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border border-sky-200 bg-white">
-                <BookOpen className="h-4 w-4 text-sky-700" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+                <BookOpen className="h-4 w-4 text-neutral-600" />
               </div>
-              <h3 className="text-sm font-bold text-sky-900">말씀 & 나눔</h3>
+              <h3 className="text-sm font-bold text-neutral-900">말씀 & 나눔</h3>
             </div>
           </div>
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4 space-y-3">
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4 space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="bibleVerseReference" className="text-emerald-900">본문 위치</Label>
+              <Label htmlFor="bibleVerseReference">본문 위치</Label>
               <Input
                 id="bibleVerseReference"
                 placeholder="예: 요한복음 : 3 : 16"
                 value={bibleVerseReference}
                 onChange={(e) => setBibleVerseReference(e.target.value)}
-                className="text-base border-emerald-200 bg-white/90 focus-visible:ring-emerald-300"
+                className="text-base bg-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bibleVerseContent" className="text-emerald-900">본문</Label>
+              <Label htmlFor="bibleVerseContent">본문</Label>
               <Textarea
                 id="bibleVerseContent"
                 placeholder="예: 하나님이 세상을 이처럼 사랑하사..."
                 value={bibleVerseContent}
                 onChange={(e) => setBibleVerseContent(e.target.value)}
-                className="min-h-[120px] resize-none border-emerald-200 bg-white/90 focus-visible:ring-emerald-300"
+                className="min-h-[120px] resize-none bg-white"
               />
             </div>
           </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 space-y-3">
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4 space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="sharingInfo" className="text-amber-900">나눔</Label>
+              <Label htmlFor="sharingInfo">나눔</Label>
               <Textarea
                 id="sharingInfo"
                 placeholder="오늘 콘티 나눔 내용을 입력하세요."
                 value={sharingInfo}
                 onChange={(e) => setSharingInfo(e.target.value)}
-                className="min-h-[140px] resize-none border-amber-200 bg-white/90 focus-visible:ring-amber-300"
+                className="min-h-[140px] resize-none bg-white"
               />
             </div>
           </div>
@@ -268,43 +375,51 @@ export default function NewContiPage() {
 
           {/* Render Added Songs */}
           <div className="space-y-2">
-              {tempSongs.map((song, index) => (
-                <div key={song.tempId} className="rounded-xl border bg-white p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded bg-neutral-200 flex items-center justify-center text-xs font-mono font-bold text-neutral-600">
-                      {index + 1}
-                    </span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-base">{song.customTitle}</h4>
-                          {song.isNewSong && (
-                              <span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">NEW</span>
-                          )}
-                      </div>
-                      <p className="text-xs text-neutral-500">
-                        {song.keySignature || '-'} · {song.bpm || '-'} BPM
-                        {song.artist && ` · ${song.artist}`}
-                      </p>
-                       {/* Parse SongForm from note if possible? */}
-                       {/* Display rudimentary preview if note contains [SongForm] */}
-                       {song.note && song.note.includes('[SongForm]') && (
-                           <div className="mt-1 text-xs text-primary/70 font-mono">
-                               Song Sequence defined
-                           </div>
-                       )}
-                    </div>
-                    {/* Add action buttons (Edit, Delete) */}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-neutral-400 hover:text-destructive"
-                      onClick={() => removeSong(song.tempId)}
-                    >
-                      ×
-                    </Button>
+            {tempSongs.map((song, index) => (
+              <div key={song.tempId} className="space-y-2">
+                <NewContiSongCard
+                  song={song}
+                  index={index}
+                  onRemove={(tempId) => {
+                    if (editingSongId === tempId) setEditingSongId(null)
+                    removeSong(tempId)
+                  }}
+                  onEdit={(tempId) => {
+                    setIsAddingNewSong(false)
+                    setEditingSongId((current) => (current === tempId ? null : tempId))
+                  }}
+                  onMoveUp={(tempId) => moveSong(tempId, 'up')}
+                  onMoveDown={(tempId) => moveSong(tempId, 'down')}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < tempSongs.length - 1}
+                />
+                {editingSongId === song.tempId && (
+                  <div className="rounded-xl border border-neutral-200 bg-white p-4">
+                    <SongDirectEditCard
+                      variant="embedded"
+                      title="콘티 곡 정보 수정"
+                      submitLabel="변경 적용"
+                      idPrefix={`new-conti-song-${song.tempId}`}
+                      initialValue={{
+                        title: song.customTitle,
+                        artist: song.artist,
+                        keySignature: song.keySignature,
+                        bpm: song.bpm,
+                        youtubeUrl: song.youtubeUrl || song.teamSong?.youtubeUrl,
+                        sheetMusicUrl: song.sheetMusicUrl || song.teamSong?.sheetMusicUrl,
+                        note: song.contiNote || '',
+                      }}
+                      initialSongForm={mapRequestSongFormToUi(song.songForm)}
+                      onSave={(data) => {
+                        updateSong(song.tempId, data)
+                        setEditingSongId(null)
+                      }}
+                      onCancel={() => setEditingSongId(null)}
+                    />
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
+            ))}
           </div>
 
           {/* New Song Editing Card (Inline Draft) */}
@@ -325,35 +440,38 @@ export default function NewContiPage() {
              <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="h-32 border-dashed bg-amber-50/30 border-amber-200/50 hover:bg-amber-50 hover:border-amber-300 group transition-all"
-                  onClick={() => setIsAddingNewSong(true)}
+                  className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
+                  onClick={() => {
+                    setEditingSongId(null)
+                    setIsAddingNewSong(true)
+                  }}
                 >
                   <div className="flex flex-col items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                      <Plus className="h-5 w-5 text-amber-600" />
+                    <div className="h-10 w-10 rounded-md border bg-neutral-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Plus className="h-5 w-5 text-neutral-700" />
                     </div>
                     <div className="text-center text-wrap">
-                      <p className="text-sm font-bold text-amber-900">새로운 찬양 등록</p>
-                      <p className="text-[10px] text-amber-600/70 mt-0.5 font-medium">라이브러리에 없는 곡 추가</p>
+                      <p className="text-sm font-bold text-neutral-900">새로운 찬양 등록</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">라이브러리에 없는 곡 추가</p>
                     </div>
                   </div>
                 </Button>
 
                 <Button
                   variant="outline"
-                  className="h-32 border-dashed bg-indigo-50/30 border-indigo-200/50 hover:bg-indigo-50 hover:border-indigo-300 group transition-all"
+                  className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
                   onClick={() => {
-                    setSearchTab('team')
+                    setEditingSongId(null)
                     setSearchOpen(true)
                   }}
                 >
                   <div className="flex flex-col items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
-                      <Music className="h-5 w-5 text-indigo-600" />
+                    <div className="h-10 w-10 rounded-md border bg-neutral-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Music className="h-5 w-5 text-neutral-700" />
                     </div>
                     <div className="text-center text-wrap">
-                      <p className="text-sm font-bold text-indigo-900">기존 찬양 불러오기</p>
-                      <p className="text-[10px] text-indigo-600/70 mt-0.5 font-medium">팀 라이브러리에서 선택</p>
+                      <p className="text-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">팀 라이브러리에서 선택</p>
                     </div>
                   </div>
                 </Button>
@@ -380,7 +498,6 @@ export default function NewContiPage() {
           setSearchOpen(false)
         }}
         existingSongIds={tempSongs.map(s => s.teamSongId).filter(Boolean) as string[]}
-        initialTab={searchTab}
       />
     </div>
   )

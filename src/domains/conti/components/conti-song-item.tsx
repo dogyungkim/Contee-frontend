@@ -1,34 +1,34 @@
 'use client'
 
 import {
-  Music,
   X,
   GripVertical,
-  Youtube,
-  FileText,
   Star,
-  Plus,
-  Minus,
-  RotateCcw,
+  Pencil,
 } from 'lucide-react'
-import { useMemo } from 'react'
-import { ContiSong } from '@/types/conti'
+import { useMemo, useState } from 'react'
+import { ContiSong, ContiSongFormPart } from '@/types/conti'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Toggle } from '@/components/ui/toggle'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { useUpdateTeamSong } from '@/domains/song/hooks/use-songs'
-import { getSongFormSummary } from '@/domains/song/utils/song-form'
-import { SONG_FORM_CONFIG } from '@/constants/ui-constants'
-import type { SongFormPart, ApiSongFormPart } from '@/types/song'
+import { mapApiSongFormToUi } from '@/domains/song/utils/song-form'
+import { ContiSongCard } from './conti-song-card'
+import { SongDirectEditCard } from './song-direct-edit-card'
+import type { SongFormPartRequest } from '@/types/song'
 
-const COMMON_KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+const mapRequestSongFormToConti = (parts: SongFormPartRequest[] = []): ContiSongFormPart[] =>
+  parts.map((part, index) => ({
+    id: null,
+    partOrder: index,
+    partType: part.partType,
+    customPartName: part.customPartName,
+    repeatCount: part.repeatCount,
+    barCount: part.barCount,
+    note: part.note,
+  }))
 
 interface ContiSongItemProps {
   id: string
@@ -39,54 +39,24 @@ interface ContiSongItemProps {
   onChange: (song: ContiSong) => void
 }
 
-const PART_TYPE_MAP: Record<string, SongFormPart['type']> = {
-  INTRO: 'Intro',
-  VERSE: 'Verse',
-  PRE_CHORUS: 'Pre-chorus',
-  CHORUS: 'Chorus',
-  BRIDGE: 'Bridge',
-  INTERLUDE: 'Interlude',
-  OUTRO: 'Outro',
-  TAG: 'Tag',
-  INSTRUMENTAL: 'Instrumental',
-}
-
-const toUiSongForm = (apiParts: ApiSongFormPart[]): SongFormPart[] =>
-  apiParts.map((part, index) => ({
-    id: `${part.id ?? index}`,
-    type: PART_TYPE_MAP[part.partType] || 'Intro',
-    label: part.customPartName || part.partType,
-    bars: SONG_FORM_CONFIG.DEFAULT_BARS,
-    abbr: part.customPartName?.substring(0, SONG_FORM_CONFIG.CUSTOM_ABBR_MAX_LENGTH),
-  }))
-
 export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onChange }: ContiSongItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const { mutate: updateTeamSong } = useUpdateTeamSong()
+  const [editFormKey, setEditFormKey] = useState(0)
+  const [isEditingSong, setIsEditingSong] = useState(false)
   const teamSong = contiSong.teamSong
-  const isTeamNoteOpen = false
   const form = {
+    title: contiSong.title || '',
+    artist: contiSong.artist || '',
     keySignature: contiSong.key || '',
     bpm: contiSong.bpm || 0,
+    youtubeUrl: contiSong.youtubeUrl || '',
+    sheetMusicUrl: contiSong.sheetMusicUrl || '',
     note: contiSong.note || '',
   }
-  const setForm = (updater: (prev: typeof form) => typeof form) => {
-    const next = updater(form)
-    onChange({
-      ...contiSong,
-      key: next.keySignature || undefined,
-      bpm: next.bpm || undefined,
-      note: next.note || undefined,
-    })
-  }
-  const songFormParts = useMemo(
-    () => toUiSongForm((contiSong.songForm as ApiSongFormPart[]) ?? []),
-    [contiSong.songForm]
-  )
-  const groupedFlow = useMemo(() => getSongFormSummary(songFormParts), [songFormParts])
+  const songFormParts = useMemo(() => mapApiSongFormToUi(contiSong.songForm), [contiSong.songForm])
   const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
   const isBpmOverridden = !!form.bpm && form.bpm !== teamSong?.bpm
-  const isNoteOverridden = !!form.note
   const handleToggleFavorite = () => {
     if (!teamSong) return
     updateTeamSong({
@@ -95,15 +65,6 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
       request: { isFavorite: !teamSong.isFavorite },
     })
   }
-  const resetField = (field: 'keySignature' | 'bpm') => {
-    if (!teamSong) return
-    if (field === 'keySignature') {
-      onChange({ ...contiSong, key: teamSong.keySignature })
-      return
-    }
-    onChange({ ...contiSong, bpm: teamSong.bpm })
-  }
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -113,254 +74,121 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div
-        className={cn(
-          'group relative rounded-xl border bg-white transition-all overflow-hidden',
-          'border-neutral-200 hover:border-neutral-300 shadow-sm',
-          isDragging && 'shadow-xl border-primary'
-        )}
-      >
-        <div className="px-4 py-3 bg-neutral-50/50 border-b border-neutral-100 flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            {isEditMode && (
-              <div
-                {...attributes}
-                {...listeners}
-                className="cursor-grab active:cursor-grabbing p-1.5 -ml-1 hover:bg-neutral-200 rounded text-neutral-400 hover:text-neutral-600 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <GripVertical className="h-4 w-4" />
-              </div>
-            )}
-            <span className="w-6 h-6 rounded bg-neutral-200 flex items-center justify-center text-xs font-mono font-bold text-neutral-600">
-              {index + 1}
-            </span>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-base truncate">{contiSong.title}</h4>
-            <div className="flex items-center gap-3 mt-1 text-xs text-neutral-500">
-              <span className={cn('flex items-center gap-1', isKeyOverridden && 'text-amber-600 font-medium')}>
-                <Music className="h-3 w-3" />
-                {form.keySignature || '-'}
-                {isKeyOverridden && <span className="opacity-50 text-[10px]">({teamSong?.keySignature})</span>}
-              </span>
-              <Separator orientation="vertical" className="h-3" />
-              <span className={cn('flex items-center gap-1', isBpmOverridden && 'text-amber-600 font-medium')}>
-                <div className="text-[10px] font-bold">BPM</div>
-                {form.bpm || '-'}
-                {isBpmOverridden && <span className="opacity-50 text-[10px]">({teamSong?.bpm})</span>}
-              </span>
-              {(contiSong.artist || teamSong?.artist) && (
-                <>
-                  <Separator orientation="vertical" className="h-3" />
-                  <span className="truncate max-w-[100px]">{contiSong.artist || teamSong?.artist}</span>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="shrink-0 flex items-center gap-1">
+      <ContiSongCard
+        index={index}
+        title={contiSong.title}
+        artist={contiSong.artist || teamSong?.artist}
+        keySignature={form.keySignature}
+        bpm={form.bpm}
+        originalKey={teamSong?.keySignature}
+        originalBpm={teamSong?.bpm}
+        note={form.note}
+        teamNote={teamSong?.note}
+        songForm={songFormParts}
+        youtubeUrl={contiSong.youtubeUrl || teamSong?.youtubeUrl}
+        sheetMusicUrl={contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl}
+        isDragging={isDragging}
+        highlightKey={isKeyOverridden}
+        highlightBpm={isBpmOverridden}
+        showOriginalMeta={false}
+        showBodyMeta
+        dragHandle={
+          isEditMode ? (
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              className="cursor-grab rounded p-1.5 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-600 active:cursor-grabbing"
+              aria-label={`${index + 1}번째 곡 ${contiSong.title} 순서 변경`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          ) : null
+        }
+        headerAction={
+          <div className="flex items-center gap-1">
             {isEditMode && (
               <Toggle
                 pressed={teamSong?.isFavorite}
                 onPressedChange={handleToggleFavorite}
                 className="h-8 w-8 data-[state=on]:bg-yellow-50 data-[state=on]:text-yellow-600"
+                aria-label={`${contiSong.title} 즐겨찾기 ${teamSong?.isFavorite ? '해제' : '추가'}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <Star className={cn('h-4 w-4', teamSong?.isFavorite && 'fill-current')} />
               </Toggle>
             )}
-            {!isEditMode && teamSong?.isFavorite && <Star className="h-4 w-4 text-yellow-600 fill-current" />}
+            {!isEditMode && teamSong?.isFavorite && <Star className="h-4 w-4 fill-current text-yellow-600" />}
             {isEditMode && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-neutral-400 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onRemove(contiSong.id)
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-neutral-500"
+                  aria-label={`${contiSong.title} 수정`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsEditingSong((current) => !current)
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-neutral-400 transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
+                  aria-label={`${contiSong.title} 삭제`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove(contiSong.id)
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
             )}
           </div>
-        </div>
-
-        <div className="px-4 py-4 space-y-4 bg-white">
-          {isEditMode ? (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key (조성)</Label>
-                    {isKeyOverridden && (
-                      <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={() => resetField('keySignature')}>
-                        <RotateCcw className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                  <Select value={form.keySignature} onValueChange={(val) => setForm((prev) => ({ ...prev, keySignature: val }))}>
-                    <SelectTrigger className={cn('w-full transition-colors', isKeyOverridden && 'bg-yellow-50 border-yellow-200 font-bold')}>
-                      <SelectValue placeholder="키 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COMMON_KEYS.map((k) => (
-                        <SelectItem key={k} value={k}>
-                          {k}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground px-1">
-                    팀 기본: <span className="font-medium">{teamSong?.keySignature || '없음'}</span>
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tempo (BPM)</Label>
-                    {isBpmOverridden && (
-                      <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={() => resetField('bpm')}>
-                        <RotateCcw className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((prev) => ({ ...prev, bpm: prev.bpm - 1 }))}>
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <Input
-                      type="number"
-                      value={form.bpm || ''}
-                      onChange={(e) => setForm((prev) => ({ ...prev, bpm: Number(e.target.value) }))}
-                      className={cn('text-center transition-colors px-2', isBpmOverridden && 'bg-yellow-50 border-yellow-200 font-bold font-mono')}
-                    />
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((prev) => ({ ...prev, bpm: prev.bpm + 1 }))}>
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground px-1">
-                    팀 기본: <span className="font-medium">{teamSong?.bpm || '없음'}</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">콘티 메모</Label>
-                <Textarea
-                  placeholder="이 예배에서만 참고할 사항을 입력하세요."
-                  className={cn(
-                    'min-h-[80px] resize-none transition-colors text-sm',
-                    isNoteOverridden && 'bg-yellow-50/50 border-yellow-100'
-                  )}
-                  value={form.note}
-                  onChange={(e) => setForm((prev) => ({ ...prev, note: e.target.value }))}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-lg border bg-muted/20 px-3 py-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Key</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">{form.keySignature || '-'}</p>
-                </div>
-                <div className="rounded-lg border bg-muted/20 px-3 py-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">BPM</p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">{form.bpm || '-'}</p>
-                </div>
-                <div className="rounded-lg border bg-muted/20 px-3 py-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">원곡 Key</p>
-                  <p className="mt-1 text-sm text-foreground">{teamSong?.keySignature || '-'}</p>
-                </div>
-                <div className="rounded-lg border bg-muted/20 px-3 py-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">원곡 BPM</p>
-                  <p className="mt-1 text-sm text-foreground">{teamSong?.bpm || '-'}</p>
-                </div>
-              </div>
-
-              {form.note && (
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">콘티 메모</Label>
-                  <div className="rounded-lg border bg-muted/20 px-3 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                    {form.note}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {songFormParts.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">송폼</Label>
-
-              <div
-                className={cn(
-                  'relative flex min-h-16 flex-col justify-center gap-3 rounded-md border bg-muted/30 p-3 transition-all duration-200 overflow-hidden',
-                  isTeamNoteOpen ? 'max-h-[500px]' : 'max-h-32'
-                )}
-              >
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                  {groupedFlow.map((group, groupIndex) => (
-                    <div key={groupIndex} className="flex items-center gap-1.5 shrink-0">
-                      <div
-                        className={cn('px-2 py-1 rounded text-xs font-bold border shadow-sm whitespace-nowrap', {
-                          'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
-                          'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
-                          'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
-                          'bg-amber-50 border-amber-200 text-amber-700': group.type === 'Bridge',
-                          'bg-emerald-50 border-emerald-200 text-emerald-700': group.type === 'Instrumental',
-                          'bg-rose-50 border-rose-200 text-rose-700': group.type === 'Tag',
-                          'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
-                        })}
-                      >
-                        {group.abbr}
-                        {group.showBars && <span className="ml-1 text-[10px] opacity-70 font-normal">({group.bars})</span>}
-                        {group.count > 1 && <span className="ml-1 text-[9px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
-                      </div>
-                      {groupIndex < groupedFlow.length - 1 && <span className="text-slate-300 text-[10px]">→</span>}
-                    </div>
-                  ))}
-                </div>
-
-                {teamSong?.note && <div className="text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">{teamSong.note}</div>}
-
-                {!isTeamNoteOpen && <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-muted/30 to-transparent" />}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">빠른 링크</Label>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="secondary" disabled={!teamSong?.sheetMusicUrl} className="h-9 gap-2 text-sm" asChild={!!teamSong?.sheetMusicUrl}>
-                {teamSong?.sheetMusicUrl ? (
-                  <a href={teamSong.sheetMusicUrl} target="_blank" rel="noopener noreferrer">
-                    <FileText className="h-4 w-4" /> 악보 보기
-                  </a>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4" /> 악보 보기
-                  </>
-                )}
-              </Button>
-              <Button variant="secondary" disabled={!teamSong?.youtubeUrl} className="h-9 gap-2 text-sm" asChild={!!teamSong?.youtubeUrl}>
-                {teamSong?.youtubeUrl ? (
-                  <a href={teamSong.youtubeUrl} target="_blank" rel="noopener noreferrer">
-                    <Youtube className="h-4 w-4 text-red-500" /> 유튜브
-                  </a>
-                ) : (
-                  <>
-                    <Youtube className="h-4 w-4" /> 유튜브
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+        }
+      >
+        {isEditMode && isEditingSong ? (
+          <SongDirectEditCard
+            key={`${contiSong.id}-${editFormKey}`}
+            variant="embedded"
+            title="찬양 정보 수정"
+            submitLabel="변경 적용"
+            idPrefix={`conti-song-${contiSong.id}`}
+            initialValue={{
+              title: contiSong.title,
+              artist: contiSong.artist,
+              keySignature: contiSong.key,
+              bpm: contiSong.bpm,
+              youtubeUrl: contiSong.youtubeUrl,
+              sheetMusicUrl: contiSong.sheetMusicUrl,
+              note: contiSong.note,
+            }}
+            initialSongForm={songFormParts}
+            onSave={(data) => {
+              onChange({
+                ...contiSong,
+                title: data.title,
+                artist: data.artist,
+                key: data.keySignature,
+                bpm: data.bpm,
+                youtubeUrl: data.youtubeUrl,
+                sheetMusicUrl: data.sheetMusicUrl,
+                note: data.note,
+                songForm: mapRequestSongFormToConti(data.songForm),
+              })
+              setIsEditingSong(false)
+            }}
+            onCancel={() => {
+              setEditFormKey((prev) => prev + 1)
+              setIsEditingSong(false)
+            }}
+          />
+        ) : null}
+      </ContiSongCard>
     </div>
   )
 }

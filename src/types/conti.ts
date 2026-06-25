@@ -3,6 +3,8 @@ export type {
   ExternalShare,
   SharedConti,
   ContiSong,
+  ContiSongFormPart,
+  ContiSongPartType,
 } from '@/domains/conti/models/conti';
 export type {
   ContiSongRequestItemDto as ContiSongRequestItem,

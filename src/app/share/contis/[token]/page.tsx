@@ -1,14 +1,15 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { BookOpen, Calendar, ExternalLink, Loader2, Music } from 'lucide-react'
+import { BookOpen, Calendar, Loader2, Music } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useSharedConti } from '@/domains/conti/hooks/use-conti'
+import { ContiSongCard } from '@/domains/conti/components/conti-song-card'
+import { mapApiSongFormToUi } from '@/domains/song/utils/song-form'
 
 export default function SharedContiPage() {
   const params = useParams()
@@ -51,18 +52,22 @@ export default function SharedContiPage() {
   return (
     <main className="min-h-screen bg-[#fafafa]">
       <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <header className="flex items-center justify-between gap-4">
+          <div className="text-sm font-semibold tracking-[-0.02em]">Contee</div>
+          <Badge variant="outline" className="bg-white">읽기 전용 공유 콘티</Badge>
+        </header>
+
         <section className="rounded-lg border bg-white p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <Badge variant="outline" className="mb-3">외부 공유 콘티</Badge>
               <h1 className="text-2xl font-semibold tracking-normal text-foreground">{conti.title}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
-                  {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
+                  {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })} · {conti.worshipTime}
                 </span>
                 <Separator orientation="vertical" className="hidden h-3 sm:block" />
-                <span>{conti.contiSongs.length}곡</span>
+                  <span>{conti.contiSongs.length}곡</span>
               </div>
             </div>
           </div>
@@ -84,20 +89,20 @@ export default function SharedContiPage() {
                   <h2 className="text-sm font-semibold">말씀 & 나눔</h2>
                 </div>
                 {conti.bibleVerse && (
-                  <div className="rounded-md border border-emerald-200 bg-emerald-50/70 p-4">
+                  <div className="rounded-md border border-neutral-200 bg-neutral-50/50 p-4">
                     {bibleVerseReference && (
-                      <p className="text-sm font-semibold text-emerald-900">{bibleVerseReference}</p>
+                      <p className="text-sm font-semibold text-neutral-900">{bibleVerseReference}</p>
                     )}
                     {bibleVerseContent && (
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-emerald-950/80">
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-neutral-700">
                         {bibleVerseContent}
                       </p>
                     )}
                   </div>
                 )}
                 {conti.sharingInfo && (
-                  <div className="mt-3 rounded-md border border-amber-200 bg-amber-50/70 p-4">
-                    <p className="whitespace-pre-wrap text-sm leading-7 text-amber-950/80">{conti.sharingInfo}</p>
+                  <div className="mt-3 rounded-md border border-neutral-200 bg-neutral-50/50 p-4">
+                    <p className="whitespace-pre-wrap text-sm leading-7 text-neutral-700">{conti.sharingInfo}</p>
                   </div>
                 )}
               </div>
@@ -112,42 +117,22 @@ export default function SharedContiPage() {
               <h2 className="text-sm font-semibold">곡 목록</h2>
             </div>
           </div>
-          <div className="divide-y">
+          <div className="space-y-3 p-4">
             {conti.contiSongs.map((song, index) => (
-              <article key={song.id} className="grid gap-4 px-5 py-4 md:grid-cols-[32px_minmax(0,1fr)_120px_120px] md:items-center">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-xs font-semibold">
-                  {index + 1}
-                </div>
-                <div className="min-w-0">
-                  <h3 className="truncate text-sm font-semibold">{song.title}</h3>
-                  {song.artist && <p className="mt-1 text-xs text-muted-foreground">{song.artist}</p>}
-                  {song.note && <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{song.note}</p>}
-                </div>
-                <div className="flex gap-2 text-xs text-muted-foreground md:block">
-                  <span className="rounded-md bg-accent px-2 py-1">{song.key || '-'} Key</span>
-                  <span className="rounded-md bg-accent px-2 py-1 md:mt-1 md:inline-block">
-                    {song.bpm || '-'} BPM
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2 md:justify-end">
-                  {song.youtubeUrl && (
-                    <Button asChild size="sm" variant="outline" className="h-8">
-                      <a href={song.youtubeUrl} target="_blank" rel="noreferrer">
-                        YouTube
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </Button>
-                  )}
-                  {song.sheetMusicUrl && (
-                    <Button asChild size="sm" variant="outline" className="h-8">
-                      <a href={song.sheetMusicUrl} target="_blank" rel="noreferrer">
-                        악보
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </Button>
-                  )}
-                </div>
-              </article>
+              <ContiSongCard
+                key={song.id}
+                index={index}
+                title={song.title}
+                artist={song.artist || song.teamSong?.artist}
+                keySignature={song.key}
+                bpm={song.bpm}
+                note={song.note}
+                teamNote={song.teamSong?.note}
+                songForm={mapApiSongFormToUi(song.songForm)}
+                youtubeUrl={song.youtubeUrl || song.teamSong?.youtubeUrl}
+                sheetMusicUrl={song.sheetMusicUrl || song.teamSong?.sheetMusicUrl}
+                showOriginalMeta={false}
+              />
             ))}
           </div>
         </section>

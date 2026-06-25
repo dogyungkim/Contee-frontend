@@ -8,7 +8,15 @@ import { ContiList } from '@/domains/conti/components/conti-list'
 import { Button } from '@/components/ui/button'
 
 export default function ContisPage() {
-  const { selectedTeamId, selectedTeam } = useTeam()
+  const { selectedTeamId, selectedTeam, isLoading } = useTeam()
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
+        <p className="text-sm font-medium text-muted-foreground">팀 정보를 불러오는 중...</p>
+      </div>
+    )
+  }
 
   if (!selectedTeamId) {
     return (

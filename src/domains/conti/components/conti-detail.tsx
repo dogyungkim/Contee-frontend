@@ -16,7 +16,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ContiSongList } from './conti-song-list'
 import { SongSearchDialog } from './song-search-dialog'
-import { TeamSong } from '@/types/song'
+import { SongDirectEditCard } from './song-direct-edit-card'
+import { CreateTeamSongRequest, TeamSong } from '@/types/song'
 import { ContiSong, ContiSongRequestItem } from '@/types/conti'
 import { useTeam } from '@/context/team-context'
 import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
@@ -26,8 +27,17 @@ import { getContiApiErrorMessage } from '@/domains/conti/utils/conti-error'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +48,14 @@ import {
 import { cn } from '@/lib/utils'
 import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 import { Badge } from '@/components/ui/badge'
+import {
+  formatWorshipTime,
+  HOURS,
+  MINUTES,
+  normalizeWorshipTime,
+  parseWorshipTime,
+  PERIODS,
+} from '@/domains/conti/utils/worship-time'
 
 interface ContiDetailProps {
   contiId: string
@@ -49,16 +67,20 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   const { data: conti, isLoading: isContiLoading } = useContiDetail(contiId)
   const songs = conti?.contiSongs || []
   const permissionTeamId = conti?.teamId || selectedTeamId || ''
-  const { data: teamMembers = [] } = useTeamMembersQuery(permissionTeamId)
+  const { data: teamMembers = [], isLoading: isMembersLoading } = useTeamMembersQuery(permissionTeamId)
 
   const { mutateAsync: updateContiMutateAsync } = useUpdateConti()
   const { mutateAsync: enableExternalShareAsync, isPending: isEnablingExternalShare } = useEnableExternalShare()
   const { mutateAsync: disableExternalShareAsync, isPending: isDisablingExternalShare } = useDisableExternalShare()
 
   const [searchOpen, setSearchOpen] = useState(false)
+  const [isAddingNewSong, setIsAddingNewSong] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const [draftDate, setDraftDate] = useState<Date | undefined>(undefined)
+  const [draftPeriod, setDraftPeriod] = useState('AM')
+  const [draftHour, setDraftHour] = useState('10')
+  const [draftMinute, setDraftMinute] = useState('00')
   const [draftMemo, setDraftMemo] = useState('')
   const [draftBibleVerseReference, setDraftBibleVerseReference] = useState('')
   const [draftBibleVerseContent, setDraftBibleVerseContent] = useState('')
@@ -66,6 +88,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   const [draftSongs, setDraftSongs] = useState<ContiSong[]>([])
   const [isSavingMeta, setIsSavingMeta] = useState(false)
   const [isWordSharingOpen, setIsWordSharingOpen] = useState(true)
+  const [externalShareDialog, setExternalShareDialog] = useState<'enable' | 'disable' | null>(null)
 
   const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
   const canEdit =
@@ -77,6 +100,29 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     currentMember?.role === 'ADMIN'
   const isEditable = canEdit && isEditMode
 
+  const applyContiDraft = (source: typeof conti) => {
+    if (!source) return
+
+    const verseLines = source.bibleVerse
+      ? source.bibleVerse
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+      : []
+    const timeParts = parseWorshipTime(source.worshipTime)
+
+    setDraftTitle(source.title)
+    setDraftDate(new Date(source.worshipDate))
+    setDraftPeriod(timeParts.period)
+    setDraftHour(timeParts.hour)
+    setDraftMinute(timeParts.minute)
+    setDraftMemo(source.memo ?? '')
+    setDraftBibleVerseReference(verseLines[0] ?? '')
+    setDraftBibleVerseContent(verseLines.slice(1).join('\n'))
+    setDraftSharingInfo(source.sharingInfo ?? '')
+    setDraftSongs(source.contiSongs ?? [])
+  }
+
   useEffect(() => {
     if (!conti) return
 
@@ -86,9 +132,13 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
           .map((line) => line.trim())
           .filter(Boolean)
       : []
+    const timeParts = parseWorshipTime(conti.worshipTime)
 
     setDraftTitle(conti.title)
     setDraftDate(new Date(conti.worshipDate))
+    setDraftPeriod(timeParts.period)
+    setDraftHour(timeParts.hour)
+    setDraftMinute(timeParts.minute)
     setDraftMemo(conti.memo ?? '')
     setDraftBibleVerseReference(verseLines[0] ?? '')
     setDraftBibleVerseContent(verseLines.slice(1).join('\n'))
@@ -122,6 +172,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     !!conti &&
     (draftTitle !== conti.title ||
       (draftDate ? format(draftDate, 'yyyy-MM-dd') : '') !== conti.worshipDate ||
+      formatWorshipTime({ period: draftPeriod, hour: draftHour, minute: draftMinute }) !== normalizeWorshipTime(conti.worshipTime) ||
       draftMemo !== (conti.memo ?? '') ||
       draftBibleVerseReference !== (bibleVerseReference ?? '') ||
       draftBibleVerseContent !== bibleVerseContent ||
@@ -129,7 +180,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   const hasSongChanges =
     !!conti &&
     JSON.stringify(normalizeSongs(draftSongs)) !== JSON.stringify(normalizeSongs(conti.contiSongs ?? []))
-  const hasChanges = canEdit && (hasMetaChanges || hasSongChanges)
+  const hasChanges = isEditable && (hasMetaChanges || hasSongChanges)
   const displayedSongs = isEditable ? draftSongs : songs
 
   useUnsavedChangesGuard({
@@ -183,6 +234,55 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     ])
   }
 
+  const handleAddNewSong = (data: CreateTeamSongRequest) => {
+    if (!isEditable) {
+      toast.error('편집 권한이 없거나 보기 모드입니다.')
+      return
+    }
+
+    const draftId = `draft-song-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const now = new Date().toISOString()
+
+    setDraftSongs((prev) => [
+      ...prev,
+      {
+        id: draftId,
+        title: data.title,
+        artist: data.artist,
+        orderIndex: prev.length,
+        key: data.keySignature,
+        bpm: data.bpm,
+        note: undefined,
+        youtubeUrl: data.youtubeUrl,
+        sheetMusicUrl: data.sheetMusicUrl,
+        songForm:
+          data.songForm?.map((part, index) => ({
+            id: null,
+            partOrder: index,
+            partType: part.partType,
+            customPartName: part.customPartName,
+            repeatCount: part.repeatCount,
+            barCount: part.barCount,
+            note: part.note,
+          })) ?? [],
+        teamSong: {
+          id: draftId,
+          teamId: permissionTeamId,
+          title: data.title,
+          artist: data.artist,
+          keySignature: data.keySignature,
+          bpm: data.bpm,
+          youtubeUrl: data.youtubeUrl,
+          sheetMusicUrl: data.sheetMusicUrl,
+          note: data.note,
+          isFavorite: false,
+          createdAt: now,
+          updatedAt: now,
+        },
+      },
+    ])
+  }
+
   const handleRemoveSong = async (songId: string) => {
     if (!isEditable) {
       toast.error('편집 권한이 없거나 보기 모드입니다.')
@@ -210,26 +310,13 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       toast.error('편집 권한이 없거나 보기 모드입니다.')
       return
     }
+    setIsAddingNewSong(false)
     setSearchOpen(true)
   }
 
   const handleCancelMeta = () => {
-    if (!conti) return
-
-    const verseLines = conti.bibleVerse
-      ? conti.bibleVerse
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter(Boolean)
-      : []
-
-    setDraftTitle(conti.title)
-    setDraftDate(new Date(conti.worshipDate))
-    setDraftMemo(conti.memo ?? '')
-    setDraftBibleVerseReference(verseLines[0] ?? '')
-    setDraftBibleVerseContent(verseLines.slice(1).join('\n'))
-    setDraftSharingInfo(conti.sharingInfo ?? '')
-    setDraftSongs(conti.contiSongs ?? [])
+    applyContiDraft(conti)
+    setIsAddingNewSong(false)
     setIsEditMode(false)
   }
 
@@ -244,18 +331,48 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
     const formattedBibleVerse = [draftBibleVerseReference.trim(), draftBibleVerseContent.trim()]
       .filter(Boolean)
       .join('\n')
-    const contiSongsRequest: ContiSongRequestItem[] = draftSongs.map((song, index) => ({
-      ...(song.id.startsWith('draft-song-') ? {} : { id: song.id }),
-      ...(song.teamSongId ? { teamSongId: song.teamSongId } : { title: song.title }),
-      artist: song.artist,
-      youtubeUrl: song.youtubeUrl,
-      sheetMusicUrl: song.sheetMusicUrl,
-      orderIndex: index,
-      key: song.key,
-      bpm: song.bpm,
-      note: song.note,
-      songForm: song.songForm,
-    }))
+    const contiSongsRequest: ContiSongRequestItem[] = draftSongs.map((song, index) => {
+      const songForm = song.songForm?.map((part) => ({
+        partType: part.partType,
+        customPartName: part.customPartName,
+        repeatCount: part.repeatCount,
+        barCount: part.barCount,
+        note: part.note,
+      }))
+      const base = {
+        artist: song.artist,
+        youtubeUrl: song.youtubeUrl,
+        sheetMusicUrl: song.sheetMusicUrl,
+        orderIndex: index,
+        key: song.key,
+        bpm: song.bpm,
+        note: song.note,
+        songForm,
+      }
+
+      if (!song.id.startsWith('draft-song-')) {
+        return {
+          ...base,
+          id: song.id,
+          title: song.title,
+        }
+      }
+
+      if (song.teamSongId) {
+        return {
+          ...base,
+          teamSongId: song.teamSongId,
+        }
+      }
+
+      return {
+        ...base,
+        title: song.title,
+        defaultKey: song.key,
+        defaultBpm: song.bpm,
+        teamNote: song.teamSong?.note,
+      }
+    })
 
     setIsSavingMeta(true)
     try {
@@ -264,6 +381,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         request: {
           title: draftTitle.trim(),
           worshipDate: format(draftDate, 'yyyy-MM-dd'),
+          worshipTime: formatWorshipTime({ period: draftPeriod, hour: draftHour, minute: draftMinute }),
           memo: draftMemo.trim() || undefined,
           bibleVerse: formattedBibleVerse || undefined,
           sharingInfo: draftSharingInfo.trim() || undefined,
@@ -271,6 +389,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         },
       })
       toast.success('콘티 정보를 저장했습니다.')
+      setIsAddingNewSong(false)
       setIsEditMode(false)
     } catch (error) {
       toast.error(getContiApiErrorMessage(error, '콘티 정보 저장에 실패했습니다.'))
@@ -280,22 +399,8 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   }
 
   const handleStartEdit = () => {
-    if (!conti) return
-
-    const verseLines = conti.bibleVerse
-      ? conti.bibleVerse
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter(Boolean)
-      : []
-
-    setDraftTitle(conti.title)
-    setDraftDate(new Date(conti.worshipDate))
-    setDraftMemo(conti.memo ?? '')
-    setDraftBibleVerseReference(verseLines[0] ?? '')
-    setDraftBibleVerseContent(verseLines.slice(1).join('\n'))
-    setDraftSharingInfo(conti.sharingInfo ?? '')
-    setDraftSongs(conti.contiSongs ?? [])
+    applyContiDraft(conti)
+    setIsAddingNewSong(false)
     setIsEditMode(true)
   }
 
@@ -326,10 +431,9 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
       return
     }
 
-    if (!window.confirm('외부 공유를 켜면 링크를 가진 누구나 이 콘티를 볼 수 있습니다.')) return
-
     try {
       const externalShare = await enableExternalShareAsync(contiId)
+      setExternalShareDialog(null)
       if (externalShare.url) {
         await copyToClipboard(buildUrl(externalShare.url), '외부 공유 링크를 만들고 복사했습니다.')
         return
@@ -351,10 +455,9 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
   }
 
   const handleDisableExternalShare = async () => {
-    if (!window.confirm('외부 공유를 끄면 기존 링크로 더 이상 콘티를 볼 수 없습니다.')) return
-
     try {
       await disableExternalShareAsync(contiId)
+      setExternalShareDialog(null)
       toast.success('외부 공유를 껐습니다.')
     } catch (error) {
       toast.error(getContiApiErrorMessage(error, '외부 공유를 끄지 못했습니다.'))
@@ -386,6 +489,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
+                          aria-label="예배일 선택"
                           className={cn(
                             'h-8 justify-start text-left font-semibold text-primary/80',
                             !draftDate && 'text-muted-foreground'
@@ -404,6 +508,47 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                       </PopoverContent>
                     </Popover>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">예배 시간</span>
+                    <div className="flex items-center gap-2">
+                      <Select value={draftPeriod} onValueChange={setDraftPeriod}>
+                        <SelectTrigger className="h-8 w-[88px]" aria-label="오전 또는 오후">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PERIODS.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={draftHour} onValueChange={setDraftHour}>
+                        <SelectTrigger className="h-8 w-[88px]" aria-label="예배 시간 시">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HOURS.map((item) => (
+                            <SelectItem key={item} value={item}>
+                              {item}시
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={draftMinute} onValueChange={setDraftMinute}>
+                        <SelectTrigger className="h-8 w-[88px]" aria-label="예배 시간 분">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MINUTES.map((item) => (
+                            <SelectItem key={item} value={item}>
+                              {item}분
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                   <Separator orientation="vertical" className="hidden h-3 sm:block" />
                   <span className="flex items-center gap-1">
                     총 <span className="font-bold text-foreground">{displayedSongs.length}</span>곡
@@ -414,11 +559,18 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
               <>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
+                  {conti.externalShare?.enabled && (
+                    <Badge variant="outline" className="border-neutral-300 bg-neutral-50 text-neutral-700">
+                      외부 공유 중
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="font-semibold text-primary/80">
                     {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
                   </span>
+                  <Separator orientation="vertical" className="h-3" />
+                  <span>{conti.worshipTime}</span>
                   <Separator orientation="vertical" className="h-3" />
                   <span className="flex items-center gap-1">
                     총 <span className="font-bold text-foreground">{displayedSongs.length}</span>곡
@@ -430,13 +582,13 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
 
           <div className="flex items-center gap-2">
 
-            {isEditable && (
-              <Button className="h-9 gap-2" onClick={handleOpenSearch}>
-                <Plus className="h-4 w-4" />
-                곡 추가
+            {isMembersLoading && (
+              <Button variant="outline" size="sm" className="h-9" disabled>
+                권한 확인 중
               </Button>
             )}
-            {canEdit && !isEditMode && (
+
+            {canEdit && !isEditMode && !isMembersLoading && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -458,7 +610,12 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                   <Clipboard className="mr-2 h-4 w-4" />
                   팀 공유 링크 복사
                 </DropdownMenuItem>
-                {canManageExternalShare && (
+                {hasChanges && (
+                  <DropdownMenuItem disabled>
+                    변경사항 저장 후 공유 가능
+                  </DropdownMenuItem>
+                )}
+                {canManageExternalShare && !hasChanges && (
                   <>
                     <DropdownMenuSeparator />
                     {conti.externalShare?.enabled ? (
@@ -470,7 +627,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           disabled={isDisablingExternalShare}
-                          onClick={() => { void handleDisableExternalShare() }}
+                          onClick={() => setExternalShareDialog('disable')}
                         >
                           <X className="mr-2 h-4 w-4" />
                           외부 공유 끄기
@@ -479,7 +636,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
                     ) : (
                       <DropdownMenuItem
                         disabled={isEnablingExternalShare}
-                        onClick={() => { void handleEnableExternalShare() }}
+                        onClick={() => setExternalShareDialog('enable')}
                       >
                         <Link2 className="mr-2 h-4 w-4" />
                         외부 공유 링크 만들기
@@ -515,7 +672,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         )}
 
         {(isEditable || conti.bibleVerse || conti.sharingInfo) && (
-          <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-5">
+          <div className="rounded-xl border border-neutral-200 bg-white p-5">
             <button
               type="button"
               className="flex w-full items-center justify-between gap-2 text-left"
@@ -524,14 +681,14 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
               aria-controls="word-sharing-content"
             >
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full border border-sky-200 bg-white">
-                  <BookOpen className="h-4 w-4 text-sky-700" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+                  <BookOpen className="h-4 w-4 text-neutral-600" />
                 </div>
-                <h3 className="text-sm font-bold text-sky-900">말씀 & 나눔</h3>
+                <h3 className="text-sm font-bold text-neutral-900">말씀 & 나눔</h3>
               </div>
               <ChevronDown
                 className={cn(
-                  'h-4 w-4 text-sky-700 transition-transform duration-200',
+                  'h-4 w-4 text-neutral-600 transition-transform duration-200',
                   isWordSharingOpen ? 'rotate-180' : 'rotate-0'
                 )}
               />
@@ -539,55 +696,55 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
             {isWordSharingOpen && (
               <div id="word-sharing-content" className="mt-3 space-y-4">
                 {(isEditable || conti.bibleVerse) && (
-                  <div className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
-                    <p className="mb-1 text-xs font-bold text-emerald-800">본문</p>
+                  <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
+                    <p className="mb-1 text-xs font-bold text-neutral-700">본문</p>
                     {isEditable ? (
                       <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label htmlFor="bible-verse-reference" className="text-emerald-900">본문 위치</Label>
+                          <Label htmlFor="bible-verse-reference">본문 위치</Label>
                           <Input
                             id="bible-verse-reference"
                             value={draftBibleVerseReference}
                             onChange={(e) => setDraftBibleVerseReference(e.target.value)}
                             placeholder="예: 시편 23편"
-                            className="border-emerald-200 bg-white/90 focus-visible:ring-emerald-300"
+                            className="bg-white"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="bible-verse-content" className="text-emerald-900">본문</Label>
+                          <Label htmlFor="bible-verse-content">본문</Label>
                           <Textarea
                             id="bible-verse-content"
                             value={draftBibleVerseContent}
                             onChange={(e) => setDraftBibleVerseContent(e.target.value)}
                             placeholder="본문 내용을 입력하세요."
-                            className="min-h-[120px] resize-none border-emerald-200 bg-white/90 focus-visible:ring-emerald-300"
+                            className="min-h-[120px] resize-none bg-white"
                           />
                         </div>
                       </div>
                     ) : (
                       <>
                         {bibleVerseReference && (
-                          <p className="text-sm font-semibold text-emerald-900">{bibleVerseReference}</p>
+                          <p className="text-sm font-semibold text-neutral-900">{bibleVerseReference}</p>
                         )}
                         {bibleVerseContent && (
-                          <p className="mt-1 text-sm text-emerald-950/80 leading-relaxed whitespace-pre-wrap">{bibleVerseContent}</p>
+                          <p className="mt-1 text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">{bibleVerseContent}</p>
                         )}
                       </>
                     )}
                   </div>
                 )}
                 {(isEditable || conti.sharingInfo) && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4">
-                    <p className="mb-1 text-xs font-bold text-amber-800">나눔</p>
+                  <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
+                    <p className="mb-1 text-xs font-bold text-neutral-700">나눔</p>
                     {isEditable ? (
                       <Textarea
                         value={draftSharingInfo}
                         onChange={(e) => setDraftSharingInfo(e.target.value)}
                         placeholder="팀 나눔 내용을 입력하세요."
-                        className="min-h-[140px] resize-none border-amber-200 bg-white/90 focus-visible:ring-amber-300"
+                        className="min-h-[140px] resize-none bg-white"
                       />
                     ) : (
-                      <p className="text-sm text-amber-950/80 leading-relaxed whitespace-pre-wrap">{conti.sharingInfo}</p>
+                      <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">{conti.sharingInfo}</p>
                     )}
                   </div>
                 )}
@@ -616,19 +773,52 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
             }}
           />
 
-          {isEditable && (
-            <Button
-              variant="outline"
-              className="w-full border-dashed py-10 bg-muted/5 hover:bg-muted/10 group transition-all"
-              onClick={handleOpenSearch}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-8 w-8 rounded-full border border-dashed flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Plus className="h-4 w-4 text-muted-foreground" />
+          {isEditable && isAddingNewSong && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <SongDirectEditCard
+                onSave={(data) => {
+                  handleAddNewSong(data)
+                  setIsAddingNewSong(false)
+                }}
+                onCancel={() => setIsAddingNewSong(false)}
+              />
+            </div>
+          )}
+
+          {isEditable && !isAddingNewSong && (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Button
+                variant="outline"
+                className="group h-32 border-dashed bg-white transition-all hover:bg-neutral-50"
+                onClick={() => setIsAddingNewSong(true)}
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-neutral-50 transition-transform group-hover:scale-105">
+                    <Plus className="h-5 w-5 text-neutral-700" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-neutral-900">새로운 찬양 등록</p>
+                    <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">라이브러리에 없는 곡 추가</p>
+                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground font-medium">새로운 찬양 추가하기</span>
-              </div>
-            </Button>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="group h-32 border-dashed bg-white transition-all hover:bg-neutral-50"
+                onClick={handleOpenSearch}
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-neutral-50 transition-transform group-hover:scale-105">
+                    <Music className="h-5 w-5 text-neutral-700" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
+                    <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">팀 라이브러리에서 선택</p>
+                  </div>
+                </div>
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -638,6 +828,7 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
         onOpenChange={setSearchOpen}
         onSelect={(song) => {
           void handleSelectExisting(song)
+          setIsAddingNewSong(false)
           setSearchOpen(false)
         }}
         existingSongIds={draftSongs.map((song) => song.teamSongId).filter(Boolean) as string[]}
@@ -684,6 +875,38 @@ export function ContiDetail({ contiId }: ContiDetailProps) {
           </div>
         </div>
       )}
+      <Dialog open={externalShareDialog !== null} onOpenChange={(open) => !open && setExternalShareDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {externalShareDialog === 'enable' ? '외부 공유를 켤까요?' : '외부 공유를 끌까요?'}
+            </DialogTitle>
+            <DialogDescription>
+              {externalShareDialog === 'enable'
+                ? '외부 공유를 켜면 링크를 가진 누구나 로그인 없이 이 콘티를 볼 수 있습니다.'
+                : '외부 공유를 끄면 기존 링크로 더 이상 이 콘티를 볼 수 없습니다.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExternalShareDialog(null)}>
+              취소
+            </Button>
+            <Button
+              variant={externalShareDialog === 'disable' ? 'destructive' : 'default'}
+              onClick={() => {
+                if (externalShareDialog === 'enable') {
+                  void handleEnableExternalShare()
+                  return
+                }
+                void handleDisableExternalShare()
+              }}
+              disabled={isEnablingExternalShare || isDisablingExternalShare}
+            >
+              {externalShareDialog === 'enable' ? '외부 공유 켜기' : '외부 공유 끄기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

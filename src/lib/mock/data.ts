@@ -126,6 +126,7 @@ export const MOCK_CONTIS: Conti[] = [
         teamId: 'team-1',
         title: '2024년 5월 19일 주일 예배',
         worshipDate: '2024-05-19',
+        worshipTime: '11:00',
         memo: '오순절 강림 주일',
         createdAt: '2024-05-10T10:00:00Z',
         updatedAt: '2024-05-10T10:00:00Z',

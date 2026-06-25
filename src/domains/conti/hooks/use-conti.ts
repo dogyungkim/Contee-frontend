@@ -10,20 +10,20 @@ import {
     getSharedConti
 } from '@/domains/conti/api/conti.api';
 import { Conti, CreateContiRequest, UpdateContiRequest } from '@/types/conti';
+import type { ContiSearchParamsDto } from '@/domains/conti/api/conti.dto';
 
 export const contiKeys = {
     all: ['contis'] as const,
-    list: (teamId: string) => [...contiKeys.all, 'list', teamId] as const,
+    list: (teamId: string, params?: ContiSearchParamsDto) => [...contiKeys.all, 'list', teamId, params] as const,
     detail: (id: string) => [...contiKeys.all, 'detail', id] as const,
     shared: (token: string) => [...contiKeys.all, 'shared', token] as const,
 };
 
-export const useContis = (teamId: string | null) => {
+export const useContis = (teamId: string | null, params: ContiSearchParamsDto = { page: 0, size: 100 }) => {
     return useQuery({
-        queryKey: contiKeys.list(teamId || ''),
-        queryFn: () => getTeamContis(teamId!, { page: 0, size: 100 }),
+        queryKey: contiKeys.list(teamId || '', params),
+        queryFn: () => getTeamContis(teamId!, params),
         enabled: !!teamId,
-        select: (data) => data.content || [],
     });
 };
 

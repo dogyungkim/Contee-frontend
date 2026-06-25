@@ -30,6 +30,7 @@ export interface Conti {
   createdByName?: string;
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
@@ -55,6 +56,7 @@ export interface SharedConti {
   id: string;
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
