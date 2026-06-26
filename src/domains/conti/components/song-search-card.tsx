@@ -61,10 +61,6 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
           </>
         )}
       </div>
-      {/* 3줄: Song Form 요약 (placeholder) */}
-      <div className="mb-3 py-2 px-3 bg-neutral-50 rounded text-xs text-neutral-500 italic">
-        Song Form: (추후 추가 예정)
-      </div>
       {/* 4줄: 링크 아이콘 */}
       <div className="flex items-center gap-2 mb-2">
         {song.sheetMusicUrl ? (
@@ -103,12 +99,6 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
           </span>
         )}
       </div>
-      {/* 5줄: 노트 한 줄 미리보기 */}
-      {song.note && (
-        <p className="text-xs text-neutral-500 line-clamp-1 bg-amber-50 px-2 py-1 rounded">
-          💡 {song.note}
-        </p>
-      )}
     </div>
   )
 }

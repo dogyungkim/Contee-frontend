@@ -83,7 +83,8 @@ export const useNewContiForm = (teamId: string | null) => {
                     orderIndex: idx,
                     key: song.keySignature,
                     bpm: song.bpm,
-                    note: song.contiNote
+                    note: song.contiNote,
+                    songForm: song.songForm,
                 }
 
                 if (song.isNewSong) {
@@ -97,7 +98,6 @@ export const useNewContiForm = (teamId: string | null) => {
                         youtubeUrl: song.youtubeUrl,
                         sheetMusicUrl: song.sheetMusicUrl,
                         teamNote: song.note,
-                        songForm: song.songForm,
                     }
                 } else {
                     // Case 1: Existing Song
@@ -190,7 +190,7 @@ export const useNewContiForm = (teamId: string | null) => {
                     sheetMusicUrl: song.isNewSong ? data.sheetMusicUrl : song.sheetMusicUrl,
                     note: song.isNewSong ? data.note : song.note,
                     contiNote: song.isNewSong ? song.contiNote : data.note,
-                    songForm: song.isNewSong ? data.songForm : song.songForm,
+                    songForm: data.songForm,
                 }
             })
         )

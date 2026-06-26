@@ -3,10 +3,55 @@ import {
     MOCK_TEAMS,
     MOCK_CONTIS,
     MOCK_CONTI_SONGS,
-    MOCK_TEAM_SONGS
+    MOCK_TEAM_SONGS,
+    MOCK_MEMBERS_TEAM_1,
+    MOCK_MEMBERS_TEAM_2,
+    MOCK_USER_ID,
 } from './data';
 import { Conti, ContiSong } from '@/types/conti';
-import { Team } from '@/types/team';
+import { Team, TeamMember } from '@/types/team';
+import { TeamSong } from '@/types/song';
+
+const EXTRA_TEAM_MEMBERS: Record<string, TeamMember[]> = {};
+const MOCK_TEAM_SONG_FORMS: Record<string, ContiSong['songForm']> = {};
+
+const createTeamSongFromContiRequest = (
+    teamId: string,
+    song: Record<string, unknown>,
+    index: number,
+): TeamSong => {
+    const now = new Date().toISOString();
+    const teamSong: TeamSong = {
+        id: `ts-${Date.now()}-${index}`,
+        teamId,
+        title: typeof song.title === 'string' && song.title ? song.title : '새 찬양',
+        artist: typeof song.artist === 'string' ? song.artist : undefined,
+        keySignature:
+            typeof song.defaultKey === 'string'
+                ? song.defaultKey
+                : typeof song.key === 'string'
+                    ? song.key
+                    : undefined,
+        bpm:
+            typeof song.defaultBpm === 'number'
+                ? song.defaultBpm
+                : typeof song.bpm === 'number'
+                    ? song.bpm
+                    : undefined,
+        youtubeUrl: typeof song.youtubeUrl === 'string' ? song.youtubeUrl : undefined,
+        sheetMusicUrl: typeof song.sheetMusicUrl === 'string' ? song.sheetMusicUrl : undefined,
+        note: typeof song.teamNote === 'string' ? song.teamNote : undefined,
+        isFavorite: false,
+        createdAt: now,
+        updatedAt: now,
+    };
+
+    MOCK_TEAM_SONGS.push(teamSong);
+    if (Array.isArray(song.songForm)) {
+        MOCK_TEAM_SONG_FORMS[teamSong.id] = song.songForm as ContiSong['songForm'];
+    }
+    return teamSong;
+};
 
 // Helper to create successful response
 const success = (data: unknown): AxiosResponse => {
@@ -88,11 +133,113 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             memberCount: 1,
         };
         MOCK_TEAMS.push(newTeam);
+        EXTRA_TEAM_MEMBERS[newTeam.id] = [{
+            id: `member-${Date.now()}`,
+            userId: MOCK_USER_ID,
+            userName: 'Bryan Kim',
+            userEmail: 'bryan@contee.local',
+            role: 'OWNER',
+            joinedAt: new Date().toISOString(),
+        }];
         return success(newTeam);
     }
 
     if (url === '/api/v1/teams' && methodUpper === 'GET') {
         return success(MOCK_TEAMS);
+    }
+
+    const teamDetailMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)$/);
+    if (teamDetailMatch && methodUpper === 'GET') {
+        const team = MOCK_TEAMS.find((item) => item.id === teamDetailMatch[1]);
+        if (!team) return failure(404, 'Team not found');
+        return success(team);
+    }
+
+    if (teamDetailMatch && methodUpper === 'PUT') {
+        const body = data ? JSON.parse(data) : {};
+        const team = MOCK_TEAMS.find((item) => item.id === teamDetailMatch[1]);
+        if (!team) return failure(404, 'Team not found');
+
+        Object.assign(team, {
+            ...(body.name !== undefined ? { name: body.name } : {}),
+            ...(body.description !== undefined ? { description: body.description } : {}),
+            updatedAt: new Date().toISOString(),
+        });
+        return success(team);
+    }
+
+    if (teamDetailMatch && methodUpper === 'DELETE') {
+        const index = MOCK_TEAMS.findIndex((item) => item.id === teamDetailMatch[1]);
+        if (index < 0) return failure(404, 'Team not found');
+        MOCK_TEAMS.splice(index, 1);
+        return success(null);
+    }
+
+    const getTeamMembers = (teamId: string): TeamMember[] => {
+        if (teamId === 'team-1') return MOCK_MEMBERS_TEAM_1;
+        if (teamId === 'team-2') return MOCK_MEMBERS_TEAM_2;
+        if (!EXTRA_TEAM_MEMBERS[teamId]) EXTRA_TEAM_MEMBERS[teamId] = [];
+        return EXTRA_TEAM_MEMBERS[teamId];
+    };
+
+    const teamMembersMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/members$/);
+    if (teamMembersMatch && methodUpper === 'GET') {
+        return success(getTeamMembers(teamMembersMatch[1]));
+    }
+
+    if (teamMembersMatch && methodUpper === 'POST') {
+        const teamId = teamMembersMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const members = getTeamMembers(teamId);
+        const member: TeamMember = {
+            id: `member-${Date.now()}`,
+            userId: `user-${Date.now()}`,
+            userName: body.userName || body.email || '새 멤버',
+            userEmail: body.email || 'member@contee.local',
+            role: body.role || 'MEMBER',
+            joinedAt: new Date().toISOString(),
+        };
+        members.push(member);
+        return success(member);
+    }
+
+    const joinTeamMatch = url === '/api/v1/teams/join' && methodUpper === 'POST';
+    if (joinTeamMatch) {
+        const body = data ? JSON.parse(data) : {};
+        const team = MOCK_TEAMS.find((item) => item.shortCode === body.shortCode);
+        if (!team) return failure(404, 'Team invite code not found');
+        const members = getTeamMembers(team.id);
+        const existing = members.find((member) => member.userId === MOCK_USER_ID);
+        if (existing) return success(existing);
+
+        const member: TeamMember = {
+            id: `member-${Date.now()}`,
+            userId: MOCK_USER_ID,
+            userName: 'Bryan Kim',
+            userEmail: 'bryan@contee.local',
+            role: 'MEMBER',
+            joinedAt: new Date().toISOString(),
+        };
+        members.push(member);
+        return success(member);
+    }
+
+    const teamMemberDetailMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/members\/([a-zA-Z0-9-]+)$/);
+    if (teamMemberDetailMatch && methodUpper === 'DELETE') {
+        const members = getTeamMembers(teamMemberDetailMatch[1]);
+        const index = members.findIndex((member) => member.userId === teamMemberDetailMatch[2]);
+        if (index > -1) members.splice(index, 1);
+        return success(null);
+    }
+
+    const teamMemberRoleMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/members\/([a-zA-Z0-9-]+)\/role$/);
+    if (teamMemberRoleMatch && methodUpper === 'PUT') {
+        const body = data ? JSON.parse(data) : {};
+        const members = getTeamMembers(teamMemberRoleMatch[1]);
+        const member = members.find((item) => item.userId === teamMemberRoleMatch[2]);
+        if (!member) return failure(404, 'Team member not found');
+        member.role = typeof body === 'string' ? body : body.role || member.role;
+        return success(member);
     }
 
     // --- Conti API ---
@@ -142,11 +289,11 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         requestSongs.forEach((song: Record<string, unknown>, index: number) => {
             const teamSong = song.teamSongId
                 ? MOCK_TEAM_SONGS.find((ts) => ts.id === String(song.teamSongId))
-                : undefined;
+                : createTeamSongFromContiRequest(newConti.teamId, song, index);
             const contiSong: ContiSong = {
                 id: `cs-${Date.now()}-${index}`,
                 contiId: newConti.id,
-                teamSongId: typeof song.teamSongId === 'string' ? song.teamSongId : undefined,
+                teamSongId: teamSong?.id,
                 title:
                     (typeof song.title === 'string' && song.title) ||
                     teamSong?.title ||
@@ -157,10 +304,24 @@ export const mockAdapter: AxiosAdapter = async (config) => {
                     'Unknown',
                 orderIndex:
                     typeof song.orderIndex === 'number' ? song.orderIndex : index,
-                key: typeof song.key === 'string' ? song.key : undefined,
-                bpm: typeof song.bpm === 'number' ? song.bpm : undefined,
+                key:
+                    typeof song.key === 'string'
+                        ? song.key
+                        : teamSong?.keySignature,
+                bpm:
+                    typeof song.bpm === 'number'
+                        ? song.bpm
+                        : teamSong?.bpm,
                 note: typeof song.note === 'string' ? song.note : undefined,
-                songForm: [],
+                youtubeUrl:
+                    typeof song.youtubeUrl === 'string'
+                        ? song.youtubeUrl
+                        : teamSong?.youtubeUrl,
+                sheetMusicUrl:
+                    typeof song.sheetMusicUrl === 'string'
+                        ? song.sheetMusicUrl
+                        : teamSong?.sheetMusicUrl,
+                songForm: Array.isArray(song.songForm) ? song.songForm as ContiSong['songForm'] : [],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 teamSong,
@@ -261,12 +422,12 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             const existingSong = typeof song.id === 'string' ? existingSongMap.get(song.id) : undefined;
             const teamSong = song.teamSongId
                 ? MOCK_TEAM_SONGS.find((ts) => ts.id === String(song.teamSongId))
-                : existingSong?.teamSong;
+                : existingSong?.teamSong ?? createTeamSongFromContiRequest(conti.teamId, song, index);
 
             const nextSong: ContiSong = {
                 id: typeof song.id === 'string' ? song.id : `cs-${Date.now()}-${index}`,
                 contiId: id,
-                teamSongId: typeof song.teamSongId === 'string' ? song.teamSongId : undefined,
+                teamSongId: teamSong?.id,
                 title:
                     (typeof song.title === 'string' && song.title) ||
                     teamSong?.title ||
@@ -278,8 +439,14 @@ export const mockAdapter: AxiosAdapter = async (config) => {
                     existingSong?.artist ||
                     'Unknown',
                 orderIndex: typeof song.orderIndex === 'number' ? song.orderIndex : index,
-                key: typeof song.key === 'string' ? song.key : undefined,
-                bpm: typeof song.bpm === 'number' ? song.bpm : undefined,
+                key:
+                    typeof song.key === 'string'
+                        ? song.key
+                        : teamSong?.keySignature,
+                bpm:
+                    typeof song.bpm === 'number'
+                        ? song.bpm
+                        : teamSong?.bpm,
                 note: typeof song.note === 'string' ? song.note : undefined,
                 youtubeUrl:
                     typeof song.youtubeUrl === 'string'
@@ -439,11 +606,54 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     const teamSongsMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs$/);
     if (teamSongsMatch && methodUpper === 'GET') {
         const teamId = teamSongsMatch[1];
-        const content = MOCK_TEAM_SONGS.filter(ts => ts.teamId === teamId);
+        const q = String(config.params?.q ?? '').trim().toLowerCase();
+        const content = MOCK_TEAM_SONGS.filter((song) => {
+            if (song.teamId !== teamId) return false;
+            if (!q) return true;
+            return (
+                song.title.toLowerCase().includes(q) ||
+                song.artist?.toLowerCase().includes(q) ||
+                song.keySignature?.toLowerCase().includes(q) ||
+                song.bpm?.toString().includes(q)
+            );
+        });
         return success({
             content,
             totalPages: 1,
             totalElements: content.length,
+        });
+    }
+
+    const teamSongFormMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs\/([a-zA-Z0-9-]+)\/form$/);
+    if (teamSongFormMatch && methodUpper === 'GET') {
+        const teamSongId = teamSongFormMatch[2];
+        const parts =
+            MOCK_TEAM_SONG_FORMS[teamSongId] ??
+            MOCK_CONTI_SONGS.find((contiSong) => contiSong.teamSongId === teamSongId)?.songForm ??
+            [];
+
+        return success({
+            teamSongId,
+            parts,
+        });
+    }
+
+    if (teamSongFormMatch && methodUpper === 'PUT') {
+        const teamSongId = teamSongFormMatch[2];
+        const body = data ? JSON.parse(data) : {};
+        const parts = Array.isArray(body.parts) ? body.parts as ContiSong['songForm'] : [];
+        MOCK_TEAM_SONG_FORMS[teamSongId] = parts;
+
+        MOCK_CONTI_SONGS.forEach((contiSong) => {
+            if (contiSong.teamSongId === teamSongId) {
+                contiSong.songForm = parts;
+                contiSong.updatedAt = new Date().toISOString();
+            }
+        });
+
+        return success({
+            teamSongId,
+            parts,
         });
     }
 

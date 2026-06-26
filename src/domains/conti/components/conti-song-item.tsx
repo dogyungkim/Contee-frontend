@@ -4,9 +4,8 @@ import {
   X,
   GripVertical,
   Star,
-  Pencil,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { ContiSong, ContiSongFormPart } from '@/types/conti'
 import { Button } from '@/components/ui/button'
 import { Toggle } from '@/components/ui/toggle'
@@ -42,8 +41,6 @@ interface ContiSongItemProps {
 export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onChange }: ContiSongItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const { mutate: updateTeamSong } = useUpdateTeamSong()
-  const [editFormKey, setEditFormKey] = useState(0)
-  const [isEditingSong, setIsEditingSong] = useState(false)
   const teamSong = contiSong.teamSong
   const form = {
     title: contiSong.title || '',
@@ -121,43 +118,30 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
             )}
             {!isEditMode && teamSong?.isFavorite && <Star className="h-4 w-4 fill-current text-yellow-600" />}
             {isEditMode && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-neutral-500"
-                  aria-label={`${contiSong.title} 수정`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setIsEditingSong((current) => !current)
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-neutral-400 transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
-                  aria-label={`${contiSong.title} 삭제`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRemove(contiSong.id)
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-neutral-400 transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
+                aria-label={`${contiSong.title} 삭제`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onRemove(contiSong.id)
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             )}
           </div>
         }
       >
-        {isEditMode && isEditingSong ? (
+        {isEditMode ? (
           <SongDirectEditCard
-            key={`${contiSong.id}-${editFormKey}`}
             variant="embedded"
             title="찬양 정보 수정"
             submitLabel="변경 적용"
             idPrefix={`conti-song-${contiSong.id}`}
+            showCancelButton={false}
+            showFooterActions={false}
             initialValue={{
               title: contiSong.title,
               artist: contiSong.artist,
@@ -168,7 +152,7 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
               note: contiSong.note,
             }}
             initialSongForm={songFormParts}
-            onSave={(data) => {
+            onChange={(data) => {
               onChange({
                 ...contiSong,
                 title: data.title,
@@ -180,12 +164,9 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
                 note: data.note,
                 songForm: mapRequestSongFormToConti(data.songForm),
               })
-              setIsEditingSong(false)
             }}
-            onCancel={() => {
-              setEditFormKey((prev) => prev + 1)
-              setIsEditingSong(false)
-            }}
+            onSave={() => undefined}
+            onCancel={() => undefined}
           />
         ) : null}
       </ContiSongCard>

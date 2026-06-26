@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen, X, Pencil, ArrowUp, ArrowDown } from 'lucide-react'
+import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen, X, ArrowUp, ArrowDown } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
-import { TempContiSong, useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
+import { useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,94 +16,11 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
 import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
-import { ContiSongCard } from '@/domains/conti/components/conti-song-card'
 import { mapRequestSongFormToUi } from '@/domains/song/utils/song-form'
 import { PERIODS, HOURS, MINUTES } from '@/domains/conti/utils/worship-time'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
-
-function NewContiSongCard({
-  song,
-  index,
-  onRemove,
-  onEdit,
-  onMoveUp,
-  onMoveDown,
-  canMoveUp,
-  canMoveDown,
-}: {
-  song: TempContiSong
-  index: number
-  onRemove: (tempId: string) => void
-  onEdit: (tempId: string) => void
-  onMoveUp: (tempId: string) => void
-  onMoveDown: (tempId: string) => void
-  canMoveUp: boolean
-  canMoveDown: boolean
-}) {
-  return (
-    <ContiSongCard
-      index={index}
-      title={song.customTitle}
-      artist={song.artist}
-      keySignature={song.keySignature}
-      bpm={song.bpm}
-      teamNote={song.note}
-      songForm={mapRequestSongFormToUi(song.songForm)}
-      youtubeUrl={song.youtubeUrl || song.teamSong?.youtubeUrl}
-      sheetMusicUrl={song.sheetMusicUrl || song.teamSong?.sheetMusicUrl}
-      showOriginalMeta={false}
-      badge={
-        song.isNewSong ? (
-          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">NEW</span>
-        ) : null
-      }
-      headerAction={
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-neutral-500"
-            onClick={() => onMoveUp(song.tempId)}
-            disabled={!canMoveUp}
-            aria-label={`${song.customTitle} 위로 이동`}
-          >
-            <ArrowUp className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-neutral-500"
-            onClick={() => onMoveDown(song.tempId)}
-            disabled={!canMoveDown}
-            aria-label={`${song.customTitle} 아래로 이동`}
-          >
-            <ArrowDown className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-neutral-500"
-            onClick={() => onEdit(song.tempId)}
-            aria-label={`${song.customTitle} 수정`}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-neutral-400 transition-colors hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => onRemove(song.tempId)}
-            aria-label={`${song.customTitle} 삭제`}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      }
-    />
-  )
-}
 
 export default function NewContiPage() {
   const router = useRouter()
@@ -142,7 +59,6 @@ export default function NewContiPage() {
   // UI State (kept in component as it's purely UI-related)
   const [searchOpen, setSearchOpen] = useState(false)
   const [isAddingNewSong, setIsAddingNewSong] = useState(false)
-  const [editingSongId, setEditingSongId] = useState<string | null>(null)
   const hasChanges =
     !!title.trim() ||
     !!memo.trim() ||
@@ -376,48 +292,73 @@ export default function NewContiPage() {
           {/* Render Added Songs */}
           <div className="space-y-2">
             {tempSongs.map((song, index) => (
-              <div key={song.tempId} className="space-y-2">
-                <NewContiSongCard
-                  song={song}
-                  index={index}
-                  onRemove={(tempId) => {
-                    if (editingSongId === tempId) setEditingSongId(null)
-                    removeSong(tempId)
-                  }}
-                  onEdit={(tempId) => {
-                    setIsAddingNewSong(false)
-                    setEditingSongId((current) => (current === tempId ? null : tempId))
-                  }}
-                  onMoveUp={(tempId) => moveSong(tempId, 'up')}
-                  onMoveDown={(tempId) => moveSong(tempId, 'down')}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < tempSongs.length - 1}
-                />
-                {editingSongId === song.tempId && (
-                  <div className="rounded-xl border border-neutral-200 bg-white p-4">
-                    <SongDirectEditCard
-                      variant="embedded"
-                      title="콘티 곡 정보 수정"
-                      submitLabel="변경 적용"
-                      idPrefix={`new-conti-song-${song.tempId}`}
-                      initialValue={{
-                        title: song.customTitle,
-                        artist: song.artist,
-                        keySignature: song.keySignature,
-                        bpm: song.bpm,
-                        youtubeUrl: song.youtubeUrl || song.teamSong?.youtubeUrl,
-                        sheetMusicUrl: song.sheetMusicUrl || song.teamSong?.sheetMusicUrl,
-                        note: song.contiNote || '',
-                      }}
-                      initialSongForm={mapRequestSongFormToUi(song.songForm)}
-                      onSave={(data) => {
-                        updateSong(song.tempId, data)
-                        setEditingSongId(null)
-                      }}
-                      onCancel={() => setEditingSongId(null)}
-                    />
+              <div key={song.tempId} className="rounded-xl border border-neutral-200 bg-white p-4">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-xs font-bold text-neutral-600">
+                      {index + 1}
+                    </span>
+                    <span className="text-sm font-semibold text-neutral-900">
+                      {song.isNewSong ? '새 찬양' : '기존 찬양'}
+                    </span>
                   </div>
-                )}
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-neutral-500"
+                      onClick={() => moveSong(song.tempId, 'up')}
+                      disabled={index === 0}
+                      aria-label={`${song.customTitle} 위로 이동`}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-neutral-500"
+                      onClick={() => moveSong(song.tempId, 'down')}
+                      disabled={index === tempSongs.length - 1}
+                      aria-label={`${song.customTitle} 아래로 이동`}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-neutral-400 transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => removeSong(song.tempId)}
+                      aria-label={`${song.customTitle} 삭제`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <SongDirectEditCard
+                  variant="embedded"
+                  title={song.isNewSong ? '' : '콘티 곡 정보'}
+                  submitLabel="변경 적용"
+                  idPrefix={`new-conti-song-${song.tempId}`}
+                  identityLocked={!song.isNewSong}
+                  showResourceFields={song.isNewSong}
+                  noteLabel={song.isNewSong ? '팀 곡 메모' : '콘티 메모'}
+                  notePlaceholder={song.isNewSong ? '곡 라이브러리에 저장할 메모를 입력하세요.' : '이 콘티에서만 사용할 메모를 입력하세요.'}
+                  showCancelButton={false}
+                  showFooterActions={false}
+                  initialValue={{
+                    title: song.customTitle,
+                    artist: song.artist,
+                    keySignature: song.keySignature,
+                    bpm: song.bpm,
+                    youtubeUrl: song.youtubeUrl || song.teamSong?.youtubeUrl,
+                    sheetMusicUrl: song.sheetMusicUrl || song.teamSong?.sheetMusicUrl,
+                    note: song.isNewSong ? song.note : song.contiNote || '',
+                  }}
+                  initialSongForm={mapRequestSongFormToUi(song.songForm)}
+                  onChange={(data) => updateSong(song.tempId, data)}
+                  onSave={() => undefined}
+                  onCancel={() => removeSong(song.tempId)}
+                />
               </div>
             ))}
           </div>
@@ -442,7 +383,6 @@ export default function NewContiPage() {
                   variant="outline"
                   className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
                   onClick={() => {
-                    setEditingSongId(null)
                     setIsAddingNewSong(true)
                   }}
                 >
@@ -461,7 +401,6 @@ export default function NewContiPage() {
                   variant="outline"
                   className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
                   onClick={() => {
-                    setEditingSongId(null)
                     setSearchOpen(true)
                   }}
                 >

@@ -18,12 +18,19 @@ import { toast } from '@/lib/toast'
 interface SongDirectEditCardProps {
   onSave: (data: CreateTeamSongRequest) => void
   onCancel: () => void
+  onChange?: (data: CreateTeamSongRequest) => void
   initialValue?: Partial<CreateTeamSongRequest>
   initialSongForm?: SongFormPart[]
   title?: string
   submitLabel?: string
   variant?: 'card' | 'embedded'
   idPrefix?: string
+  identityLocked?: boolean
+  showResourceFields?: boolean
+  noteLabel?: string
+  notePlaceholder?: string
+  showCancelButton?: boolean
+  showFooterActions?: boolean
 }
 
 const KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -57,16 +64,23 @@ const mapSongFormToRequest = (songForm: SongFormPart[]): SongFormPartRequest[] =
 export function SongDirectEditCard({
   onSave,
   onCancel,
+  onChange,
   initialValue,
   initialSongForm = [],
-  title: cardTitle = '새로운 찬양 등록',
+  title: headerTitle,
   submitLabel = '저장',
   variant = 'card',
   idPrefix,
+  identityLocked = false,
+  showResourceFields = true,
+  noteLabel = '메모',
+  notePlaceholder = '곡에 대한 메모를 입력하세요.',
+  showCancelButton = true,
+  showFooterActions = true,
 }: SongDirectEditCardProps) {
   const generatedId = useId()
   const fieldId = idPrefix ?? generatedId
-  const [title, setTitle] = useState(initialValue?.title ?? '')
+  const [songTitle, setSongTitle] = useState(initialValue?.title ?? '')
   const [artist, setArtist] = useState(initialValue?.artist ?? '')
   const [key, setKey] = useState(initialValue?.keySignature ?? '')
   const [bpm, setBpm] = useState(initialValue?.bpm ? String(initialValue.bpm) : '60')
@@ -75,25 +89,45 @@ export function SongDirectEditCard({
   const [note, setNote] = useState(initialValue?.note ?? '')
   const [songForm, setSongForm] = useState<SongFormPart[]>(initialSongForm)
   const [formDialogOpen, setFormDialogOpen] = useState(false)
+  const displayTitle = headerTitle ?? '새로운 찬양 등록'
+  const shouldShowEmbeddedTitle = variant === 'embedded' && headerTitle !== ''
+
+  const buildRequest = (nextValue: Partial<{
+    title: string
+    artist: string
+    key: string
+    bpm: string
+    youtubeUrl: string
+    sheetMusicUrl: string
+    note: string
+    songForm: SongFormPart[]
+  }> = {}): CreateTeamSongRequest => {
+    const nextSongForm = nextValue.songForm ?? songForm
+    const songFormRequest = mapSongFormToRequest(nextSongForm)
+
+    return {
+      title: nextValue.title ?? songTitle,
+      artist: nextValue.artist ?? artist,
+      keySignature: nextValue.key ?? key,
+      bpm: (nextValue.bpm ?? bpm) ? Number.parseInt(nextValue.bpm ?? bpm) : undefined,
+      youtubeUrl: nextValue.youtubeUrl ?? youtubeUrl,
+      sheetMusicUrl: nextValue.sheetMusicUrl ?? sheetMusicUrl,
+      note: nextValue.note ?? note,
+      songForm: songFormRequest.length > 0 ? songFormRequest : undefined,
+    }
+  }
+
+  const emitChange = (nextValue: Parameters<typeof buildRequest>[0]) => {
+    onChange?.(buildRequest(nextValue))
+  }
 
   const handleSave = () => {
-    if (!title.trim()) {
+    if (!songTitle.trim()) {
       toast.error('곡 제목을 입력해주세요.')
       return
     }
 
-    const songFormRequest = mapSongFormToRequest(songForm)
-
-    const request: CreateTeamSongRequest = {
-      title,
-      artist: artist,
-      keySignature: key,
-      bpm: bpm ? Number.parseInt(bpm) : undefined,
-      youtubeUrl: youtubeUrl,
-      sheetMusicUrl: sheetMusicUrl,
-      note: note,
-      songForm: songFormRequest.length > 0 ? songFormRequest : undefined
-    }
+    const request = buildRequest()
     onSave(request)
   }
 
@@ -109,7 +143,7 @@ export function SongDirectEditCard({
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                  <Music className="h-4 w-4 text-primary" />
               </div>
-              <CardTitle className="text-lg">{cardTitle}</CardTitle>
+              <CardTitle className="text-lg">{displayTitle}</CardTitle>
             </div>
             <Button variant="ghost" size="icon" onClick={onCancel}>
               <X className="h-4 w-4" />
@@ -118,13 +152,13 @@ export function SongDirectEditCard({
         </CardHeader>
       )}
       <CardContent className={cn('space-y-6', variant === 'card' ? 'pt-6' : 'p-0')}>
-        {variant === 'embedded' && (
+        {shouldShowEmbeddedTitle && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                  <Music className="h-4 w-4 text-primary" />
               </div>
-              <h4 className="text-lg font-semibold">{cardTitle}</h4>
+              <h4 className="text-lg font-semibold">{displayTitle}</h4>
             </div>
           </div>
         )}
@@ -136,9 +170,13 @@ export function SongDirectEditCard({
                     <Input 
                         id={`${fieldId}-title`} 
                         placeholder="곡 제목을 입력하세요" 
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
+                        value={songTitle}
+                        onChange={e => {
+                            setSongTitle(e.target.value)
+                            emitChange({ title: e.target.value })
+                        }}
                         className="font-bold text-lg"
+                        readOnly={identityLocked}
                         autoFocus
                     />
                 </div>
@@ -148,14 +186,24 @@ export function SongDirectEditCard({
                         id={`${fieldId}-artist`} 
                         placeholder="예: 마커스워십, 제이어스" 
                         value={artist}
-                        onChange={e => setArtist(e.target.value)}
+                        onChange={e => {
+                            setArtist(e.target.value)
+                            emitChange({ artist: e.target.value })
+                        }}
+                        readOnly={identityLocked}
                     />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label>Key (조)</Label>
-                    <Select value={key} onValueChange={setKey}>
+                    <Select
+                        value={key}
+                        onValueChange={(value) => {
+                            setKey(value)
+                            emitChange({ key: value })
+                        }}
+                    >
                         <SelectTrigger aria-label="Key 선택">
                             <SelectValue placeholder="Key 선택" />
                         </SelectTrigger>
@@ -174,27 +222,40 @@ export function SongDirectEditCard({
                         min="0"
                         placeholder="예: 60" 
                         value={bpm}
-                        onChange={e => setBpm(e.target.value)}
+                        onChange={e => {
+                            setBpm(e.target.value)
+                            emitChange({ bpm: e.target.value })
+                        }}
                     />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor={`${fieldId}-youtube`}>YouTube 링크</Label>
-                    <Input 
-                        id={`${fieldId}-youtube`} 
-                        placeholder="https://youtube.com/..." 
-                        value={youtubeUrl}
-                        onChange={e => setYoutubeUrl(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
-                    <Input 
-                        id={`${fieldId}-sheetMusic`} 
-                        placeholder="악보 이미지 또는 PDF 링크" 
-                        value={sheetMusicUrl}
-                        onChange={e => setSheetMusicUrl(e.target.value)}
-                    />
-                </div>
+                {showResourceFields && (
+                    <>
+                        <div className="space-y-2">
+                            <Label htmlFor={`${fieldId}-youtube`}>YouTube 링크</Label>
+                            <Input
+                                id={`${fieldId}-youtube`}
+                                placeholder="https://youtube.com/..."
+                                value={youtubeUrl}
+                                onChange={e => {
+                                    setYoutubeUrl(e.target.value)
+                                    emitChange({ youtubeUrl: e.target.value })
+                                }}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
+                            <Input
+                                id={`${fieldId}-sheetMusic`}
+                                placeholder="악보 이미지 또는 PDF 링크"
+                                value={sheetMusicUrl}
+                                onChange={e => {
+                                    setSheetMusicUrl(e.target.value)
+                                    emitChange({ sheetMusicUrl: e.target.value })
+                                }}
+                            />
+                        </div>
+                    </>
+                )}
             </div>
         </div>
 
@@ -247,7 +308,10 @@ export function SongDirectEditCard({
                 open={formDialogOpen} 
                 onOpenChange={setFormDialogOpen}
                 value={songForm}
-                onChange={setSongForm}
+                onChange={(value) => {
+                    setSongForm(value)
+                    emitChange({ songForm: value })
+                }}
              />
         </div>
 
@@ -255,24 +319,27 @@ export function SongDirectEditCard({
 
         {/* Notes */}
         <div className="space-y-2">
-            <Label htmlFor={`${fieldId}-note`}>메모</Label>
+            <Label htmlFor={`${fieldId}-note`}>{noteLabel}</Label>
             <Textarea 
                 id={`${fieldId}-note`} 
-                placeholder="곡에 대한 메모를 입력하세요." 
+                placeholder={notePlaceholder}
                 className="min-h-[80px]"
                 value={note}
-                onChange={e => setNote(e.target.value)}
+                onChange={e => {
+                    setNote(e.target.value)
+                    emitChange({ note: e.target.value })
+                }}
             />
         </div>
 
         {/* Footer Actions */}
-        <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={onCancel} className="w-24">취소</Button>
+        {showFooterActions && <div className="flex justify-end gap-2 pt-2">
+            {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-24">취소</Button>}
             <Button onClick={handleSave} className="w-32 gap-2">
                 <Save className="h-4 w-4" />
                 {submitLabel}
             </Button>
-        </div>
+        </div>}
       </CardContent>
     </>
   )

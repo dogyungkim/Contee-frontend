@@ -44,15 +44,15 @@ export function SongSearchDialog({
   })
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
+      <DialogContent className="flex h-[min(720px,calc(100vh-2rem))] max-w-3xl flex-col overflow-hidden p-0 sm:max-w-3xl">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle>곡 추가하기</DialogTitle>
           <DialogDescription>
             팀 곡 목록에서 콘티에 추가할 곡을 선택하세요.
           </DialogDescription>
         </DialogHeader>
         {/* 검색바 */}
-        <div className="px-6 pb-4">
+        <div className="shrink-0 px-6 pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -60,11 +60,12 @@ export function SongSearchDialog({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
+              aria-label="곡 검색"
             />
           </div>
         </div>
-        <div className="flex-1 min-h-0 px-6 pb-6">
-            <ScrollArea className="h-full pr-4">
+        <div className="min-h-0 flex-1 px-6 pb-6">
+            <ScrollArea className="h-full min-h-0 pr-4">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map(i => (
