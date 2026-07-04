@@ -1,15 +1,15 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { BookOpen, Calendar, Loader2, Music } from 'lucide-react'
+import { Calendar, Loader2, Music } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useSharedConti } from '@/domains/conti/hooks/use-conti'
-import { ContiSongCard } from '@/domains/conti/components/conti-song-card'
-import { mapApiSongFormToUi } from '@/domains/song/utils/song-form'
+import { ContiReadOnlyInfo } from '@/domains/conti/components/conti-read-only-info'
+import { ContiReadOnlySongList } from '@/domains/conti/components/conti-read-only-song-list'
 
 export default function SharedContiPage() {
   const params = useParams()
@@ -40,15 +40,6 @@ export default function SharedContiPage() {
     )
   }
 
-  const verseLines = conti.bibleVerse
-    ? conti.bibleVerse
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean)
-    : []
-  const bibleVerseReference = verseLines[0]
-  const bibleVerseContent = verseLines.slice(1).join('\n')
-
   return (
     <main className="min-h-screen bg-[#fafafa]">
       <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -73,42 +64,12 @@ export default function SharedContiPage() {
           </div>
         </section>
 
-        {(conti.memo || conti.bibleVerse || conti.sharingInfo) && (
-          <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            {conti.memo && (
-              <div className="rounded-lg border bg-white p-5">
-                <div className="mb-2 text-xs font-bold text-muted-foreground">특이사항</div>
-                <p className="whitespace-pre-wrap text-sm leading-7 text-foreground">{conti.memo}</p>
-              </div>
-            )}
-
-            {(conti.bibleVerse || conti.sharingInfo) && (
-              <div className="rounded-lg border bg-white p-5">
-                <div className="mb-4 flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                  <h2 className="text-sm font-semibold">말씀 & 나눔</h2>
-                </div>
-                {conti.bibleVerse && (
-                  <div className="rounded-md border border-neutral-200 bg-neutral-50/50 p-4">
-                    {bibleVerseReference && (
-                      <p className="text-sm font-semibold text-neutral-900">{bibleVerseReference}</p>
-                    )}
-                    {bibleVerseContent && (
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-neutral-700">
-                        {bibleVerseContent}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {conti.sharingInfo && (
-                  <div className="mt-3 rounded-md border border-neutral-200 bg-neutral-50/50 p-4">
-                    <p className="whitespace-pre-wrap text-sm leading-7 text-neutral-700">{conti.sharingInfo}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-        )}
+        <ContiReadOnlyInfo
+          memo={conti.memo}
+          bibleVerse={conti.bibleVerse}
+          sharingInfo={conti.sharingInfo}
+          layout="split"
+        />
 
         <section className="rounded-lg border bg-white">
           <div className="flex items-center justify-between border-b px-5 py-4">
@@ -118,22 +79,7 @@ export default function SharedContiPage() {
             </div>
           </div>
           <div className="space-y-3 p-4">
-            {conti.contiSongs.map((song, index) => (
-              <ContiSongCard
-                key={song.id}
-                index={index}
-                title={song.title}
-                artist={song.artist || song.teamSong?.artist}
-                keySignature={song.key}
-                bpm={song.bpm}
-                note={song.note}
-                teamNote={song.teamSong?.note}
-                songForm={mapApiSongFormToUi(song.songForm)}
-                youtubeUrl={song.youtubeUrl || song.teamSong?.youtubeUrl}
-                sheetMusicUrl={song.sheetMusicUrl || song.teamSong?.sheetMusicUrl}
-                showOriginalMeta={false}
-              />
-            ))}
+            <ContiReadOnlySongList songs={conti.contiSongs} />
           </div>
         </section>
       </div>

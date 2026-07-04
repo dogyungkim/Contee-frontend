@@ -31,6 +31,7 @@ interface SongDirectEditCardProps {
   notePlaceholder?: string
   showCancelButton?: boolean
   showFooterActions?: boolean
+  isSubmitting?: boolean
 }
 
 const KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -77,6 +78,7 @@ export function SongDirectEditCard({
   notePlaceholder = '곡에 대한 메모를 입력하세요.',
   showCancelButton = true,
   showFooterActions = true,
+  isSubmitting = false,
 }: SongDirectEditCardProps) {
   const generatedId = useId()
   const fieldId = idPrefix ?? generatedId
@@ -145,7 +147,7 @@ export function SongDirectEditCard({
               </div>
               <CardTitle className="text-lg">{displayTitle}</CardTitle>
             </div>
-            <Button variant="ghost" size="icon" onClick={onCancel}>
+            <Button variant="ghost" size="icon" onClick={onCancel} disabled={isSubmitting}>
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -334,8 +336,8 @@ export function SongDirectEditCard({
 
         {/* Footer Actions */}
         {showFooterActions && <div className="flex justify-end gap-2 pt-2">
-            {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-24">취소</Button>}
-            <Button onClick={handleSave} className="w-32 gap-2">
+            {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-24" disabled={isSubmitting}>취소</Button>}
+            <Button onClick={handleSave} className="w-32 gap-2" disabled={isSubmitting}>
                 <Save className="h-4 w-4" />
                 {submitLabel}
             </Button>

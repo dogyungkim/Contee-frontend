@@ -14,6 +14,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { useUpdateTeamSong } from '@/domains/song/hooks/use-songs'
 import { mapApiSongFormToUi } from '@/domains/song/utils/song-form'
+import { getContiSongDisplay } from '@/domains/conti/utils/conti-editor'
 import { ContiSongCard } from './conti-song-card'
 import { SongDirectEditCard } from './song-direct-edit-card'
 import type { SongFormPartRequest } from '@/types/song'
@@ -42,14 +43,15 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const { mutate: updateTeamSong } = useUpdateTeamSong()
   const teamSong = contiSong.teamSong
+  const display = getContiSongDisplay(contiSong)
   const form = {
-    title: contiSong.title || '',
-    artist: contiSong.artist || '',
-    keySignature: contiSong.key || '',
-    bpm: contiSong.bpm || 0,
-    youtubeUrl: contiSong.youtubeUrl || '',
-    sheetMusicUrl: contiSong.sheetMusicUrl || '',
-    note: contiSong.note || '',
+    title: display.title || '',
+    artist: display.artist || '',
+    keySignature: display.keySignature || '',
+    bpm: display.bpm || 0,
+    youtubeUrl: display.youtubeUrl || '',
+    sheetMusicUrl: display.sheetMusicUrl || '',
+    note: display.note || '',
   }
   const songFormParts = useMemo(() => mapApiSongFormToUi(contiSong.songForm), [contiSong.songForm])
   const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
@@ -73,8 +75,8 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
     <div ref={setNodeRef} style={style}>
       <ContiSongCard
         index={index}
-        title={contiSong.title}
-        artist={contiSong.artist || teamSong?.artist}
+        title={display.title}
+        artist={display.artist}
         keySignature={form.keySignature}
         bpm={form.bpm}
         originalKey={teamSong?.keySignature}
@@ -82,8 +84,8 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
         note={form.note}
         teamNote={teamSong?.note}
         songForm={songFormParts}
-        youtubeUrl={contiSong.youtubeUrl || teamSong?.youtubeUrl}
-        sheetMusicUrl={contiSong.sheetMusicUrl || teamSong?.sheetMusicUrl}
+        youtubeUrl={display.youtubeUrl}
+        sheetMusicUrl={display.sheetMusicUrl}
         isDragging={isDragging}
         highlightKey={isKeyOverridden}
         highlightBpm={isBpmOverridden}
@@ -143,13 +145,13 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
             showCancelButton={false}
             showFooterActions={false}
             initialValue={{
-              title: contiSong.title,
-              artist: contiSong.artist,
-              keySignature: contiSong.key,
-              bpm: contiSong.bpm,
-              youtubeUrl: contiSong.youtubeUrl,
-              sheetMusicUrl: contiSong.sheetMusicUrl,
-              note: contiSong.note,
+              title: form.title,
+              artist: form.artist,
+              keySignature: form.keySignature,
+              bpm: form.bpm,
+              youtubeUrl: form.youtubeUrl,
+              sheetMusicUrl: form.sheetMusicUrl,
+              note: form.note,
             }}
             initialSongForm={songFormParts}
             onChange={(data) => {

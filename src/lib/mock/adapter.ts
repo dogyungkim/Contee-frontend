@@ -624,6 +624,43 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         });
     }
 
+    if (teamSongsMatch && methodUpper === 'POST') {
+        const teamId = teamSongsMatch[1];
+        const body = data ? JSON.parse(data) : {};
+        const normalizedTitle = String(body.title ?? '').replace(/\s+/g, '').toLowerCase();
+        const normalizedArtist = String(body.artist ?? '').replace(/\s+/g, '').toLowerCase();
+        const duplicate = MOCK_TEAM_SONGS.find(
+            (song) =>
+                song.teamId === teamId &&
+                song.title.replace(/\s+/g, '').toLowerCase() === normalizedTitle &&
+                String(song.artist ?? '').replace(/\s+/g, '').toLowerCase() === normalizedArtist,
+        );
+        if (duplicate) return failure(409, '이미 등록된 곡입니다.', 'DUPLICATE_TEAM_SONG');
+
+        const now = new Date().toISOString();
+        const teamSong: TeamSong = {
+            id: `ts-${Date.now()}`,
+            teamId,
+            songId: typeof body.songId === 'string' ? body.songId : undefined,
+            title: String(body.title ?? '').trim(),
+            artist: typeof body.artist === 'string' ? body.artist.trim() : undefined,
+            keySignature: typeof body.keySignature === 'string' ? body.keySignature : undefined,
+            bpm: typeof body.bpm === 'number' ? body.bpm : undefined,
+            ccliNumber: typeof body.ccliNumber === 'string' ? body.ccliNumber : undefined,
+            youtubeUrl: typeof body.youtubeUrl === 'string' ? body.youtubeUrl : undefined,
+            sheetMusicUrl: typeof body.sheetMusicUrl === 'string' ? body.sheetMusicUrl : undefined,
+            note: typeof body.note === 'string' ? body.note : undefined,
+            isFavorite: false,
+            createdAt: now,
+            updatedAt: now,
+        };
+        MOCK_TEAM_SONGS.push(teamSong);
+        if (Array.isArray(body.songForm)) {
+            MOCK_TEAM_SONG_FORMS[teamSong.id] = body.songForm;
+        }
+        return success(teamSong);
+    }
+
     const teamSongFormMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/songs\/([a-zA-Z0-9-]+)\/form$/);
     if (teamSongFormMatch && methodUpper === 'GET') {
         const teamSongId = teamSongFormMatch[2];
@@ -686,6 +723,16 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         });
 
         return success(teamSong);
+    }
+
+    if (teamSongDetailMatch && methodUpper === 'DELETE') {
+        const songId = teamSongDetailMatch[2];
+        const index = MOCK_TEAM_SONGS.findIndex((song) => song.id === songId);
+        if (index < 0) return failure(404, 'Team song not found');
+
+        MOCK_TEAM_SONGS.splice(index, 1);
+        delete MOCK_TEAM_SONG_FORMS[songId];
+        return success(null);
     }
 
     // --- Master Songs API (Search) ---

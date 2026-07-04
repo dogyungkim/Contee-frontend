@@ -5,9 +5,9 @@ import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
-import { ContiDetail } from '@/domains/conti/components/conti-detail'
+import { ContiDetailContainer } from '@/domains/conti/components/conti-detail-container'
 
-export default function EditContiPage() {
+export default function ContiDetailPage() {
   const params = useParams()
   const id = params.id as string
 
@@ -22,7 +22,7 @@ export default function EditContiPage() {
         </Button>
       </div>
 
-      <ContiDetail contiId={id} />
+      <ContiDetailContainer contiId={id} />
     </div>
   )
 }

@@ -2,28 +2,24 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Calendar, Music, MoreVertical, FileText, Share2, UserRound, Search, X } from 'lucide-react'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
+import { Plus, Music, Search, X } from 'lucide-react'
 
-import { Conti } from '@/types/conti'
 import { useContis } from '../hooks/use-conti'
 import { useContiActions } from '../hooks/use-conti-actions'
+import { ContiListItem } from './conti-list-item'
 import { useTeam } from '@/context/team-context'
+import { useAuth } from '@/domains/auth/hooks/use-auth'
+import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
+import { canEditTeamContent } from '@/domains/team/utils/team-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function ContiList() {
   const { selectedTeamId } = useTeam()
+  const { user } = useAuth()
+  const { data: teamMembers = [] } = useTeamMembersQuery(selectedTeamId || '')
   const [query, setQuery] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -42,6 +38,8 @@ export function ContiList() {
   const totalElements = data?.totalElements ?? contis.length
   const { handleDeleteConti } = useContiActions()
   const hasFilters = !!query.trim() || !!from || !!to
+  const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
+  const canEdit = canEditTeamContent(currentMember?.role)
 
   if (isLoading) {
     return (
@@ -133,8 +131,8 @@ export function ContiList() {
   }
 
   return (
-    <Card className="overflow-hidden rounded-2xl">
-      <CardHeader className="border-b border-border pb-4">
+    <Card className="gap-0 overflow-hidden rounded-2xl py-1">
+      <CardHeader className="border-b border-border px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <CardTitle className="text-lg">예배 콘티</CardTitle>
@@ -142,14 +140,11 @@ export function ContiList() {
               총 {totalElements}개의 콘티가 등록되어 있습니다.
             </CardDescription>
           </div>
-          <div className="hidden rounded-md bg-accent px-3 py-2 text-caption-upper text-muted-foreground sm:block">
-            List view
-          </div>
         </div>
       </CardHeader>
 
       <CardContent className="px-0">
-        {filterControls}
+        {/* {filterControls} */}
         {contis.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 px-6 text-center">
             <p className="text-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
@@ -157,105 +152,23 @@ export function ContiList() {
           </div>
         ) : (
           <>
-        <div className="hidden grid-cols-[minmax(0,1.8fr)_160px_100px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
-          <div>Conti</div>
-          <div>Worship date</div>
-          <div>Songs</div>
-          <div className="text-right">Menu</div>
-        </div>
-
-        <div className="divide-y divide-border">
-          {contis.map((conti: Conti) => (
-            <div
-              key={conti.id}
-              className="group relative grid cursor-pointer gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_160px_100px_56px] md:items-center"
-            >
-              <Link
-                href={`/dashboard/contis/${conti.id}`}
-                className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-                aria-label={`${conti.title} 콘티 상세 보기`}
-              />
-
-              <div className="pointer-events-none relative z-10 min-w-0">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md bg-accent text-foreground">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                      <div className="truncate text-sm font-medium text-foreground">{conti.title}</div>
-                      {conti.externalShareEnabled && (
-                        <Badge variant="outline" className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700">
-                          <Share2 className="h-3 w-3" />
-                          외부 공유중
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })} · {conti.worshipTime}
-                    </div>
-                    {conti.memo ? (
-                      <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{conti.memo}</p>
-                    ) : null}
-                    {conti.songPreview && conti.songPreview.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {conti.songPreview.slice(0, 3).map((title, index) => (
-                          <span
-                            key={`${title}-${index}`}
-                            className="rounded-md border border-border bg-[#fafafa] px-2 py-0.5 text-[11px] text-muted-foreground"
-                          >
-                            {index + 1}. {title}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                    {conti.createdByName ? (
-                      <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                        <UserRound className="h-3 w-3" />
-                        {conti.createdByName}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pointer-events-none relative z-10 hidden text-sm text-foreground md:block">
-                <div>{format(new Date(conti.worshipDate), 'yyyy.MM.dd', { locale: ko })}</div>
-                <div className="mt-1 text-xs text-muted-foreground">{conti.worshipTime}</div>
-              </div>
-
-              <div className="pointer-events-none relative z-10">
-                <div className="inline-flex rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-foreground">
-                  {conti.songCount ?? 0}곡
-                </div>
-              </div>
-
-              <div className="relative z-10 flex justify-end">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/contis/${conti.id}`}>편집</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => {
-                        void handleDeleteConti(conti.id)
-                      }}
-                    >
-                      지우기
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+            <div className="hidden grid-cols-[minmax(0,1.8fr)_160px_56px_56px] items-center gap-2 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+              <div>Conti</div>
+              <div>Worship date</div>
+              <div>Songs</div>
+              <div className="text-right">{canEdit ? 'Menu' : null}</div>
             </div>
-          ))}
-        </div>
+
+            <div className="divide-y divide-border">
+              {contis.map((conti) => (
+                <ContiListItem
+                  key={conti.id}
+                  conti={conti}
+                  canEdit={canEdit}
+                  onDelete={handleDeleteConti}
+                />
+              ))}
+            </div>
           </>
         )}
       </CardContent>

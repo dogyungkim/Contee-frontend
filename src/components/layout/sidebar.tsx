@@ -89,7 +89,7 @@ const Sidebar = ({ className }: SidebarProps) => {
   ];
 
   return (
-    <div className={cn("flex h-full w-72 flex-col overflow-hidden bg-transparent", className)}>
+    <div className={cn("flex h-full w-62 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
         <Link href="/dashboard" className="flex items-center gap-3">

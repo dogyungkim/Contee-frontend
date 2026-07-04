@@ -25,7 +25,7 @@ export default function DashboardGroupLayout({
         <TeamProvider>
           <div className="flex h-screen gap-3 overflow-hidden bg-[#f7f7f8] p-2 md:p-3 lg:gap-4 lg:p-4">
             <Sidebar className="hidden shrink-0 md:flex" />
-            <div className="floating-shell flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
+            <div className="floating-shell relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
               <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-white px-4 md:hidden">
                 <Link href="/dashboard" className="font-semibold tracking-[-0.03em]">Contee</Link>
                 <Sheet>

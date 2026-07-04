@@ -138,7 +138,7 @@ export function ContiSongCard({
           </>
         )}
 
-        {(groupedFlow.length > 0 || teamNote) && (
+        {!children && (groupedFlow.length > 0 || teamNote) && (
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               {groupedFlow.length > 0 ? '곡 구성' : '팀 메모'}
@@ -186,33 +186,35 @@ export function ContiSongCard({
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">빠른 링크</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" disabled={!sheetMusicUrl} className="h-9 gap-2 text-sm" asChild={!!sheetMusicUrl}>
-              {sheetMusicUrl ? (
-                <a href={sheetMusicUrl} target="_blank" rel="noopener noreferrer">
-                  <FileText className="h-4 w-4" /> 악보 보기
-                </a>
-              ) : (
-                <>
-                  <FileText className="h-4 w-4" /> 악보 보기
-                </>
-              )}
-            </Button>
-            <Button variant="secondary" disabled={!youtubeUrl} className="h-9 gap-2 text-sm" asChild={!!youtubeUrl}>
-              {youtubeUrl ? (
-                <a href={youtubeUrl} target="_blank" rel="noopener noreferrer">
-                  <Youtube className="h-4 w-4 text-red-500" /> 유튜브
-                </a>
-              ) : (
-                <>
-                  <Youtube className="h-4 w-4" /> 유튜브
-                </>
-              )}
-            </Button>
+        {!children && (
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">빠른 링크</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="secondary" disabled={!sheetMusicUrl} className="h-9 gap-2 text-sm" asChild={!!sheetMusicUrl}>
+                {sheetMusicUrl ? (
+                  <a href={sheetMusicUrl} target="_blank" rel="noopener noreferrer">
+                    <FileText className="h-4 w-4" /> 악보 보기
+                  </a>
+                ) : (
+                  <>
+                    <FileText className="h-4 w-4" /> 악보 보기
+                  </>
+                )}
+              </Button>
+              <Button variant="secondary" disabled={!youtubeUrl} className="h-9 gap-2 text-sm" asChild={!!youtubeUrl}>
+                {youtubeUrl ? (
+                  <a href={youtubeUrl} target="_blank" rel="noopener noreferrer">
+                    <Youtube className="h-4 w-4 text-red-500" /> 유튜브
+                  </a>
+                ) : (
+                  <>
+                    <Youtube className="h-4 w-4" /> 유튜브
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
