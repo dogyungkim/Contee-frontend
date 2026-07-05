@@ -81,7 +81,7 @@ export default function SongsPage() {
   const { mutateAsync: deleteSong, isPending: isDeleting } = useDeleteTeamSong()
   const { confirmAction } = useConfirmAction()
 
-  const currentMember = members.find((member) => member.userId === String(user?.id))
+  const currentMember = user ? members.find((member) => member.userId === user.id) : undefined
   const canEdit = canEditTeamContent(currentMember?.role)
   const filteredSongs = useMemo(
     () => filterSongLibrary(songs, query, favoritesOnly),
