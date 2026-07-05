@@ -79,8 +79,12 @@ export function ContiDetailView({
       <ContiShareDialog
         mode={sharing.dialogMode}
         isPending={sharing.isPending}
+        shareUrl={sharing.createdShareUrl}
         onClose={() => sharing.setDialogMode(null)}
         onConfirm={sharing.confirmDialog}
+        onCopy={() => {
+          void sharing.copyCreatedExternalShare()
+        }}
       />
     </div>
   )

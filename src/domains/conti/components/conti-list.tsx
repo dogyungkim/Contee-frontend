@@ -144,7 +144,7 @@ export function ContiList() {
       </CardHeader>
 
       <CardContent className="px-0">
-        {/* {filterControls} */}
+        {filterControls}
         {contis.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 px-6 text-center">
             <p className="text-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>

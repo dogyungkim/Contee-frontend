@@ -5,8 +5,12 @@ import {
   useEnableExternalShare,
 } from '@/domains/conti/hooks/use-conti'
 import type { ExternalShare } from '@/types/conti'
-import type { ContiShareDialogMode } from '@/domains/conti/components/conti-share-dialog'
+import type {
+  ContiShareConfirmationMode,
+  ContiShareDialogMode,
+} from '@/domains/conti/components/conti-share-dialog'
 import { getContiApiErrorMessage } from '@/domains/conti/utils/conti-error'
+import { getExternalShareCompletion } from '@/domains/conti/utils/conti-sharing'
 import { toast } from '@/lib/toast'
 
 interface UseContiSharingOptions {
@@ -21,6 +25,7 @@ export function useContiSharing({
   hasChanges = false,
 }: UseContiSharingOptions) {
   const [dialogMode, setDialogMode] = useState<ContiShareDialogMode>(null)
+  const [createdShareUrl, setCreatedShareUrl] = useState<string | null>(null)
   const { mutateAsync: enableExternalShare, isPending: isEnabling } = useEnableExternalShare()
   const { mutateAsync: disableExternalShare, isPending: isDisabling } = useDisableExternalShare()
 
@@ -30,13 +35,15 @@ export function useContiSharing({
   }
 
   const copyToClipboard = async (value: string, successMessage: string) => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return false
 
     try {
       await window.navigator.clipboard.writeText(value)
       toast.success(successMessage)
+      return true
     } catch {
       toast.error('링크 복사에 실패했습니다.')
+      return false
     }
   }
 
@@ -63,18 +70,29 @@ export function useContiSharing({
 
     try {
       const createdShare = await enableExternalShare(contiId)
-      setDialogMode(null)
-      if (createdShare.url) {
-        await copyToClipboard(
-          buildUrl(createdShare.url),
-          '외부 공유 링크를 만들고 복사했습니다.',
-        )
+      const completion = getExternalShareCompletion(
+        createdShare.url ? buildUrl(createdShare.url) : null,
+      )
+      setCreatedShareUrl(completion.shareUrl)
+      setDialogMode(completion.dialogMode)
+      if (completion.shareUrl) {
+        toast.success('외부 공유 링크를 만들었습니다.')
         return
       }
       toast.success('외부 공유를 켰습니다.')
     } catch (error) {
       toast.error(getContiApiErrorMessage(error, '외부 공유를 켜지 못했습니다.'))
     }
+  }
+
+  const copyCreatedExternalShare = async () => {
+    if (!createdShareUrl) {
+      toast.error('복사할 외부 공유 링크가 없습니다.')
+      return
+    }
+
+    const copied = await copyToClipboard(createdShareUrl, '외부 공유 링크를 복사했습니다.')
+    if (copied) setDialogMode(null)
   }
 
   const disable = async () => {
@@ -90,12 +108,14 @@ export function useContiSharing({
   return {
     dialogMode,
     setDialogMode,
+    createdShareUrl,
     isEnabling,
     isDisabling,
     isPending: isEnabling || isDisabling,
     copyTeamShare,
     copyExternalShare,
-    confirmDialog: (mode: Exclude<ContiShareDialogMode, null>) => {
+    copyCreatedExternalShare,
+    confirmDialog: (mode: ContiShareConfirmationMode) => {
       if (mode === 'enable') {
         void enable()
         return
