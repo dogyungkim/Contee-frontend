@@ -1,35 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getContis,
+    getTeamContis,
     getConti,
     createConti,
     updateConti,
-    updateContiStatus,
     deleteConti,
-    addContiSong,
-    removeContiSong,
-    updateContiSong,
-    reorderContiSongs
+    enableExternalShare,
+    disableExternalShare,
+    getSharedConti
 } from '@/domains/conti/api/conti.api';
-import { Conti, ContiStatus, CreateContiRequest, UpdateContiRequest, AddContiSongRequest, UpdateContiSongRequest } from '@/types/conti';
+import { Conti, CreateContiRequest, UpdateContiRequest } from '@/types/conti';
+import type { ContiSearchParamsDto } from '@/domains/conti/api/conti.dto';
 
 export const contiKeys = {
     all: ['contis'] as const,
-    list: (teamId: string) => [...contiKeys.all, 'list', teamId] as const,
+    list: (teamId: string, params?: ContiSearchParamsDto) => [...contiKeys.all, 'list', teamId, params] as const,
     detail: (id: string) => [...contiKeys.all, 'detail', id] as const,
-    songs: (id: string) => [...contiKeys.detail(id), 'songs'] as const,
+    shared: (token: string) => [...contiKeys.all, 'shared', token] as const,
 };
 
-export const useContis = (teamId: string | null) => {
+export const useContis = (teamId: string | null, params: ContiSearchParamsDto = { page: 0, size: 100 }) => {
     return useQuery({
-        queryKey: contiKeys.list(teamId || ''),
-        queryFn: () => getContis(0, 100), // TODO: Implement proper pagination
+        queryKey: contiKeys.list(teamId || '', params),
+        queryFn: () => getTeamContis(teamId!, params),
         enabled: !!teamId,
-        select: (data) => {
-            const contis = data.content || [];
-            if (!teamId) return contis;
-            return contis.filter(c => c.teamId === teamId);
-        },
     });
 };
 
@@ -41,22 +35,11 @@ export const useContiDetail = (contiId: string | null) => {
     });
 };
 
-export const useContiSongs = (contiId: string | null) => {
-    const queryClient = useQueryClient();
-
+export const useSharedConti = (token: string | null) => {
     return useQuery({
-        queryKey: contiKeys.songs(contiId || ''),
-        queryFn: () => {
-            // Get songs from the conti detail query cache
-            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as Conti;
-            return conti?.contiSongs || [];
-        },
-        enabled: !!contiId,
-        // This query depends on the conti detail query
-        initialData: () => {
-            const conti = queryClient.getQueryData(contiKeys.detail(contiId!)) as Conti;
-            return conti?.contiSongs || [];
-        },
+        queryKey: contiKeys.shared(token || ''),
+        queryFn: () => getSharedConti(token!),
+        enabled: !!token,
     });
 };
 
@@ -78,19 +61,7 @@ export const useUpdateConti = () => {
         mutationFn: ({ contiId, request }: { contiId: string; request: UpdateContiRequest }) =>
             updateConti(contiId, request),
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: contiKeys.detail(data.id) });
-            queryClient.invalidateQueries({ queryKey: contiKeys.list(data.teamId) });
-        },
-    });
-};
-
-export const useUpdateContiStatus = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ contiId, status }: { contiId: string; status: ContiStatus }) =>
-            updateContiStatus(contiId, { status }),
-        onSuccess: (data) => {
+            queryClient.setQueryData(contiKeys.detail(data.id), data);
             queryClient.invalidateQueries({ queryKey: contiKeys.detail(data.id) });
             queryClient.invalidateQueries({ queryKey: contiKeys.list(data.teamId) });
         },
@@ -108,59 +79,52 @@ export const useDeleteConti = () => {
     });
 };
 
-export const useAddContiSong = () => {
+export const useEnableExternalShare = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ contiId, request }: { contiId: string; request: AddContiSongRequest }) =>
-            addContiSong(contiId, request),
-        onSuccess: (_, { contiId }) => {
-            // Invalidate conti detail to refresh the contiSongs array
-            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
+        mutationFn: (contiId: string) => enableExternalShare(contiId),
+        onSuccess: (externalShare, contiId) => {
+            const previous = queryClient.getQueryData<Conti>(contiKeys.detail(contiId));
+
+            if (previous) {
+                queryClient.setQueryData(contiKeys.detail(contiId), {
+                    ...previous,
+                    externalShare,
+                    externalShareEnabled: externalShare.enabled,
+                });
+                queryClient.invalidateQueries({ queryKey: contiKeys.list(previous.teamId) });
+            } else {
+                queryClient.invalidateQueries({ queryKey: contiKeys.all });
+            }
         },
     });
 };
 
-export const useRemoveContiSong = () => {
+export const useDisableExternalShare = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ contiId, contiSongId }: { contiId: string; contiSongId: string }) =>
-            removeContiSong(contiId, contiSongId),
-        onSuccess: (_, { contiId }) => {
-            // Invalidate conti detail to refresh the contiSongs array
-            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
-        },
-    });
-};
+        mutationFn: (contiId: string) => disableExternalShare(contiId),
+        onSuccess: (_, contiId) => {
+            const previous = queryClient.getQueryData<Conti>(contiKeys.detail(contiId));
 
-export const useUpdateContiSongOrder = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ contiId, songIds }: { contiId: string; songIds: string[] }) => {
-            const songOrders = songIds.map((id, index) => ({
-                contiSongId: id,
-                order: index + 1 // 1-based index per API doc
-            }));
-            return reorderContiSongs(contiId, { songOrders, contiSongIds: songIds });
-        },
-        onSuccess: (_, { contiId }) => {
-            // Invalidate conti detail to refresh the contiSongs array
-            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
-        },
-    });
-};
-
-export const useUpdateContiSongDetail = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ contiId, contiSongId, request }: { contiId: string; contiSongId: string; request: UpdateContiSongRequest }) =>
-            updateContiSong(contiId, contiSongId, request),
-        onSuccess: (_, { contiId }) => {
-            // Invalidate conti detail to refresh the contiSongs array
-            queryClient.invalidateQueries({ queryKey: contiKeys.detail(contiId) });
+            if (previous) {
+                queryClient.setQueryData(contiKeys.detail(contiId), {
+                    ...previous,
+                    externalShare: {
+                        enabled: false,
+                        token: null,
+                        url: null,
+                        createdAt: null,
+                        createdById: null,
+                    },
+                    externalShareEnabled: false,
+                });
+                queryClient.invalidateQueries({ queryKey: contiKeys.list(previous.teamId) });
+            } else {
+                queryClient.invalidateQueries({ queryKey: contiKeys.all });
+            }
         },
     });
 };

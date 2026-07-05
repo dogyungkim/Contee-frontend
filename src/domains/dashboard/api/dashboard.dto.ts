@@ -1,4 +1,3 @@
-import type { ContiResponseDto } from '@/domains/conti/api/conti.dto';
 import type { SongResponseDto } from '@/domains/song/api/song.dto';
 
 export interface DashboardSummaryDto {
@@ -14,9 +13,17 @@ export interface ActivityDto {
   message: string;
 }
 
+export interface DashboardContiDto {
+  id: string;
+  title: string;
+  worshipDate: string;
+  updatedAt: string;
+  songCount: number;
+}
+
 export interface DashboardDataDto {
   summary: DashboardSummaryDto;
-  recentContis: ContiResponseDto[];
+  recentContis: DashboardContiDto[];
   songs: SongResponseDto[];
   activities: ActivityDto[];
 }

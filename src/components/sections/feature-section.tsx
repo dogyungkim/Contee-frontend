@@ -1,91 +1,109 @@
-import Image from 'next/image';
+import { ArrowUpRight, Library, ListMusic, Share2 } from 'lucide-react'
+
+const features = [
+  {
+    eyebrow: 'Plan',
+    title: '콘티를 예배 흐름 중심으로 정리',
+    description:
+      '곡 순서를 빠르게 조정하고 예배의 호흡을 화면 안에서 확인합니다. 수정이 생겨도 전체 팀이 같은 구조를 따라갑니다.',
+    bullets: ['드래그로 순서 조정', '리허설 직전 수정 반영', '모바일에서도 동일한 구조'],
+    icon: ListMusic,
+  },
+  {
+    eyebrow: 'Search',
+    title: '곡 정보를 기준 데이터로 축적',
+    description:
+      '곡명, 아티스트, 키, BPM, 링크를 함께 쌓아두고 다음 예배 준비 시간을 줄입니다.',
+    bullets: ['곡 메타데이터 정리', '조합 재사용', '링크와 자료 연결'],
+    icon: Library,
+  },
+  {
+    eyebrow: 'Share',
+    title: '최종 공유를 더 조용하게 끝내기',
+    description:
+      '링크와 출력본을 기준으로 팀 전체가 최신 상태를 확인할 수 있어 전달 과정의 확인 비용이 줄어듭니다.',
+    bullets: ['링크 중심 공유', 'PDF 출력 준비', '수정 후 즉시 최신화'],
+    icon: Share2,
+  },
+]
 
 const FeatureSection = () => {
   return (
-    <section className="py-20">
-      <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">핵심 기능</h2>
-          <p className="mx-auto mt-4 max-w-[700px] text-lg text-muted-foreground">
-            Contee는 예배 준비에 필요한 모든 것을 제공합니다.
+    <section id="workflow" className="border-b border-border bg-white">
+      <div className="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="text-caption-upper text-muted-foreground">Workflow</div>
+          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+            계획, 검색, 공유가 하나의 흐름으로 이어집니다.
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">
+            문서가 바뀔 때마다 팀이 다시 정렬되지 않도록, Contee는 준비 과정 전체를 같은 작업 문맥 안에 둡니다.
           </p>
         </div>
-        <div className="grid gap-16">
-          {/* Feature 1 */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="order-2 md:order-1">
-              <h3 className="text-2xl font-bold mb-4">드래그 & 드롭 콘티 편집</h3>
-              <p className="text-muted-foreground mb-4">
-                직관적인 드래그 & 드롭 인터페이스로 곡 순서를 쉽게 변경하고, 예배의 흐름에 맞는 콘티를 빠르게 완성하세요. 모바일에서도 완벽하게 동작합니다.
-              </p>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>✓ 직관적인 순서 변경</li>
-                <li>✓ 실시간 미리보기</li>
-                <li>✓ 모바일 최적화</li>
-              </ul>
-            </div>
-            <div className="order-1 md:order-2">
-              <Image
-                src="/placeholder.svg"
-                alt="드래그 & 드롭 콘티 편집"
-                width={500}
-                height={400}
-                className="rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
 
-          {/* Feature 2 */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <Image
-                src="/placeholder.svg"
-                alt="곡 데이터베이스 및 검색"
-                width={500}
-                height={400}
-                className="rounded-lg shadow-lg"
-              />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold mb-4">강력한 곡 데이터베이스</h3>
-              <p className="text-muted-foreground mb-4">
-                모든 곡 정보를 한 곳에서 관리하세요. 곡명, 코드, BPM, 가사 등 필요한 모든 정보를 저장하고, 강력한 검색 기능으로 원하는 곡을 즉시 찾을 수 있습니다.
-              </p>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>✓ 모든 곡 정보 통합 관리</li>
-                <li>✓ 상세 검색 (키, BPM, 태그)</li>
-                <li>✓ YouTube 링크 및 악보 파일 첨부</li>
-              </ul>
-            </div>
-          </div>
+        <div className="mt-16 grid gap-6">
+          {features.map((feature, index) => {
+            const Icon = feature.icon
+            const dark = index === 1
 
-          {/* Feature 3 */}
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="order-2 md:order-1">
-              <h3 className="text-2xl font-bold mb-4">원클릭 공유 및 PDF 출력</h3>
-              <p className="text-muted-foreground mb-4">
-                완성된 콘티는 링크 하나로 팀원들에게 쉽게 공유할 수 있습니다. PDF로 변환하여 인쇄하거나, 모바일에서 바로 확인하여 모두가 동일한 정보를 보도록 하세요.
-              </p>
-              <ul className="space-y-2 text-muted-foreground">
-                <li>✓ 간편한 링크 공유</li>
-                <li>✓ 깔끔한 PDF 출력</li>
-                <li>✓ 실시간 동기화</li>
-              </ul>
-            </div>
-            <div className="order-1 md:order-2">
-              <Image
-                src="/placeholder.svg"
-                alt="원클릭 공유 및 PDF 출력"
-                width={500}
-                height={400}
-                className="rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
+            return (
+              <div
+                key={feature.title}
+                className={dark ? 'grid gap-8 rounded-xl border border-[#1a1a1a] bg-[#171717] p-6 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]' : 'surface-card grid gap-8 rounded-xl p-6 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]'}
+              >
+                <div className="flex flex-col justify-between gap-6">
+                  <div>
+                    <div className={dark ? 'text-caption-upper text-white/60' : 'text-caption-upper text-muted-foreground'}>
+                      {feature.eyebrow}
+                    </div>
+                    <h3 className={dark ? 'mt-4 text-3xl font-semibold tracking-[-0.05em] text-white' : 'mt-4 text-3xl font-semibold tracking-[-0.05em] text-foreground'}>
+                      {feature.title}
+                    </h3>
+                    <p className={dark ? 'mt-4 max-w-xl text-base leading-7 text-white/72' : 'mt-4 max-w-xl text-base leading-7 text-muted-foreground'}>
+                      {feature.description}
+                    </p>
+                  </div>
+                  <div className="grid gap-3">
+                    {feature.bullets.map((bullet) => (
+                      <div
+                        key={bullet}
+                        className={dark ? 'flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3' : 'flex items-center justify-between rounded-lg border border-border bg-[#fafafa] px-4 py-3'}
+                      >
+                        <span className={dark ? 'text-sm text-white' : 'text-sm text-foreground'}>{bullet}</span>
+                        <ArrowUpRight className={dark ? 'h-4 w-4 text-white/55' : 'h-4 w-4 text-muted-foreground'} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={dark ? 'rounded-xl border border-white/10 bg-[#1a1a1a] p-5' : 'rounded-xl border border-border bg-[#fafafa] p-5'}>
+                  <div className={dark ? 'rounded-xl border border-white/10 bg-[#171717] p-5' : 'rounded-xl border border-border bg-white p-5'}>
+                    <div className="flex items-center justify-between">
+                      <div className={dark ? 'flex h-10 w-10 items-center justify-center rounded-md bg-white/10' : 'flex h-10 w-10 items-center justify-center rounded-md bg-accent'}>
+                        <Icon className={dark ? 'h-5 w-5 text-white' : 'h-5 w-5 text-foreground'} />
+                      </div>
+                      <div className={dark ? 'text-caption text-white/55' : 'text-caption text-muted-foreground'}>
+                        0{index + 1}
+                      </div>
+                    </div>
+                    <div className="mt-8 space-y-3">
+                      <div className={dark ? 'h-3 w-24 rounded-full bg-white/14' : 'h-3 w-24 rounded-full bg-foreground/10'} />
+                      <div className={dark ? 'h-11 rounded-lg border border-white/10 bg-[#1a1a1a]' : 'h-11 rounded-lg border border-border bg-white'} />
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className={dark ? 'h-24 rounded-lg border border-white/10 bg-[#202020]' : 'h-24 rounded-lg border border-border bg-[#fafafa]'} />
+                        <div className={dark ? 'h-24 rounded-lg border border-white/10 bg-[#171717]' : 'h-24 rounded-lg border border-border bg-white'} />
+                      </div>
+                      <div className={dark ? 'h-20 rounded-lg border border-white/10 bg-[#171717]' : 'h-20 rounded-lg border border-border bg-white'} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default FeatureSection;
+export default FeatureSection

@@ -43,12 +43,12 @@ export default function TeamsPage() {
 
   if (!selectedTeam) {
     return (
-      <div className="container max-w-5xl py-8">
-        <Card>
+      <div className="mx-auto max-w-6xl">
+        <Card className="rounded-2xl">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <Users className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">팀이 없습니다</h3>
-            <p className="text-sm text-muted-foreground mb-6 text-center">
+            <Users className="mb-4 h-16 w-16 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold">팀이 없습니다</h3>
+            <p className="mb-6 text-center text-sm text-muted-foreground">
               새로운 팀을 만들어 팀원들과 함께 작업을 시작하세요.
             </p>
             <Button asChild>
@@ -64,92 +64,86 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="container max-w-5xl py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">팀 관리</h1>
-          <p className="text-sm text-muted-foreground">
+          <div className="text-caption-upper text-muted-foreground">Team settings</div>
+          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">팀 관리</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             {selectedTeam.name} 팀의 정보와 멤버를 관리하세요.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6">
-        {/* Team Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>팀 정보</CardTitle>
+      <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <Card className="h-fit rounded-2xl">
+          <CardHeader className="border-b border-border pb-4">
+            <CardTitle className="text-lg">팀 정보</CardTitle>
             <CardDescription>현재 선택된 팀의 기본 정보입니다.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">팀 이름</label>
-              <p className="text-lg font-semibold">{selectedTeam.name}</p>
+              <div className="text-caption-upper text-muted-foreground">Team name</div>
+              <p className="mt-2 text-lg font-semibold">{selectedTeam.name}</p>
             </div>
-            
+
             {selectedTeam.description && (
               <div>
-                <label className="text-sm font-medium text-muted-foreground">설명</label>
-                <p className="text-sm">{selectedTeam.description}</p>
+                <div className="text-caption-upper text-muted-foreground">Description</div>
+                <p className="mt-2 text-sm text-foreground">{selectedTeam.description}</p>
               </div>
             )}
 
             <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">초대 코드</label>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 rounded-lg bg-muted p-3">
-                  <p className="font-mono text-lg font-semibold">{selectedTeam.shortCode}</p>
+              <div className="text-caption-upper text-muted-foreground">Invite code</div>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="flex-1 rounded-lg border border-border bg-[#fafafa] p-3">
+                  <p className="font-mono text-lg font-semibold tracking-tight">{selectedTeam.shortCode}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopyInviteCode}
-                >
-                  {copiedCode ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
+                <Button variant="outline" size="icon" onClick={handleCopyInviteCode}>
+                  {copiedCode ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                이 코드를 공유하여 팀원을 초대하세요.
-              </p>
+              <p className="mt-2 text-xs text-muted-foreground">이 코드를 공유하여 팀원을 초대하세요.</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Members Card */}
-        <Card>
-          <CardHeader>
+        <Card className="rounded-2xl">
+          <CardHeader className="border-b border-border pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>팀 멤버</CardTitle>
-                <CardDescription>
-                  {members.length}명의 멤버가 있습니다.
-                </CardDescription>
+                <CardTitle className="text-lg">팀 멤버</CardTitle>
+                <CardDescription>{members.length}명의 멤버가 있습니다.</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-0">
             {isMembersLoading ? (
-              <div className="space-y-3">
+              <div className="space-y-3 px-6 py-6">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-16" />
                 ))}
               </div>
             ) : members.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="rounded-full bg-muted p-4 mb-4">
+                <div className="mb-4 rounded-full bg-muted p-4">
                   <Users className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold mb-1">멤버가 없습니다</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <h3 className="mb-1 text-lg font-semibold">멤버가 없습니다</h3>
+                <p className="mb-4 text-sm text-muted-foreground">
                   초대 코드를 공유하여 팀원을 초대하세요.
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <>
+                <div className="hidden grid-cols-[minmax(0,1.6fr)_120px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+                  <div>Member</div>
+                  <div>Role</div>
+                  <div className="text-right">Menu</div>
+                </div>
+
+                <div className="divide-y divide-border">
                 {members.map((member) => {
                   const isCurrentUser = member.userId === String(user?.id)
                   const isOwner = member.role === 'OWNER'
@@ -157,7 +151,7 @@ export default function TeamsPage() {
                   return (
                     <div
                       key={member.id}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      className="grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.6fr)_120px_56px] md:items-center"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -184,15 +178,18 @@ export default function TeamsPage() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                        <Badge variant={getRoleBadgeVariant(member.role)}>
+                      <div className="flex items-center justify-between gap-2 md:justify-start">
+                        <Badge
+                          variant={getRoleBadgeVariant(member.role)}
+                          className="rounded-md border px-2.5 py-1 text-[11px] font-medium"
+                        >
                           {getRoleLabel(member.role)}
                         </Badge>
 
                         {canManageMembers && !isCurrentUser && !isOwner && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" className="md:hidden">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -229,10 +226,51 @@ export default function TeamsPage() {
                           </DropdownMenu>
                         )}
                       </div>
+
+                      <div className="hidden justify-end md:flex">
+                        {canManageMembers && !isCurrentUser && !isOwner ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
+                                disabled={member.role === 'ADMIN'}
+                              >
+                                <Shield className="mr-2 h-4 w-4" />
+                                관리자로 변경
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
+                                disabled={member.role === 'MEMBER'}
+                              >
+                                <Shield className="mr-2 h-4 w-4" />
+                                멤버로 변경
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleRemoveMember(member.userId, member.userName)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <UserMinus className="mr-2 h-4 w-4" />
+                                팀에서 내보내기
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <div className="h-8 w-8" />
+                        )}
+                      </div>
                     </div>
                   )
                 })}
-              </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

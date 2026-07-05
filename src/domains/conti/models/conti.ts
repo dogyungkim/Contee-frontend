@@ -1,5 +1,4 @@
 import type { TeamSong } from '@/domains/song/models/song';
-import type { ContiStatus } from './conti-status';
 
 export type ContiSongPartType =
   | 'INTRO'
@@ -15,8 +14,8 @@ export type ContiSongPartType =
   | 'CUSTOM';
 
 export interface ContiSongFormPart {
-  id: number;
-  partOrder: number;
+  id: number | null;
+  partOrder: number | null;
   partType: ContiSongPartType;
   customPartName?: string;
   repeatCount: number;
@@ -28,29 +27,51 @@ export interface Conti {
   id: string;
   teamId: string;
   createdById?: string;
+  createdByName?: string;
   title: string;
   worshipDate: string;
+  worshipTime: string;
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
-  status?: ContiStatus;
   songCount?: number;
+  songPreview?: string[];
+  externalShareEnabled?: boolean;
+  externalShare?: ExternalShare;
   totalDuration?: number;
   createdAt?: string;
   updatedAt?: string;
   contiSongs?: ContiSong[];
 }
 
+export interface ExternalShare {
+  enabled: boolean;
+  token?: string | null;
+  url?: string | null;
+  createdAt?: string | null;
+  createdById?: string | null;
+}
+
+export interface SharedConti {
+  id: string;
+  title: string;
+  worshipDate: string;
+  worshipTime: string;
+  memo?: string;
+  bibleVerse?: string;
+  sharingInfo?: string;
+  contiSongs: ContiSong[];
+}
+
 export interface ContiSong {
   id: string;
   contiId?: string;
   teamSongId?: string;
-  customTitle?: string;
-  songTitle: string;
-  songArtist: string;
+  title: string;
+  artist?: string;
   orderIndex: number;
-  keyOverride?: string;
-  bpmOverride?: number;
+  key?: string;
+  bpm?: number;
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;

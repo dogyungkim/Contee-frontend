@@ -1,4 +1,5 @@
-import { SongFormPart } from '@/types/song'
+import { SONG_FORM_CONFIG } from '@/constants/ui-constants'
+import type { ApiSongFormPart, SongFormPart, SongFormPartRequest, SongPartType } from '@/types/song'
 
 // Fixed definitions for available sections
 export const AVAILABLE_SECTIONS: {
@@ -31,6 +32,44 @@ export interface SongFormSummaryGroup {
     showBars: boolean
     bars: number
 }
+
+const SONG_PART_TYPE_TO_UI_MAP: Record<SongPartType, SongFormPart['type']> = {
+    INTRO: 'Intro',
+    VERSE: 'Verse',
+    PRE_CHORUS: 'Pre-chorus',
+    CHORUS: 'Chorus',
+    BRIDGE: 'Bridge',
+    INTERLUDE: 'Interlude',
+    OUTRO: 'Outro',
+    TAG: 'Tag',
+    INSTRUMENTAL: 'Instrumental',
+    ENDING: 'Outro',
+    CUSTOM: 'Verse',
+}
+
+const toUiSongFormPart = (
+    partType: SongPartType,
+    customPartName?: string,
+    barCount?: number,
+    note?: string,
+    index = 0
+): SongFormPart => ({
+    id: `${partType}-${index}`,
+    type: SONG_PART_TYPE_TO_UI_MAP[partType] || 'Verse',
+    label: note || customPartName || partType,
+    bars: barCount || SONG_FORM_CONFIG.DEFAULT_BARS,
+    abbr: customPartName?.substring(0, SONG_FORM_CONFIG.CUSTOM_ABBR_MAX_LENGTH),
+})
+
+export const mapApiSongFormToUi = (parts: ApiSongFormPart[] = []): SongFormPart[] =>
+    parts.map((part, index) =>
+        toUiSongFormPart(part.partType, part.customPartName, part.barCount, part.note, part.id ?? index)
+    )
+
+export const mapRequestSongFormToUi = (parts: SongFormPartRequest[] = []): SongFormPart[] =>
+    parts.map((part, index) =>
+        toUiSongFormPart(part.partType, part.customPartName, part.barCount, part.note, index)
+    )
 
 /**
  * Groups consecutive song form parts of the same type for display in Flow Summary.

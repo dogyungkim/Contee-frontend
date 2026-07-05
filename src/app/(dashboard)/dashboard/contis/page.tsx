@@ -8,7 +8,15 @@ import { ContiList } from '@/domains/conti/components/conti-list'
 import { Button } from '@/components/ui/button'
 
 export default function ContisPage() {
-  const { selectedTeamId, selectedTeam } = useTeam()
+  const { selectedTeamId, selectedTeam, isLoading } = useTeam()
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
+        <p className="text-sm font-medium text-muted-foreground">팀 정보를 불러오는 중...</p>
+      </div>
+    )
+  }
 
   if (!selectedTeamId) {
     return (
@@ -21,10 +29,11 @@ export default function ContisPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">콘티 목록</h1>
-          <p className="text-sm text-muted-foreground">
+          <div className="text-caption-upper text-muted-foreground">Worship plans</div>
+          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">콘티 목록</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             {selectedTeam?.name} 팀의 예배 콘티를 관리합니다.
           </p>
         </div>
@@ -40,4 +49,3 @@ export default function ContisPage() {
     </div>
   )
 }
-

@@ -2,17 +2,14 @@ import type { Song, TeamSong } from '../models/song';
 
 export type SongResponseDto = Song;
 
-export interface TeamSongResponseDto extends Omit<TeamSong, 'title'> {
-  title?: string;
-  customTitle?: string;
-}
+export type TeamSongResponseDto = TeamSong;
 
 export interface CreateTeamSongRequestDto {
   songId?: string;
   title: string;
   artist?: string;
-  customKeySignature?: string;
-  customBpm?: number;
+  keySignature?: string;
+  bpm?: number;
   ccliNumber?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
@@ -23,8 +20,8 @@ export interface CreateTeamSongRequestDto {
 export interface UpdateTeamSongRequestDto {
   title?: string;
   artist?: string;
-  customKeySignature?: string;
-  customBpm?: number;
+  keySignature?: string;
+  bpm?: number;
   ccliNumber?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
@@ -56,8 +53,8 @@ export type SongPartTypeDto =
   | 'CUSTOM';
 
 export interface ApiSongFormPartDto {
-  id: number;
-  partOrder: number;
+  id: number | null;
+  partOrder: number | null;
   partType: SongPartTypeDto;
   customPartName?: string;
   repeatCount: number;
