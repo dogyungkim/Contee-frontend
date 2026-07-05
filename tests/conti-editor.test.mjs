@@ -148,3 +148,16 @@ test('creates an editor draft from a conti when edit mode mounts', () => {
     },
   )
 })
+
+test('creates an editor draft from a localized Korean worship time', () => {
+  const draft = createContiDraft({
+    title: '저녁 예배',
+    worshipDate: '2026-07-05',
+    worshipTime: '오후 7:30',
+    contiSongs: [],
+  })
+
+  assert.equal(draft.period, 'PM')
+  assert.equal(draft.hour, '07')
+  assert.equal(draft.minute, '30')
+})

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { createUnsavedChangesHistoryGuard } from './unsaved-changes-history'
 
 const DEFAULT_MESSAGE = '저장하지 않은 변경사항이 있습니다. 이 페이지를 떠나시겠습니까?'
 
@@ -56,7 +57,8 @@ export function useUnsavedChangesGuard({
 
       event.preventDefault()
       if (window.confirm(message)) {
-        router.push(nextPath)
+        enabledRef.current = false
+        router.replace(nextPath)
       }
     }
 
@@ -67,21 +69,27 @@ export function useUnsavedChangesGuard({
   useEffect(() => {
     if (!enabled) return
 
-    window.history.pushState({ __unsavedChangesGuard: true }, '', window.location.href)
-
-    const handlePopState = () => {
-      if (!enabledRef.current) return
-
-      if (window.confirm(message)) {
-        enabledRef.current = false
-        window.history.back()
-        return
+    const historyGuard = createUnsavedChangesHistoryGuard({
+      history: window.history,
+      markerId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      isEnabled: () => enabledRef.current,
+      confirmLeave: () => {
+        const confirmed = window.confirm(message)
+        if (confirmed) enabledRef.current = false
+        return confirmed
+      },
+    })
+    const handlePopState = (event: PopStateEvent) => {
+      const result = historyGuard.handlePopState()
+      if (result !== 'allowed') {
+        event.stopImmediatePropagation()
       }
-
-      window.history.pushState({ __unsavedChangesGuard: true }, '', window.location.href)
     }
 
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    window.addEventListener('popstate', handlePopState, true)
+    return () => {
+      window.removeEventListener('popstate', handlePopState, true)
+      historyGuard.cleanup()
+    }
   }, [enabled, message])
 }

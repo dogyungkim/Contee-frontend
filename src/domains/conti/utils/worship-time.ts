@@ -1,3 +1,5 @@
+import { normalizeWorshipTimeValue } from './worship-time-core'
+
 export const PERIODS = [
   { label: '오전', value: 'AM' },
   { label: '오후', value: 'PM' },
@@ -47,10 +49,5 @@ export function formatWorshipTime(parts: WorshipTimeParts): string {
 }
 
 export function normalizeWorshipTime(value?: string | null): string {
-  if (!value) return ''
-
-  const match = value.match(/^(\d{2}):(\d{2})(?::\d{2})?$/)
-  if (!match) return value
-
-  return `${match[1]}:${match[2]}`
+  return normalizeWorshipTimeValue(value)
 }

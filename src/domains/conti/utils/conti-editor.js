@@ -1,3 +1,5 @@
+import { normalizeWorshipTimeValue } from './worship-time-core.js'
+
 /**
  * @param {string | undefined} value
  */
@@ -20,7 +22,8 @@ export function parseBibleVerse(value) {
  */
 export function createContiDraft(conti) {
   const verse = parseBibleVerse(conti.bibleVerse)
-  const [rawHour = 10, rawMinute = 0] = conti.worshipTime.split(':').map(Number)
+  const normalizedTime = normalizeWorshipTimeValue(conti.worshipTime) || '10:00'
+  const [rawHour = 10, rawMinute = 0] = normalizedTime.split(':').map(Number)
   const period = rawHour >= 12 ? 'PM' : 'AM'
   const hour = rawHour % 12 || 12
 
