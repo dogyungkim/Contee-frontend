@@ -70,6 +70,17 @@ export async function deleteContiSongSheetMusic(
   );
 }
 
+export async function downloadContiSongSheetMusic(
+  downloadUrl: string,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  const { data } = await apiClient.get<ArrayBuffer>(downloadUrl, {
+    responseType: 'arraybuffer',
+    signal,
+  });
+  return new Uint8Array(data);
+}
+
 export async function enableExternalShare(contiId: string): Promise<ExternalShare> {
   const { data } = await apiClient.post<ApiResponse<ExternalShareResponseDto>>(
     `/api/v1/contis/${contiId}/external-share`,

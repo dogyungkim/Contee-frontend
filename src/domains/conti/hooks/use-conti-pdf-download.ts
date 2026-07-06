@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 
 import type { Conti } from '@/types/conti'
+import { downloadContiSongSheetMusic } from '@/domains/conti/api/conti.api'
 import {
   buildContiSheetMusicPdf,
   createContiPdfFilename,
@@ -23,7 +24,9 @@ export function useContiPdfDownload(conti: Conti) {
 
     setIsDownloading(true)
     try {
-      const result = await buildContiSheetMusicPdf(sources)
+      const result = await buildContiSheetMusicPdf(sources, {
+        sourceLoader: downloadContiSongSheetMusic,
+      })
       downloadPdf(
         result.bytes,
         createContiPdfFilename(conti.title, conti.worshipDate),

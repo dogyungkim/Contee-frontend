@@ -3,13 +3,13 @@ const A4_HEIGHT = 841.89
 const PAGE_MARGIN = 24
 const METADATA_GAP = 10
 const METADATA_CANVAS_WIDTH = 1600
-const HEADER_CANVAS_HEIGHT = 120
-const FOOTER_CANVAS_HEIGHT = 168
+const HEADER_CANVAS_HEIGHT = 60
+const FOOTER_CANVAS_HEIGHT = 68
 
 /**
  * @typedef {{ partOrder?: number | null, partType?: string, customPartName?: string, repeatCount?: number, barCount?: number, note?: string }} PdfSongFormPart
- * @typedef {{ title?: string, orderIndex?: number, sheetMusicUrl?: string, songForm?: PdfSongFormPart[], teamSong?: { sheetMusicUrl?: string } }} PdfContiSong
- * @typedef {{ title: string, url: string, orderNumber: number, songFormSummary: string }} PdfSheetSource
+ * @typedef {{ title?: string, orderIndex?: number, key?: string, bpm?: number, sheetMusicUrl?: string, sheetMusicFile?: { downloadUrl?: string } | null, songForm?: PdfSongFormPart[], teamSong?: { sheetMusicUrl?: string } }} PdfContiSong
+ * @typedef {{ title: string, key?: string, bpm?: number, url: string, orderNumber: number, songFormSummary: string }} PdfSheetSource
  * @typedef {{ header?: Uint8Array, footer?: Uint8Array }} PdfMetadataImages
  */
 
@@ -37,7 +37,7 @@ export function createSongFormSummary(parts = []) {
     .sort(
       (a, b) =>
         (a.part.partOrder ?? a.arrayIndex) -
-          (b.part.partOrder ?? b.arrayIndex) ||
+        (b.part.partOrder ?? b.arrayIndex) ||
         a.arrayIndex - b.arrayIndex,
     )
     .map(({ part }) => {
@@ -77,15 +77,24 @@ export function getPdfSheetSources(songs) {
   return songs
     .map((song, arrayIndex) => ({
       title: song.title?.trim() || `곡 ${arrayIndex + 1}`,
+      key: song.key?.trim(),
+      bpm: song.bpm,
       orderIndex: song.orderIndex ?? arrayIndex,
       arrayIndex,
-      url: (song.sheetMusicUrl || song.teamSong?.sheetMusicUrl || '').trim(),
+      url: (
+        song.sheetMusicFile?.downloadUrl ||
+        song.sheetMusicUrl ||
+        song.teamSong?.sheetMusicUrl ||
+        ''
+      ).trim(),
       songFormSummary: createSongFormSummary(song.songForm),
     }))
     .filter((song) => song.url)
     .sort((a, b) => a.orderIndex - b.orderIndex || a.arrayIndex - b.arrayIndex)
-    .map(({ title, url, songFormSummary }, index) => ({
+    .map(({ title, key, bpm, url, songFormSummary }, index) => ({
       title,
+      key,
+      bpm,
       url,
       orderNumber: index + 1,
       songFormSummary,
@@ -230,7 +239,11 @@ async function renderMetadataImages(source) {
   headerContext.fillStyle = '#ffffff'
   headerContext.fillRect(0, 0, headerCanvas.width, headerCanvas.height)
   headerContext.fillStyle = '#171717'
-  const title = `${source.orderNumber}. ${source.title}`
+  const musicalInfo = [source.key, source.bpm].filter(
+    (value) => value !== undefined && value !== null && value !== '',
+  )
+  const title = `${source.orderNumber}. ${source.title}${musicalInfo.length > 0 ? ` - ${musicalInfo.join(' : ')}` : ''
+    }`
   const titleSize = fitCanvasText(
     headerContext,
     title,
@@ -255,17 +268,30 @@ async function renderMetadataImages(source) {
   const footerContext = footerCanvas.getContext('2d')
   if (!footerContext) throw new Error('PDF 곡 구성 영역을 만들지 못했습니다.')
 
-  footerContext.fillStyle = '#f5f5f5'
+  footerContext.fillStyle = '#ffffff'
   footerContext.fillRect(0, 0, footerCanvas.width, footerCanvas.height)
-  footerContext.fillStyle = '#525252'
-  footerContext.font = '600 26px Pretendard, "Noto Sans KR", sans-serif'
-  footerContext.textBaseline = 'middle'
-  footerContext.fillText('곡 구성', 32, 36)
   footerContext.fillStyle = '#171717'
-  footerContext.font = '600 30px Pretendard, "Noto Sans KR", sans-serif'
+  const summarySize = fitCanvasText(
+    footerContext,
+    source.songFormSummary,
+    METADATA_CANVAS_WIDTH - 80,
+    44,
+    28,
+    700,
+  )
+  footerContext.font = `700 ${summarySize}px Pretendard, "Noto Sans KR", sans-serif`
+  footerContext.textAlign = 'center'
+  footerContext.textBaseline = 'middle'
   const summaryLines = getSummaryLines(footerContext, source.songFormSummary)
+  const lineHeight = summarySize * 1.35
+  const firstLineY =
+    FOOTER_CANVAS_HEIGHT / 2 - ((summaryLines.length - 1) * lineHeight) / 2
   summaryLines.forEach((line, index) => {
-    footerContext.fillText(line, 32, 88 + index * 42)
+    footerContext.fillText(
+      line,
+      METADATA_CANVAS_WIDTH / 2,
+      firstLineY + index * lineHeight,
+    )
   })
 
   return {
@@ -418,12 +444,17 @@ async function appendSource(outputDocument, bytes, PdfDocument, metadata) {
  * @param {PdfSheetSource} source
  * @param {typeof fetch} fetcher
  * @param {number} timeoutMs
+ * @param {((url: string, signal: AbortSignal) => Promise<Uint8Array>) | undefined} sourceLoader
  */
-async function fetchSource(source, fetcher, timeoutMs) {
+async function fetchSource(source, fetcher, timeoutMs, sourceLoader) {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
+    if (sourceLoader) {
+      return await sourceLoader(source.url, controller.signal)
+    }
+
     const response = await fetcher(source.url, { signal: controller.signal })
     if (!response.ok) {
       throw new Error(`악보를 불러오지 못했습니다. (${response.status})`)
@@ -442,7 +473,7 @@ async function fetchSource(source, fetcher, timeoutMs) {
 
 /**
  * @param {PdfSheetSource[]} sources
- * @param {{ fetcher?: typeof fetch, metadataRenderer?: (source: PdfSheetSource) => Promise<PdfMetadataImages>, onProgress?: (current: number, total: number, title: string) => void, timeoutMs?: number }} [options]
+ * @param {{ fetcher?: typeof fetch, sourceLoader?: (url: string, signal: AbortSignal) => Promise<Uint8Array>, metadataRenderer?: (source: PdfSheetSource) => Promise<PdfMetadataImages>, onProgress?: (current: number, total: number, title: string) => void, timeoutMs?: number }} [options]
  */
 export async function buildContiSheetMusicPdf(sources, options = {}) {
   const { PDFDocument } = await import('pdf-lib')
@@ -450,13 +481,14 @@ export async function buildContiSheetMusicPdf(sources, options = {}) {
   const failures = []
   let mergedCount = 0
   const fetcher = options.fetcher ?? fetch
+  const sourceLoader = options.sourceLoader
   const metadataRenderer = options.metadataRenderer ?? renderMetadataImages
   const timeoutMs = options.timeoutMs ?? 15_000
   const fetchedSources = await Promise.all(
     sources.map(async (source) => {
       try {
         const [bytes, metadata] = await Promise.all([
-          fetchSource(source, fetcher, timeoutMs),
+          fetchSource(source, fetcher, timeoutMs, sourceLoader),
           metadataRenderer(source),
         ])
         return {

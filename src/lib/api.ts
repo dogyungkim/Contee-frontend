@@ -8,6 +8,17 @@ const API_LOG_ENABLED =
 const getRequestUrl = (config: { baseURL?: string; url?: string }) =>
   `${config.baseURL || ''}${config.url || ''}`;
 
+const AUTH_REFRESH_PATH = '/api/v1/auth/refresh';
+
+const isAuthRefreshRequest = (url?: string) =>
+  url?.split('?')[0].endsWith(AUTH_REFRESH_PATH) ?? false;
+
+const redirectToLogin = () => {
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.replace('/login');
+  }
+};
+
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
@@ -74,7 +85,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthRefreshRequest(originalRequest.url)
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -94,16 +109,12 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         } else {
           reset();
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login';
-          }
+          redirectToLogin();
         }
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
         useAuthStore.getState().reset();
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
+        redirectToLogin();
       }
     }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { FileText, Music, Save, Trash2, Upload, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,7 +55,12 @@ const SONG_PART_TYPE_MAP: Record<SongFormPart['type'], SongPartType> = {
   Instrumental: 'INSTRUMENTAL',
 }
 const BAR_COUNT_ENABLED_PART_TYPES: SongFormPart['type'][] = ['Intro', 'Interlude', 'Instrumental', 'Outro']
-const MAX_SHEET_MUSIC_SIZE = 20 * 1024 * 1024
+const MAX_PDF_SHEET_MUSIC_SIZE = 20 * 1024 * 1024
+const MAX_IMAGE_SHEET_MUSIC_SIZE = 5 * 1024 * 1024
+const SHEET_MUSIC_ACCEPT = 'application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg'
+const SHEET_MUSIC_MIME_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg'])
+const SHEET_MUSIC_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg']
+const SHEET_MUSIC_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg']
 
 const mapSongFormToRequest = (songForm: SongFormPart[]): SongFormPartRequest[] => {
   return songForm.map((part) => {
@@ -107,6 +112,7 @@ export function SongDirectEditCard({
   const [songForm, setSongForm] = useState<SongFormPart[]>(initialSongForm)
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [localSheetMusicFile, setLocalSheetMusicFile] = useState<File | null>(null)
+  const sheetMusicInputRef = useRef<HTMLInputElement>(null)
   const selectedSheetMusicFile =
     controlledSheetMusicFile === undefined ? localSheetMusicFile : controlledSheetMusicFile
   const displayTitle = headerTitle ?? '새로운 찬양 등록'
@@ -154,13 +160,27 @@ export function SongDirectEditCard({
   const handleSheetMusicFile = (file: File | undefined) => {
     if (!file) return
 
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
-    if (!isPdf) {
-      toast.error('PDF 형식의 악보만 업로드할 수 있습니다.')
+    const normalizedFileName = file.name.toLowerCase()
+    const isSupportedSheetMusic =
+      SHEET_MUSIC_MIME_TYPES.has(file.type.toLowerCase()) ||
+      SHEET_MUSIC_EXTENSIONS.some((extension) => normalizedFileName.endsWith(extension))
+
+    if (!isSupportedSheetMusic) {
+      toast.error('악보는 PDF, PNG, JPG, JPEG 파일만 업로드할 수 있습니다.')
       return
     }
-    if (file.size > MAX_SHEET_MUSIC_SIZE) {
-      toast.error('악보 파일은 20MB 이하만 업로드할 수 있습니다.')
+
+    const isImage =
+      file.type.toLowerCase().startsWith('image/') ||
+      SHEET_MUSIC_IMAGE_EXTENSIONS.some((extension) => normalizedFileName.endsWith(extension))
+    const maxFileSize = isImage ? MAX_IMAGE_SHEET_MUSIC_SIZE : MAX_PDF_SHEET_MUSIC_SIZE
+
+    if (file.size > maxFileSize) {
+      toast.error(
+        isImage
+          ? '이미지 악보는 5MB 이하만 업로드할 수 있습니다.'
+          : 'PDF 악보는 20MB 이하만 업로드할 수 있습니다.',
+      )
       return
     }
 
@@ -173,6 +193,10 @@ export function SongDirectEditCard({
     onSheetMusicFileChange?.(null)
   }
 
+  const openSheetMusicFilePicker = () => {
+    sheetMusicInputRef.current?.click()
+  }
+
   // Use shared summary logic
   const groupedFlow = getSongFormSummary(songForm)
 
@@ -183,7 +207,7 @@ export function SongDirectEditCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                 <Music className="h-4 w-4 text-primary" />
+                <Music className="h-4 w-4 text-primary" />
               </div>
               <CardTitle className="text-lg">{displayTitle}</CardTitle>
             </div>
@@ -198,7 +222,7 @@ export function SongDirectEditCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                 <Music className="h-4 w-4 text-primary" />
+                <Music className="h-4 w-4 text-primary" />
               </div>
               <h4 className="text-lg font-semibold">{displayTitle}</h4>
             </div>
@@ -206,106 +230,106 @@ export function SongDirectEditCard({
         )}
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor={`${fieldId}-title`} className="text-primary font-semibold">곡 제목 *</Label>
-                    <Input 
-                        id={`${fieldId}-title`} 
-                        placeholder="곡 제목을 입력하세요" 
-                        value={songTitle}
-                        onChange={e => {
-                            setSongTitle(e.target.value)
-                            emitChange({ title: e.target.value })
-                        }}
-                        className="font-bold text-lg"
-                        readOnly={identityLocked}
-                        autoFocus
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor={`${fieldId}-artist`}>아티스트</Label>
-                    <Input 
-                        id={`${fieldId}-artist`} 
-                        placeholder="예: 마커스워십, 제이어스" 
-                        value={artist}
-                        onChange={e => {
-                            setArtist(e.target.value)
-                            emitChange({ artist: e.target.value })
-                        }}
-                        readOnly={identityLocked}
-                    />
-                </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${fieldId}-title`} className="text-primary font-semibold">곡 제목 *</Label>
+              <Input
+                id={`${fieldId}-title`}
+                placeholder="곡 제목을 입력하세요"
+                value={songTitle}
+                onChange={e => {
+                  setSongTitle(e.target.value)
+                  emitChange({ title: e.target.value })
+                }}
+                className="font-bold text-lg"
+                readOnly={identityLocked}
+                autoFocus
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${fieldId}-artist`}>아티스트</Label>
+              <Input
+                id={`${fieldId}-artist`}
+                placeholder="예: 마커스워십, 제이어스"
+                value={artist}
+                onChange={e => {
+                  setArtist(e.target.value)
+                  emitChange({ artist: e.target.value })
+                }}
+                readOnly={identityLocked}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Key (조)</Label>
+              <Select
+                value={key}
+                onValueChange={(value) => {
+                  setKey(value)
+                  emitChange({ key: value })
+                }}
+              >
+                <SelectTrigger aria-label="Key 선택">
+                  <SelectValue placeholder="Key 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {KEYS.map(k => (
+                    <SelectItem key={k} value={k}>{k}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`${fieldId}-bpm`}>BPM (템포)</Label>
+              <Input
+                id={`${fieldId}-bpm`}
+                type="number"
+                min="0"
+                placeholder="예: 60"
+                value={bpm}
+                onChange={e => {
+                  setBpm(e.target.value)
+                  emitChange({ bpm: e.target.value })
+                }}
+              />
+            </div>
+            {showResourceFields && (
+              <>
                 <div className="space-y-2">
-                    <Label>Key (조)</Label>
-                    <Select
-                        value={key}
-                        onValueChange={(value) => {
-                            setKey(value)
-                            emitChange({ key: value })
-                        }}
-                    >
-                        <SelectTrigger aria-label="Key 선택">
-                            <SelectValue placeholder="Key 선택" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {KEYS.map(k => (
-                                <SelectItem key={k} value={k}>{k}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                  <Label htmlFor={`${fieldId}-youtube`}>YouTube 링크</Label>
+                  <Input
+                    id={`${fieldId}-youtube`}
+                    placeholder="https://youtube.com/..."
+                    value={youtubeUrl}
+                    onChange={e => {
+                      setYoutubeUrl(e.target.value)
+                      emitChange({ youtubeUrl: e.target.value })
+                    }}
+                  />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor={`${fieldId}-bpm`}>BPM (템포)</Label>
-                    <Input 
-                        id={`${fieldId}-bpm`} 
-                        type="number" 
-                        min="0"
-                        placeholder="예: 60" 
-                        value={bpm}
-                        onChange={e => {
-                            setBpm(e.target.value)
-                            emitChange({ bpm: e.target.value })
-                        }}
+                {!showSheetMusicUpload && (
+                  <div className="space-y-2">
+                    <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
+                    <Input
+                      id={`${fieldId}-sheetMusic`}
+                      placeholder="악보 이미지 또는 PDF 링크"
+                      value={sheetMusicUrl}
+                      onChange={e => {
+                        setSheetMusicUrl(e.target.value)
+                        emitChange({ sheetMusicUrl: e.target.value })
+                      }}
                     />
-                </div>
-                {showResourceFields && (
-                    <>
-                        <div className="space-y-2">
-                            <Label htmlFor={`${fieldId}-youtube`}>YouTube 링크</Label>
-                            <Input
-                                id={`${fieldId}-youtube`}
-                                placeholder="https://youtube.com/..."
-                                value={youtubeUrl}
-                                onChange={e => {
-                                    setYoutubeUrl(e.target.value)
-                                    emitChange({ youtubeUrl: e.target.value })
-                                }}
-                            />
-                        </div>
-                        {!showSheetMusicUpload && (
-                          <div className="space-y-2">
-                              <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
-                              <Input
-                                  id={`${fieldId}-sheetMusic`}
-                                  placeholder="악보 이미지 또는 PDF 링크"
-                                  value={sheetMusicUrl}
-                                  onChange={e => {
-                                      setSheetMusicUrl(e.target.value)
-                                      emitChange({ sheetMusicUrl: e.target.value })
-                                  }}
-                              />
-                          </div>
-                        )}
-                    </>
+                  </div>
                 )}
-            </div>
+              </>
+            )}
+          </div>
         </div>
 
         {showSheetMusicUpload && (
           <div className="space-y-2">
-            <Label htmlFor={`${fieldId}-sheetMusicFile`}>악보 파일</Label>
+            <Label>악보 파일</Label>
             <div className="rounded-lg border border-dashed p-4">
               {selectedSheetMusicFile ? (
                 <div className="flex items-center justify-between gap-3">
@@ -355,16 +379,22 @@ export function SongDirectEditCard({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2 py-3 text-center">
-                  <label
-                    htmlFor={`${fieldId}-sheetMusicFile`}
-                    className="flex cursor-pointer flex-col items-center gap-2"
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto flex-col gap-2 px-4 py-3"
+                    onClick={openSheetMusicFilePicker}
                   >
                     <Upload className="h-5 w-5 text-muted-foreground" />
                     <span className="text-sm font-medium">
-                      {isSheetMusicMarkedForDeletion ? '새 PDF를 선택하거나 삭제 상태로 저장하세요' : 'PDF 악보 선택'}
+                      {isSheetMusicMarkedForDeletion
+                        ? '새 악보 파일을 선택하거나 삭제 상태로 저장하세요'
+                        : '악보 파일 선택'}
                     </span>
-                    <span className="text-xs text-muted-foreground">PDF · 최대 20MB</span>
-                  </label>
+                    <span className="text-xs text-muted-foreground">
+                      PDF 최대 20MB · PNG/JPG/JPEG 최대 5MB
+                    </span>
+                  </Button>
                   {isSheetMusicMarkedForDeletion && onSheetMusicDeleteRequest && (
                     <Button type="button" variant="ghost" size="sm" onClick={onSheetMusicDeleteRequest}>
                       삭제 취소
@@ -373,23 +403,27 @@ export function SongDirectEditCard({
                 </div>
               )}
               <input
+                ref={sheetMusicInputRef}
                 id={`${fieldId}-sheetMusicFile`}
                 type="file"
-                accept="application/pdf,.pdf"
-                className="sr-only"
+                accept={SHEET_MUSIC_ACCEPT}
+                hidden
                 onChange={(event) => {
                   handleSheetMusicFile(event.target.files?.[0])
                   event.target.value = ''
                 }}
               />
               {(selectedSheetMusicFile || (existingSheetMusicFile && !isSheetMusicMarkedForDeletion)) && (
-                <Label
-                  htmlFor={`${fieldId}-sheetMusicFile`}
-                  className="mt-3 flex cursor-pointer items-center justify-center gap-2 text-xs text-primary"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mx-auto mt-3 flex text-xs text-primary"
+                  onClick={openSheetMusicFilePicker}
                 >
                   <Upload className="h-3.5 w-3.5" />
-                  다른 PDF 선택
-                </Label>
+                  다른 악보 파일 선택
+                </Button>
               )}
             </div>
           </div>
@@ -399,82 +433,82 @@ export function SongDirectEditCard({
 
         {/* Song Form Editor */}
         <div className="space-y-2">
-             <div className="flex items-center justify-between">
-                <Label>곡 구성 (Song Form)</Label>
-                <Button variant="outline" size="sm" onClick={() => setFormDialogOpen(true)} className="h-7 text-xs">
-                    {songForm.length > 0 ? '편집하기' : '구성 설정하기'}
-                </Button>
-             </div>
-             
-             {songForm.length > 0 ? (
-                 <div className="bg-slate-50 rounded-xl p-4 border flex items-center gap-2 overflow-x-auto">
-                    {groupedFlow.map((group, index) => (
-                        <div key={index} className="flex items-center gap-2 shrink-0">
-                             <div className={cn("px-3 py-1.5 rounded-md text-sm font-bold border shadow-sm", {
-                                 'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
-                                 'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
-                                 'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
-                                 'bg-amber-50 border-amber-200 text-amber-700': group.type === 'Bridge',
-                                 'bg-emerald-50 border-emerald-200 text-emerald-700': group.type === 'Instrumental',
-                                 'bg-rose-50 border-rose-200 text-rose-700': group.type === 'Tag',
-                                 'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
-                             })}>
-                                 {group.abbr}
-                                 {group.showBars && <span className="ml-1 text-xs opacity-70 font-normal">({group.bars})</span>}
-                                 {group.count > 1 && <span className="ml-1 text-[10px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
-                             </div>
-                             {index < groupedFlow.length - 1 && <span className="text-slate-300">→</span>}
-                        </div>
-                    ))}
-                 </div>
-             ) : (
-                 <div 
-                    className="bg-slate-50 border border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => setFormDialogOpen(true)}
-                >
-                    <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
-                        <Music className="h-4 w-4 text-slate-500" />
-                    </div>
-                    <p className="text-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
-                    <p className="text-xs text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
-                 </div>
-             )}
+          <div className="flex items-center justify-between">
+            <Label>곡 구성 (Song Form)</Label>
+            <Button variant="outline" size="sm" onClick={() => setFormDialogOpen(true)} className="h-7 text-xs">
+              {songForm.length > 0 ? '편집하기' : '구성 설정하기'}
+            </Button>
+          </div>
 
-             <SongFormDialog 
-                open={formDialogOpen} 
-                onOpenChange={setFormDialogOpen}
-                value={songForm}
-                onChange={(value) => {
-                    setSongForm(value)
-                    emitChange({ songForm: value })
-                }}
-             />
+          {songForm.length > 0 ? (
+            <div className="bg-slate-50 rounded-xl p-4 border flex items-center gap-2 overflow-x-auto">
+              {groupedFlow.map((group, index) => (
+                <div key={index} className="flex items-center gap-2 shrink-0">
+                  <div className={cn("px-3 py-1.5 rounded-md text-sm font-bold border shadow-sm", {
+                    'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
+                    'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
+                    'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
+                    'bg-amber-50 border-amber-200 text-amber-700': group.type === 'Bridge',
+                    'bg-emerald-50 border-emerald-200 text-emerald-700': group.type === 'Instrumental',
+                    'bg-rose-50 border-rose-200 text-rose-700': group.type === 'Tag',
+                    'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
+                  })}>
+                    {group.abbr}
+                    {group.showBars && <span className="ml-1 text-xs opacity-70 font-normal">({group.bars})</span>}
+                    {group.count > 1 && <span className="ml-1 text-[10px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
+                  </div>
+                  {index < groupedFlow.length - 1 && <span className="text-slate-300">→</span>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              className="bg-slate-50 border border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-colors"
+              onClick={() => setFormDialogOpen(true)}
+            >
+              <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
+                <Music className="h-4 w-4 text-slate-500" />
+              </div>
+              <p className="text-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
+              <p className="text-xs text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
+            </div>
+          )}
+
+          <SongFormDialog
+            open={formDialogOpen}
+            onOpenChange={setFormDialogOpen}
+            value={songForm}
+            onChange={(value) => {
+              setSongForm(value)
+              emitChange({ songForm: value })
+            }}
+          />
         </div>
 
         <Separator />
 
         {/* Notes */}
         <div className="space-y-2">
-            <Label htmlFor={`${fieldId}-note`}>{noteLabel}</Label>
-            <Textarea 
-                id={`${fieldId}-note`} 
-                placeholder={notePlaceholder}
-                className="min-h-[80px]"
-                value={note}
-                onChange={e => {
-                    setNote(e.target.value)
-                    emitChange({ note: e.target.value })
-                }}
-            />
+          <Label htmlFor={`${fieldId}-note`}>{noteLabel}</Label>
+          <Textarea
+            id={`${fieldId}-note`}
+            placeholder={notePlaceholder}
+            className="min-h-[80px]"
+            value={note}
+            onChange={e => {
+              setNote(e.target.value)
+              emitChange({ note: e.target.value })
+            }}
+          />
         </div>
 
         {/* Footer Actions */}
         {showFooterActions && <div className="flex justify-end gap-2 pt-2">
-            {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-24" disabled={isSubmitting}>취소</Button>}
-            <Button onClick={handleSave} className="w-32 gap-2" disabled={isSubmitting}>
-                <Save className="h-4 w-4" />
-                {submitLabel}
-            </Button>
+          {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-24" disabled={isSubmitting}>취소</Button>}
+          <Button onClick={handleSave} className="w-32 gap-2" disabled={isSubmitting}>
+            <Save className="h-4 w-4" />
+            {submitLabel}
+          </Button>
         </div>}
       </CardContent>
     </>

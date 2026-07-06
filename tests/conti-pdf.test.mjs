@@ -16,8 +16,16 @@ test('collects only songs with sheet music in conti order', () => {
       { title: '두 번째 곡', orderIndex: 1, sheetMusicUrl: ' https://example.com/2.pdf ' },
       { title: '악보 없음', orderIndex: 2 },
       {
+        title: '업로드 악보',
+        orderIndex: 3,
+        sheetMusicUrl: 'https://example.com/legacy.pdf',
+        sheetMusicFile: { downloadUrl: ' /api/v1/contis/1/songs/3/sheet-music ' },
+      },
+      {
         title: '첫 번째 곡',
         orderIndex: 0,
+        key: 'A',
+        bpm: 72,
         teamSong: { sheetMusicUrl: 'https://example.com/1.pdf' },
         songForm: [
           { partOrder: 0, partType: 'INTRO', barCount: 4, repeatCount: 1 },
@@ -29,14 +37,26 @@ test('collects only songs with sheet music in conti order', () => {
     [
       {
         title: '첫 번째 곡',
+        key: 'A',
+        bpm: 72,
         url: 'https://example.com/1.pdf',
         orderNumber: 1,
         songFormSummary: 'Intro(4) → V1 → C x2',
       },
       {
         title: '두 번째 곡',
+        key: undefined,
+        bpm: undefined,
         url: 'https://example.com/2.pdf',
         orderNumber: 2,
+        songFormSummary: '등록된 곡 구성이 없습니다.',
+      },
+      {
+        title: '업로드 악보',
+        key: undefined,
+        bpm: undefined,
+        url: '/api/v1/contis/1/songs/3/sheet-music',
+        orderNumber: 3,
         songFormSummary: '등록된 곡 구성이 없습니다.',
       },
     ],
