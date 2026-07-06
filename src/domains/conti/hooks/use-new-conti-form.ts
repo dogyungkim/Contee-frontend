@@ -8,6 +8,7 @@ import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/so
 import { ContiSongRequestItem } from '@/types/conti'
 import { toast } from '@/lib/toast'
 import { formatWorshipTime } from '@/domains/conti/utils/worship-time'
+import { uploadContiSongSheetMusic } from '@/domains/conti/api/conti.api'
 
 // Temp Song Type for UI State
 export interface TempContiSong {
@@ -30,6 +31,7 @@ export interface TempContiSong {
     sheetMusicUrl?: string
     note?: string // Library note (for new songs) or just note
     songForm?: SongFormPartRequest[] // Song structure for new songs
+    sheetMusicFile?: File | null
 
     // Conti Specific
     contiNote?: string
@@ -120,7 +122,33 @@ export const useNewContiForm = (teamId: string | null) => {
                 contiSongs: contiSongsRequest
             })
 
-            // 4. Redirect
+            const sheetMusicUploads = tempSongs
+                .map((song, orderIndex) => ({ song, orderIndex }))
+                .filter(({ song }) => !!song.sheetMusicFile)
+
+            if (sheetMusicUploads.length > 0) {
+                const uploadResults = await Promise.allSettled(
+                    sheetMusicUploads.map(async ({ song, orderIndex }) => {
+                        const savedSong = newConti.contiSongs?.find(
+                            (contiSong) => contiSong.orderIndex === orderIndex,
+                        )
+                        if (!savedSong || !song.sheetMusicFile) {
+                            throw new Error(`Saved conti song not found for order ${orderIndex}`)
+                        }
+                        return uploadContiSongSheetMusic(
+                            newConti.id,
+                            savedSong.id,
+                            song.sheetMusicFile,
+                        )
+                    }),
+                )
+                const failedUploads = uploadResults.filter((result) => result.status === 'rejected')
+                if (failedUploads.length > 0) {
+                    console.error('Failed to upload sheet music:', failedUploads)
+                    toast.error('콘티는 생성됐지만 일부 악보를 업로드하지 못했습니다.')
+                }
+            }
+
             router.push(`/dashboard/contis/${newConti.id}`)
         } catch (error) {
             console.error('Failed to create conti:', error)
@@ -148,7 +176,7 @@ export const useNewContiForm = (teamId: string | null) => {
         ])
     }
 
-    const addNewSong = (data: CreateTeamSongRequest) => {
+    const addNewSong = (data: CreateTeamSongRequest, sheetMusicFile?: File) => {
         setTempSongs((prev) => [
             ...prev,
             {
@@ -163,6 +191,7 @@ export const useNewContiForm = (teamId: string | null) => {
                 sheetMusicUrl: data.sheetMusicUrl,
                 note: data.note,
                 songForm: data.songForm,
+                sheetMusicFile,
             },
         ])
     }
@@ -193,6 +222,12 @@ export const useNewContiForm = (teamId: string | null) => {
                     songForm: data.songForm,
                 }
             })
+        )
+    }
+
+    const updateSheetMusicFile = (tempId: string, file: File | null) => {
+        setTempSongs((prev) =>
+            prev.map((song) => (song.tempId === tempId ? { ...song, sheetMusicFile: file } : song))
         )
     }
 
@@ -238,6 +273,7 @@ export const useNewContiForm = (teamId: string | null) => {
         addExistingSong,
         addNewSong,
         updateSong,
+        updateSheetMusicFile,
         moveSong,
         removeSong,
 

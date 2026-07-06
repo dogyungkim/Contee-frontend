@@ -50,6 +50,7 @@ export default function NewContiPage() {
     addExistingSong,
     addNewSong,
     updateSong,
+    updateSheetMusicFile,
     moveSong,
     removeSong,
     handleSave,
@@ -341,6 +342,9 @@ export default function NewContiPage() {
                   idPrefix={`new-conti-song-${song.tempId}`}
                   identityLocked={!song.isNewSong}
                   showResourceFields={song.isNewSong}
+                  showSheetMusicUpload
+                  sheetMusicFile={song.sheetMusicFile}
+                  onSheetMusicFileChange={(file) => updateSheetMusicFile(song.tempId, file)}
                   noteLabel={song.isNewSong ? '팀 곡 메모' : '콘티 메모'}
                   notePlaceholder={song.isNewSong ? '곡 라이브러리에 저장할 메모를 입력하세요.' : '이 콘티에서만 사용할 메모를 입력하세요.'}
                   showCancelButton={false}
@@ -367,8 +371,9 @@ export default function NewContiPage() {
           {isAddingNewSong && (
              <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
                  <SongDirectEditCard 
-                    onSave={(data) => {
-                      addNewSong(data)
+                    showSheetMusicUpload
+                    onSave={(data, sheetMusicFile) => {
+                      addNewSong(data, sheetMusicFile)
                       setIsAddingNewSong(false)
                     }}
                     onCancel={() => setIsAddingNewSong(false)}

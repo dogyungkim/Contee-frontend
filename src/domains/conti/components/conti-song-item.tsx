@@ -37,9 +37,22 @@ interface ContiSongItemProps {
   isEditMode: boolean
   onRemove: (id: string) => void
   onChange: (song: ContiSong) => void
+  sheetMusicChange?: { file: File | null; deleteExisting: boolean }
+  onSheetMusicChange: (songId: string, file: File | null) => void
+  onSheetMusicDeleteRequest: (songId: string) => void
 }
 
-export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onChange }: ContiSongItemProps) {
+export function ContiSongItem({
+  id,
+  contiSong,
+  index,
+  isEditMode,
+  onRemove,
+  onChange,
+  sheetMusicChange,
+  onSheetMusicChange,
+  onSheetMusicDeleteRequest,
+}: ContiSongItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const { mutate: updateTeamSong } = useUpdateTeamSong()
   const teamSong = contiSong.teamSong
@@ -85,7 +98,7 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
         teamNote={teamSong?.note}
         songForm={songFormParts}
         youtubeUrl={display.youtubeUrl}
-        sheetMusicUrl={display.sheetMusicUrl}
+        sheetMusicUrl={contiSong.sheetMusicFile?.downloadUrl ?? display.sheetMusicUrl}
         isDragging={isDragging}
         highlightKey={isKeyOverridden}
         highlightBpm={isBpmOverridden}
@@ -144,6 +157,16 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
             idPrefix={`conti-song-${contiSong.id}`}
             showCancelButton={false}
             showFooterActions={false}
+            showSheetMusicUpload
+            sheetMusicFile={sheetMusicChange?.file}
+            existingSheetMusicFile={contiSong.sheetMusicFile}
+            isSheetMusicMarkedForDeletion={sheetMusicChange?.deleteExisting}
+            onSheetMusicFileChange={(file) => onSheetMusicChange(contiSong.id, file)}
+            onSheetMusicDeleteRequest={
+              contiSong.sheetMusicFile
+                ? () => onSheetMusicDeleteRequest(contiSong.id)
+                : undefined
+            }
             initialValue={{
               title: form.title,
               artist: form.artist,

@@ -33,6 +33,7 @@ export const toContiSongModel = (dto: ContiSongResponseDto): ContiSong => {
     note: dto.note,
     youtubeUrl: dto.youtubeUrl ?? mappedTeamSong?.youtubeUrl,
     sheetMusicUrl: dto.sheetMusicUrl ?? mappedTeamSong?.sheetMusicUrl,
+    sheetMusicFile: dto.sheetMusicFile,
     songForm: dto.songForm?.map(toContiSongFormPartModel) ?? [],
     teamSong: mappedTeamSong,
     createdAt: dto.createdAt,

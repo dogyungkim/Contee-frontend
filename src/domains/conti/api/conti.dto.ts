@@ -23,6 +23,14 @@ export interface ContiSongFormPartDto {
   note?: string;
 }
 
+export interface SheetMusicFileResponseDto {
+  id: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  downloadUrl: string;
+}
+
 export interface ContiSongResponseDto {
   id: string;
   contiId?: string;
@@ -35,6 +43,7 @@ export interface ContiSongResponseDto {
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
+  sheetMusicFile?: SheetMusicFileResponseDto | null;
   songForm?: ContiSongFormPartDto[];
   teamSong?: TeamSongResponseDto;
   createdAt?: string;

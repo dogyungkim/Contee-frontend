@@ -23,6 +23,14 @@ export interface ContiSongFormPart {
   note?: string;
 }
 
+export interface SheetMusicFile {
+  id: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  downloadUrl: string;
+}
+
 export interface Conti {
   id: string;
   teamId: string;
@@ -75,6 +83,7 @@ export interface ContiSong {
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
+  sheetMusicFile?: SheetMusicFile | null;
   songForm: ContiSongFormPart[];
   teamSong?: TeamSong;
   createdAt?: string;

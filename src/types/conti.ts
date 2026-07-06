@@ -5,6 +5,7 @@ export type {
   ContiSong,
   ContiSongFormPart,
   ContiSongPartType,
+  SheetMusicFile,
 } from '@/domains/conti/models/conti';
 export type {
   ContiSongRequestItemDto as ContiSongRequestItem,

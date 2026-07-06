@@ -8,6 +8,7 @@ import type {
   SharedContiResponseDto,
   UpdateContiRequestDto,
   ContiSearchParamsDto,
+  SheetMusicFileResponseDto,
 } from '@/domains/conti/api/conti.dto';
 import { toContiModel, toSharedContiModel } from '@/domains/conti/api/conti.mapper';
 
@@ -42,6 +43,31 @@ export async function updateConti(contiId: string, request: UpdateContiRequestDt
 
 export async function deleteConti(contiId: string): Promise<void> {
   await apiClient.delete<ApiResponse<void>>(`/api/v1/contis/${contiId}`);
+}
+
+export async function uploadContiSongSheetMusic(
+  contiId: string,
+  contiSongId: string,
+  file: File,
+): Promise<SheetMusicFileResponseDto> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await apiClient.put<ApiResponse<SheetMusicFileResponseDto>>(
+    `/api/v1/contis/${contiId}/songs/${contiSongId}/sheet-music`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return data.data;
+}
+
+export async function deleteContiSongSheetMusic(
+  contiId: string,
+  contiSongId: string,
+): Promise<void> {
+  await apiClient.delete<ApiResponse<void>>(
+    `/api/v1/contis/${contiId}/songs/${contiSongId}/sheet-music`,
+  );
 }
 
 export async function enableExternalShare(contiId: string): Promise<ExternalShare> {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useState } from 'react'
-import { Save, X, Music } from 'lucide-react'
+import { FileText, Music, Save, Trash2, Upload, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,9 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { toast } from '@/lib/toast'
+import type { SheetMusicFile } from '@/types/conti'
+import { openSheetMusic } from '@/domains/conti/utils/sheet-music'
 
 interface SongDirectEditCardProps {
-  onSave: (data: CreateTeamSongRequest) => void
+  onSave: (data: CreateTeamSongRequest, sheetMusicFile?: File) => void
   onCancel: () => void
   onChange?: (data: CreateTeamSongRequest) => void
   initialValue?: Partial<CreateTeamSongRequest>
@@ -32,6 +34,12 @@ interface SongDirectEditCardProps {
   showCancelButton?: boolean
   showFooterActions?: boolean
   isSubmitting?: boolean
+  showSheetMusicUpload?: boolean
+  sheetMusicFile?: File | null
+  existingSheetMusicFile?: SheetMusicFile | null
+  isSheetMusicMarkedForDeletion?: boolean
+  onSheetMusicFileChange?: (file: File | null) => void
+  onSheetMusicDeleteRequest?: () => void
 }
 
 const KEYS = ['C', 'C#', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -47,6 +55,7 @@ const SONG_PART_TYPE_MAP: Record<SongFormPart['type'], SongPartType> = {
   Instrumental: 'INSTRUMENTAL',
 }
 const BAR_COUNT_ENABLED_PART_TYPES: SongFormPart['type'][] = ['Intro', 'Interlude', 'Instrumental', 'Outro']
+const MAX_SHEET_MUSIC_SIZE = 20 * 1024 * 1024
 
 const mapSongFormToRequest = (songForm: SongFormPart[]): SongFormPartRequest[] => {
   return songForm.map((part) => {
@@ -79,6 +88,12 @@ export function SongDirectEditCard({
   showCancelButton = true,
   showFooterActions = true,
   isSubmitting = false,
+  showSheetMusicUpload = false,
+  sheetMusicFile: controlledSheetMusicFile,
+  existingSheetMusicFile,
+  isSheetMusicMarkedForDeletion = false,
+  onSheetMusicFileChange,
+  onSheetMusicDeleteRequest,
 }: SongDirectEditCardProps) {
   const generatedId = useId()
   const fieldId = idPrefix ?? generatedId
@@ -91,6 +106,9 @@ export function SongDirectEditCard({
   const [note, setNote] = useState(initialValue?.note ?? '')
   const [songForm, setSongForm] = useState<SongFormPart[]>(initialSongForm)
   const [formDialogOpen, setFormDialogOpen] = useState(false)
+  const [localSheetMusicFile, setLocalSheetMusicFile] = useState<File | null>(null)
+  const selectedSheetMusicFile =
+    controlledSheetMusicFile === undefined ? localSheetMusicFile : controlledSheetMusicFile
   const displayTitle = headerTitle ?? '새로운 찬양 등록'
   const shouldShowEmbeddedTitle = variant === 'embedded' && headerTitle !== ''
 
@@ -130,7 +148,29 @@ export function SongDirectEditCard({
     }
 
     const request = buildRequest()
-    onSave(request)
+    onSave(request, selectedSheetMusicFile ?? undefined)
+  }
+
+  const handleSheetMusicFile = (file: File | undefined) => {
+    if (!file) return
+
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+    if (!isPdf) {
+      toast.error('PDF 형식의 악보만 업로드할 수 있습니다.')
+      return
+    }
+    if (file.size > MAX_SHEET_MUSIC_SIZE) {
+      toast.error('악보 파일은 20MB 이하만 업로드할 수 있습니다.')
+      return
+    }
+
+    setLocalSheetMusicFile(file)
+    onSheetMusicFileChange?.(file)
+  }
+
+  const clearSelectedSheetMusicFile = () => {
+    setLocalSheetMusicFile(null)
+    onSheetMusicFileChange?.(null)
   }
 
   // Use shared summary logic
@@ -244,22 +284,116 @@ export function SongDirectEditCard({
                                 }}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
-                            <Input
-                                id={`${fieldId}-sheetMusic`}
-                                placeholder="악보 이미지 또는 PDF 링크"
-                                value={sheetMusicUrl}
-                                onChange={e => {
-                                    setSheetMusicUrl(e.target.value)
-                                    emitChange({ sheetMusicUrl: e.target.value })
-                                }}
-                            />
-                        </div>
+                        {!showSheetMusicUpload && (
+                          <div className="space-y-2">
+                              <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
+                              <Input
+                                  id={`${fieldId}-sheetMusic`}
+                                  placeholder="악보 이미지 또는 PDF 링크"
+                                  value={sheetMusicUrl}
+                                  onChange={e => {
+                                      setSheetMusicUrl(e.target.value)
+                                      emitChange({ sheetMusicUrl: e.target.value })
+                                  }}
+                              />
+                          </div>
+                        )}
                     </>
                 )}
             </div>
         </div>
+
+        {showSheetMusicUpload && (
+          <div className="space-y-2">
+            <Label htmlFor={`${fieldId}-sheetMusicFile`}>악보 파일</Label>
+            <div className="rounded-lg border border-dashed p-4">
+              {selectedSheetMusicFile ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FileText className="h-4 w-4 shrink-0 text-red-500" />
+                    <span className="truncate text-sm font-medium">{selectedSheetMusicFile.name}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {(selectedSheetMusicFile.size / 1024 / 1024).toFixed(1)}MB
+                    </span>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={clearSelectedSheetMusicFile}>
+                    선택 취소
+                  </Button>
+                </div>
+              ) : existingSheetMusicFile && !isSheetMusicMarkedForDeletion ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FileText className="h-4 w-4 shrink-0 text-red-500" />
+                    <span className="truncate text-sm font-medium">{existingSheetMusicFile.fileName}</span>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        void openSheetMusic(existingSheetMusicFile.downloadUrl).catch(() => {
+                          toast.error('악보를 불러오지 못했습니다.')
+                        })
+                      }}
+                    >
+                      보기
+                    </Button>
+                    {onSheetMusicDeleteRequest && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={onSheetMusicDeleteRequest}
+                        aria-label="업로드된 악보 삭제"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 py-3 text-center">
+                  <label
+                    htmlFor={`${fieldId}-sheetMusicFile`}
+                    className="flex cursor-pointer flex-col items-center gap-2"
+                  >
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {isSheetMusicMarkedForDeletion ? '새 PDF를 선택하거나 삭제 상태로 저장하세요' : 'PDF 악보 선택'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">PDF · 최대 20MB</span>
+                  </label>
+                  {isSheetMusicMarkedForDeletion && onSheetMusicDeleteRequest && (
+                    <Button type="button" variant="ghost" size="sm" onClick={onSheetMusicDeleteRequest}>
+                      삭제 취소
+                    </Button>
+                  )}
+                </div>
+              )}
+              <input
+                id={`${fieldId}-sheetMusicFile`}
+                type="file"
+                accept="application/pdf,.pdf"
+                className="sr-only"
+                onChange={(event) => {
+                  handleSheetMusicFile(event.target.files?.[0])
+                  event.target.value = ''
+                }}
+              />
+              {(selectedSheetMusicFile || (existingSheetMusicFile && !isSheetMusicMarkedForDeletion)) && (
+                <Label
+                  htmlFor={`${fieldId}-sheetMusicFile`}
+                  className="mt-3 flex cursor-pointer items-center justify-center gap-2 text-xs text-primary"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  다른 PDF 선택
+                </Label>
+              )}
+            </div>
+          </div>
+        )}
 
         <Separator />
 

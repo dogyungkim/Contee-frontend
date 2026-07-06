@@ -12,11 +12,14 @@ interface ContiEditSongsProps {
   songs: ContiSong[]
   isAddingNewSong: boolean
   onAddingNewSongChange: (isAdding: boolean) => void
-  onAddNewSong: (song: CreateTeamSongRequest) => void
+  onAddNewSong: (song: CreateTeamSongRequest, sheetMusicFile?: File) => void
   onOpenSearch: () => void
   onRemoveSong: (songId: string) => void
   onUpdateOrder: (songs: ContiSong[]) => void
   onChangeSong: (song: ContiSong) => void
+  sheetMusicChanges: Record<string, { file: File | null; deleteExisting: boolean }>
+  onSheetMusicChange: (songId: string, file: File | null) => void
+  onSheetMusicDeleteRequest: (songId: string) => void
 }
 
 export function ContiEditSongs({
@@ -28,6 +31,9 @@ export function ContiEditSongs({
   onRemoveSong,
   onUpdateOrder,
   onChangeSong,
+  sheetMusicChanges,
+  onSheetMusicChange,
+  onSheetMusicDeleteRequest,
 }: ContiEditSongsProps) {
   return (
     <div className="space-y-4 pb-32">
@@ -42,13 +48,17 @@ export function ContiEditSongs({
         onRemove={onRemoveSong}
         onUpdateOrder={onUpdateOrder}
         onChangeSong={onChangeSong}
+        sheetMusicChanges={sheetMusicChanges}
+        onSheetMusicChange={onSheetMusicChange}
+        onSheetMusicDeleteRequest={onSheetMusicDeleteRequest}
       />
 
       {isAddingNewSong && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
           <SongDirectEditCard
-            onSave={(data) => {
-              onAddNewSong(data)
+            showSheetMusicUpload
+            onSave={(data, sheetMusicFile) => {
+              onAddNewSong(data, sheetMusicFile)
               onAddingNewSongChange(false)
             }}
             onCancel={() => onAddingNewSongChange(false)}

@@ -12,9 +12,21 @@ interface ContiSongListProps {
   onRemove: (id: string) => void
   onUpdateOrder: (songs: ContiSong[]) => void
   onChangeSong: (song: ContiSong) => void
+  sheetMusicChanges: Record<string, { file: File | null; deleteExisting: boolean }>
+  onSheetMusicChange: (songId: string, file: File | null) => void
+  onSheetMusicDeleteRequest: (songId: string) => void
 }
 
-export function ContiSongList({ songs, isEditMode, onRemove, onUpdateOrder, onChangeSong }: ContiSongListProps) {
+export function ContiSongList({
+  songs,
+  isEditMode,
+  onRemove,
+  onUpdateOrder,
+  onChangeSong,
+  sheetMusicChanges,
+  onSheetMusicChange,
+  onSheetMusicDeleteRequest,
+}: ContiSongListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: isEditMode ? undefined : { distance: DND_CONFIG.DISABLED_POINTER_DISTANCE },
@@ -64,6 +76,9 @@ export function ContiSongList({ songs, isEditMode, onRemove, onUpdateOrder, onCh
               isEditMode={isEditMode}
               onRemove={onRemove}
               onChange={onChangeSong}
+              sheetMusicChange={sheetMusicChanges[song.id]}
+              onSheetMusicChange={onSheetMusicChange}
+              onSheetMusicDeleteRequest={onSheetMusicDeleteRequest}
             />
           ))}
         </div>
