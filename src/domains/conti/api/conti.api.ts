@@ -17,7 +17,7 @@ export async function getTeamContis(
   params: ContiSearchParamsDto = {},
 ): Promise<PageDto<Conti>> {
   const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(
-    `/api/v1/teams/${teamId}/contis`,
+    `/api/v1/contis/team/${teamId}`,
     { params },
   );
   return {
@@ -38,6 +38,13 @@ export async function createConti(request: CreateContiRequestDto): Promise<Conti
 
 export async function updateConti(contiId: string, request: UpdateContiRequestDto): Promise<Conti> {
   const { data } = await apiClient.put<ApiResponse<ContiResponseDto>>(`/api/v1/contis/${contiId}`, request);
+  return toContiModel(data.data);
+}
+
+export async function publishConti(contiId: string): Promise<Conti> {
+  const { data } = await apiClient.post<ApiResponse<ContiResponseDto>>(
+    `/api/v1/contis/${contiId}/publish`,
+  );
   return toContiModel(data.data);
 }
 

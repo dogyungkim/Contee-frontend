@@ -38,6 +38,16 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
           <div className="min-w-0">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <div className="truncate text-sm font-medium text-foreground">{conti.title}</div>
+              <Badge
+                variant="outline"
+                className={
+                  conti.status === 'DRAFT'
+                    ? 'border-amber-200 bg-amber-50 text-amber-800'
+                    : 'border-blue-200 bg-blue-50 text-blue-700'
+                }
+              >
+                {conti.status === 'DRAFT' ? '작성 중' : '팀 공유됨'}
+              </Badge>
               {conti.externalShareEnabled && (
                 <Badge
                   variant="outline"

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 export interface ContiShareMenuProps {
+  isPublished: boolean
   externalShareEnabled: boolean
   canManageExternalShare: boolean
   hasChanges: boolean
@@ -21,6 +22,7 @@ export interface ContiShareMenuProps {
 }
 
 export function ContiShareMenu({
+  isPublished,
   externalShareEnabled,
   canManageExternalShare,
   hasChanges,
@@ -39,12 +41,18 @@ export function ContiShareMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={onCopyTeamShare}>
-          <Clipboard className="mr-2 h-4 w-4" />
-          팀 공유 링크 복사
-        </DropdownMenuItem>
-        {hasChanges && <DropdownMenuItem disabled>변경사항 저장 후 공유 가능</DropdownMenuItem>}
-        {canManageExternalShare && !hasChanges && (
+        {!isPublished ? (
+          <DropdownMenuItem disabled>팀에 공유한 뒤 링크 공유 가능</DropdownMenuItem>
+        ) : (
+          <>
+            <DropdownMenuItem onClick={onCopyTeamShare}>
+              <Clipboard className="mr-2 h-4 w-4" />
+              팀 공유 링크 복사
+            </DropdownMenuItem>
+            {hasChanges && <DropdownMenuItem disabled>변경사항 저장 후 공유 가능</DropdownMenuItem>}
+          </>
+        )}
+        {isPublished && canManageExternalShare && !hasChanges && (
           <>
             <DropdownMenuSeparator />
             {externalShareEnabled ? (

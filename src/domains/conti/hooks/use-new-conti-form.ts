@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
-import { useCreateConti } from '@/domains/conti/hooks/use-conti'
+import { useCreateConti, usePublishConti } from '@/domains/conti/hooks/use-conti'
 import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/song'
 import { ContiSongRequestItem } from '@/types/conti'
 import { toast } from '@/lib/toast'
@@ -37,6 +37,8 @@ export interface TempContiSong {
     contiNote?: string
 }
 
+export type NewContiSaveIntent = 'draft' | 'publish'
+
 export const useNewContiForm = (teamId: string | null) => {
     const router = useRouter()
 
@@ -55,11 +57,12 @@ export const useNewContiForm = (teamId: string | null) => {
     const [tempSongs, setTempSongs] = useState<TempContiSong[]>([])
 
     // UI State
-    const [isSaving, setIsSaving] = useState(false)
+    const [savingIntent, setSavingIntent] = useState<NewContiSaveIntent | null>(null)
 
     const { mutateAsync: createContiAsync } = useCreateConti()
+    const { mutateAsync: publishContiAsync } = usePublishConti()
 
-    const handleSave = async () => {
+    const handleSave = async (intent: NewContiSaveIntent) => {
         if (!title.trim()) {
             toast.error('예배 제목을 입력해주세요.')
             return
@@ -70,7 +73,8 @@ export const useNewContiForm = (teamId: string | null) => {
             return
         }
 
-        setIsSaving(true)
+        let savedDraftId: string | null = null
+        setSavingIntent(intent)
         try {
             // API 계약: worshipDate는 YYYY-MM-DD 형식
             const worshipDate = format(date, 'yyyy-MM-dd')
@@ -121,6 +125,7 @@ export const useNewContiForm = (teamId: string | null) => {
                 sharingInfo: sharingInfo.trim() || undefined,
                 contiSongs: contiSongsRequest
             })
+            savedDraftId = newConti.id
 
             const sheetMusicUploads = tempSongs
                 .map((song, orderIndex) => ({ song, orderIndex }))
@@ -149,12 +154,26 @@ export const useNewContiForm = (teamId: string | null) => {
                 }
             }
 
+            if (intent === 'publish') {
+                await publishContiAsync(newConti.id)
+                toast.success('콘티를 팀에 공유했습니다.')
+            } else {
+                toast.success('콘티를 임시 저장했습니다.')
+            }
+
             router.push(`/dashboard/contis/${newConti.id}`)
         } catch (error) {
             console.error('Failed to create conti:', error)
-            toast.error('콘티 생성 중 오류가 발생했습니다.')
+            toast.error(
+                intent === 'publish' && savedDraftId
+                    ? '콘티를 저장했지만 팀에 공유하지 못했습니다. 상세 화면에서 다시 시도해주세요.'
+                    : '콘티 생성 중 오류가 발생했습니다.',
+            )
+            if (savedDraftId) {
+                router.push(`/dashboard/contis/${savedDraftId}`)
+            }
         } finally {
-            setIsSaving(false)
+            setSavingIntent(null)
         }
     }
 
@@ -279,6 +298,7 @@ export const useNewContiForm = (teamId: string | null) => {
 
         // Actions
         handleSave,
-        isSaving,
+        isSaving: savingIntent !== null,
+        savingIntent,
     }
 }

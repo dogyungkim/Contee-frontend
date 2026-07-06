@@ -274,12 +274,17 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const newConti: Conti = {
             id: `conti-${Date.now()}`,
             teamId: body.teamId,
+            createdById: MOCK_USER_ID,
+            createdByName: 'Bryan Kim',
             title: body.title,
             worshipDate: body.worshipDate,
             worshipTime: body.worshipTime,
             memo: body.memo,
             bibleVerse: body.bibleVerse,
             sharingInfo: body.sharingInfo,
+            status: 'DRAFT',
+            publishedAt: null,
+            publishedById: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
@@ -332,7 +337,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         return success(getContiDetailData(newConti));
     }
 
-    const teamContisMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/contis$/);
+    const teamContisMatch = url?.match(/^\/api\/v1\/contis\/team\/([a-zA-Z0-9-]+)$/);
     if (teamContisMatch && methodUpper === 'GET') {
         const teamId = teamContisMatch[1];
         const page = Number(config.params?.page ?? 0);
@@ -342,6 +347,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const to = config.params?.to ? String(config.params.to) : undefined;
         const filtered = MOCK_CONTIS.filter((conti) => {
             if (conti.teamId !== teamId) return false;
+            if (conti.status === 'DRAFT' && conti.createdById !== MOCK_USER_ID) return false;
             if (q && !conti.title.toLowerCase().includes(q)) return false;
             if (from && conti.worshipDate < from) return false;
             if (to && conti.worshipDate > to) return false;
@@ -361,10 +367,15 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const newConti: Conti = {
             id: `conti-${Date.now()}`,
             teamId,
+            createdById: MOCK_USER_ID,
+            createdByName: 'Bryan Kim',
             title: body.title,
             worshipDate: body.worshipDate,
             worshipTime: body.worshipTime,
             memo: body.memo,
+            status: 'DRAFT',
+            publishedAt: null,
+            publishedById: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
         };
@@ -468,11 +479,31 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         return success(getContiDetailData(conti));
     }
 
+    const contiPublishMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/publish$/);
+    if (contiPublishMatch && methodUpper === 'POST') {
+        const id = contiPublishMatch[1];
+        const conti = MOCK_CONTIS.find(c => c.id === id);
+        if (!conti) return failure(404, 'Conti not found', 'CONTI_NOT_FOUND');
+
+        if (conti.status === 'DRAFT') {
+            const now = new Date().toISOString();
+            conti.status = 'PUBLISHED';
+            conti.publishedAt = now;
+            conti.publishedById = MOCK_USER_ID;
+            conti.updatedAt = now;
+        }
+
+        return success(getContiDetailData(conti));
+    }
+
     const contiExternalShareMatch = url?.match(/^\/api\/v1\/contis\/([a-zA-Z0-9-]+)\/external-share$/);
     if (contiExternalShareMatch && methodUpper === 'POST') {
         const id = contiExternalShareMatch[1];
         const conti = MOCK_CONTIS.find(c => c.id === id);
         if (!conti) return failure(404, 'Conti not found');
+        if (conti.status !== 'PUBLISHED') {
+            return failure(409, '팀에 공유된 콘티만 외부 공유할 수 있습니다.', 'CONTI_NOT_PUBLISHED');
+        }
 
         const token = conti.externalShare?.token ?? `share-${Date.now()}`;
         conti.externalShare = {
@@ -491,6 +522,9 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         const id = contiExternalShareMatch[1];
         const conti = MOCK_CONTIS.find(c => c.id === id);
         if (!conti) return failure(404, 'Conti not found');
+        if (conti.status !== 'PUBLISHED') {
+            return failure(409, '팀에 공유된 콘티만 외부 공유할 수 있습니다.', 'CONTI_NOT_PUBLISHED');
+        }
 
         conti.externalShare = {
             enabled: false,
@@ -507,7 +541,9 @@ export const mockAdapter: AxiosAdapter = async (config) => {
     const sharedContiMatch = url?.match(/^\/api\/v1\/share\/contis\/([^/]+)$/);
     if (sharedContiMatch && methodUpper === 'GET') {
         const token = sharedContiMatch[1];
-        const conti = MOCK_CONTIS.find(c => c.externalShare?.enabled && c.externalShare.token === token);
+        const conti = MOCK_CONTIS.find(
+            c => c.status === 'PUBLISHED' && c.externalShare?.enabled && c.externalShare.token === token,
+        );
         if (!conti) return failure(404, 'Share link not found', 'SHARE_LINK_NOT_FOUND');
 
         const detail = getContiDetailData(conti);

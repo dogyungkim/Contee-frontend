@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Download, LayoutList, Loader2 } from 'lucide-react'
+import { Download, LayoutList, Loader2, Send } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,24 +12,30 @@ interface ContiReadHeaderProps {
   conti: Conti
   songCount: number
   canEdit: boolean
+  canPublish: boolean
+  isPublishing: boolean
   isMembersLoading: boolean
   sheetMusicCount: number
   isPdfDownloading: boolean
   shareMenuProps: ContiShareMenuProps
   onDownloadPdf: () => void
   onStartEdit: () => void
+  onPublish: () => void
 }
 
 export function ContiReadHeader({
   conti,
   songCount,
   canEdit,
+  canPublish,
+  isPublishing,
   isMembersLoading,
   sheetMusicCount,
   isPdfDownloading,
   shareMenuProps,
   onDownloadPdf,
   onStartEdit,
+  onPublish,
 }: ContiReadHeaderProps) {
   return (
     <div className="mx-auto w-full max-w-[1200px] rounded-xl border bg-background px-6 py-4 sm:px-8">
@@ -41,6 +47,16 @@ export function ContiReadHeader({
           </div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
+            <Badge
+              variant="outline"
+              className={
+                conti.status === 'DRAFT'
+                  ? 'border-amber-200 bg-amber-50 text-amber-800'
+                  : 'border-blue-200 bg-blue-50 text-blue-700'
+              }
+            >
+              {conti.status === 'DRAFT' ? '작성 중' : '팀 공유됨'}
+            </Badge>
             {conti.externalShare?.enabled && (
               <Badge variant="outline" className="border-neutral-300 bg-neutral-50 text-neutral-700">
                 외부 공유 중
@@ -88,6 +104,21 @@ export function ContiReadHeader({
           {canEdit && !isMembersLoading && (
             <Button variant="outline" size="sm" className="h-9" onClick={onStartEdit}>
               수정
+            </Button>
+          )}
+          {canPublish && !isMembersLoading && (
+            <Button
+              size="sm"
+              className="h-9 gap-2"
+              disabled={isPublishing}
+              onClick={onPublish}
+            >
+              {isPublishing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              {isPublishing ? '공유 중' : '팀에 공유'}
             </Button>
           )}
           <ContiShareMenu {...shareMenuProps} />

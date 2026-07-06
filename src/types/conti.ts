@@ -1,5 +1,6 @@
 export type {
   Conti,
+  ContiStatus,
   ExternalShare,
   SharedConti,
   ContiSong,

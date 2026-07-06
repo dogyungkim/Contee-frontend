@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 interface ContiEditorActionBarProps {
+  isDraft: boolean
   hasChanges: boolean
   isSaving: boolean
   onCancel: () => void
@@ -9,6 +10,7 @@ interface ContiEditorActionBarProps {
 }
 
 export function ContiEditorActionBar({
+  isDraft,
   hasChanges,
   isSaving,
   onCancel,
@@ -29,7 +31,9 @@ export function ContiEditorActionBar({
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            저장 전에는 변경사항이 반영되지 않습니다.
+            {isDraft
+              ? '임시 저장한 내용은 팀에 공유하기 전까지 작성자에게만 보입니다.'
+              : '저장하면 변경사항이 팀원에게 바로 반영됩니다.'}
           </p>
         </div>
 
@@ -47,7 +51,7 @@ export function ContiEditorActionBar({
             onClick={onSave}
             disabled={isSaving || !hasChanges}
           >
-            {isSaving ? '저장 중...' : '저장 후 닫기'}
+            {isSaving ? '저장 중...' : isDraft ? '임시 저장 후 닫기' : '저장 후 닫기'}
           </Button>
         </div>
       </div>

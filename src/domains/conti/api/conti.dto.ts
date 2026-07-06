@@ -1,5 +1,7 @@
 import type { TeamSongResponseDto } from '@/domains/song/api/song.dto';
 
+export type ContiStatusDto = 'DRAFT' | 'PUBLISHED';
+
 export type ContiSongPartTypeDto =
   | 'INTRO'
   | 'VERSE'
@@ -61,6 +63,9 @@ export interface ContiResponseDto {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
+  status: ContiStatusDto;
+  publishedAt?: string | null;
+  publishedById?: string | null;
   songCount?: number;
   songPreview?: string[];
   externalShareEnabled?: boolean;

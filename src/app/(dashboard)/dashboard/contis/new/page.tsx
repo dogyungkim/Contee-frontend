@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen, X, ArrowUp, ArrowDown } from 'lucide-react'
+import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen, X, ArrowUp, ArrowDown, Send } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
@@ -55,6 +55,7 @@ export default function NewContiPage() {
     removeSong,
     handleSave,
     isSaving,
+    savingIntent,
   } = useNewContiForm(selectedTeamId)
   
   // UI State (kept in component as it's purely UI-related)
@@ -125,12 +126,25 @@ export default function NewContiPage() {
               취소
             </Button>
             <Button 
+              variant="outline"
               className="h-9 gap-2" 
-              onClick={handleSave}
+              onClick={() => {
+                void handleSave('draft')
+              }}
               disabled={isSaving || !title.trim()}
             >
               <Save className="h-4 w-4" />
-              {isSaving ? '저장 중...' : '저장하기'}
+              {savingIntent === 'draft' ? '저장 중...' : '임시 저장'}
+            </Button>
+            <Button
+              className="h-9 gap-2"
+              onClick={() => {
+                void handleSave('publish')
+              }}
+              disabled={isSaving || !title.trim()}
+            >
+              <Send className="h-4 w-4" />
+              {savingIntent === 'publish' ? '공유 중...' : '저장하고 팀에 공유'}
             </Button>
           </div>
         </div>

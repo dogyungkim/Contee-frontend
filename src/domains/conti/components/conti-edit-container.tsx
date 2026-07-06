@@ -213,6 +213,7 @@ export function ContiEditContainer({
   }
 
   const shareMenuProps = {
+    isPublished: conti.status === 'PUBLISHED',
     externalShareEnabled: !!conti.externalShare?.enabled,
     canManageExternalShare,
     hasChanges,
@@ -321,6 +322,7 @@ export function ContiEditContainer({
       />
 
       <ContiEditorActionBar
+        isDraft={conti.status === 'DRAFT'}
         hasChanges={hasChanges}
         isSaving={isSaving}
         onCancel={cancel}

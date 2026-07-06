@@ -31,6 +31,10 @@ export function ContiDetailContainer({ contiId }: ContiDetailContainerProps) {
   const canManageExternalShare =
     currentMember?.role === 'OWNER' ||
     currentMember?.role === 'ADMIN'
+  const canPublish =
+    conti?.status === 'DRAFT' &&
+    conti.createdById === String(user?.id) &&
+    canEdit
   const pageMode = useContiPageMode(canEdit)
 
   if (isContiLoading) {
@@ -70,6 +74,7 @@ export function ContiDetailContainer({ contiId }: ContiDetailContainerProps) {
     <ContiDetailView
       conti={conti}
       canEdit={canEdit}
+      canPublish={canPublish}
       canManageExternalShare={canManageExternalShare}
       isMembersLoading={isMembersLoading}
       onStartEdit={pageMode.startEditing}
