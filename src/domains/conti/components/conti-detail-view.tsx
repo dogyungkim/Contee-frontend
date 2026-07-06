@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Music } from 'lucide-react'
 
 import type { Conti } from '@/types/conti'
+import { useContiPdfDownload } from '@/domains/conti/hooks/use-conti-pdf-download'
 import { useContiSharing } from '@/domains/conti/hooks/use-conti-sharing'
 import { ContiReadHeader } from './conti-read-header'
 import { ContiReadOnlyInfo } from './conti-read-only-info'
@@ -30,6 +31,7 @@ export function ContiDetailView({
     contiId: conti.id,
     externalShare: conti.externalShare,
   })
+  const contiPdf = useContiPdfDownload(conti)
   const songs = conti.contiSongs ?? []
   const shareMenuProps = {
     externalShareEnabled: !!conti.externalShare?.enabled,
@@ -53,7 +55,12 @@ export function ContiDetailView({
         songCount={songs.length}
         canEdit={canEdit}
         isMembersLoading={isMembersLoading}
+        sheetMusicCount={contiPdf.sheetMusicCount}
+        isPdfDownloading={contiPdf.isDownloading}
         shareMenuProps={shareMenuProps}
+        onDownloadPdf={() => {
+          void contiPdf.download()
+        }}
         onStartEdit={onStartEdit}
       />
 

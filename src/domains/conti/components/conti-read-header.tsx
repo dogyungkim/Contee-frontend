@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { LayoutList } from 'lucide-react'
+import { Download, LayoutList, Loader2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,10 @@ interface ContiReadHeaderProps {
   songCount: number
   canEdit: boolean
   isMembersLoading: boolean
+  sheetMusicCount: number
+  isPdfDownloading: boolean
   shareMenuProps: ContiShareMenuProps
+  onDownloadPdf: () => void
   onStartEdit: () => void
 }
 
@@ -22,7 +25,10 @@ export function ContiReadHeader({
   songCount,
   canEdit,
   isMembersLoading,
+  sheetMusicCount,
+  isPdfDownloading,
   shareMenuProps,
+  onDownloadPdf,
   onStartEdit,
 }: ContiReadHeaderProps) {
   return (
@@ -55,6 +61,25 @@ export function ContiReadHeader({
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-2"
+            disabled={sheetMusicCount === 0 || isPdfDownloading}
+            title={
+              sheetMusicCount === 0
+                ? '등록된 악보가 없습니다.'
+                : `악보 ${sheetMusicCount}곡을 PDF로 다운로드`
+            }
+            onClick={onDownloadPdf}
+          >
+            {isPdfDownloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            {isPdfDownloading ? 'PDF 생성 중' : `악보 PDF (${sheetMusicCount})`}
+          </Button>
           {isMembersLoading && (
             <Button variant="outline" size="sm" className="h-9" disabled>
               권한 확인 중
