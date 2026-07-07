@@ -35,21 +35,27 @@ export function ContiShareMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9 gap-2"
+          aria-label="링크 관리"
+          title="링크 관리"
+        >
           <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">공유</span>
+          <span className="hidden sm:inline">링크 관리</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         {!isPublished ? (
-          <DropdownMenuItem disabled>팀에 공유한 뒤 링크 공유 가능</DropdownMenuItem>
+          <DropdownMenuItem disabled>팀에 공개한 뒤 링크 관리 가능</DropdownMenuItem>
         ) : (
           <>
             <DropdownMenuItem onClick={onCopyTeamShare}>
               <Clipboard className="mr-2 h-4 w-4" />
-              팀 공유 링크 복사
+              팀 링크 복사
             </DropdownMenuItem>
-            {hasChanges && <DropdownMenuItem disabled>변경사항 저장 후 공유 가능</DropdownMenuItem>}
+            {hasChanges && <DropdownMenuItem disabled>변경사항 저장 후 링크 관리 가능</DropdownMenuItem>}
           </>
         )}
         {isPublished && canManageExternalShare && !hasChanges && (

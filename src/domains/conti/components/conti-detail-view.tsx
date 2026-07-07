@@ -62,15 +62,15 @@ export function ContiDetailView({
   }
 
   const publish = async () => {
-    if (!window.confirm('이 콘티를 팀에 공유할까요? 공유 후에는 팀원이 바로 볼 수 있습니다.')) {
+    if (!window.confirm('이 콘티를 팀에 공개할까요? 공개 후에는 팀원이 바로 볼 수 있습니다.')) {
       return
     }
 
     try {
       await publishConti(conti.id)
-      toast.success('콘티를 팀에 공유했습니다.')
+      toast.success('콘티를 팀에 공개했습니다.')
     } catch (error) {
-      toast.error(getContiApiErrorMessage(error, '콘티를 팀에 공유하지 못했습니다.'))
+      toast.error(getContiApiErrorMessage(error, '콘티를 팀에 공개하지 못했습니다.'))
     }
   }
 

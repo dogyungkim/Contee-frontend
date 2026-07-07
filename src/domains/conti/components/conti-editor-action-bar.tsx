@@ -32,7 +32,7 @@ export function ContiEditorActionBar({
           </div>
           <p className="text-sm text-muted-foreground">
             {isDraft
-              ? '임시 저장한 내용은 팀에 공유하기 전까지 작성자에게만 보입니다.'
+              ? '임시 저장한 내용은 팀에 공개하기 전까지 작성자에게만 보입니다.'
               : '저장하면 변경사항이 팀원에게 바로 반영됩니다.'}
           </p>
         </div>

@@ -43,25 +43,25 @@ export function ContiReadHeader({
   return (
     <div className="mx-auto w-full max-w-[1200px] rounded-xl border bg-background px-6 py-4 sm:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 space-y-3">
+        <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             <LayoutList className="h-3 w-3" />
             Service Continuity
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="ml-1 flex flex-wrap items-center gap-1 border-l border-border/70 pl-0">
               <Badge
                 variant="outline"
                 className={
                   conti.status === 'DRAFT'
-                    ? 'h-5 px-1.5 py-0 text-[10px] font-semibold leading-none tracking-normal border-amber-200 bg-amber-50 text-amber-800'
-                    : 'h-5 px-1.5 py-0 text-[10px] font-semibold leading-none tracking-normal border-blue-200 bg-blue-50 text-blue-700'
+                    ? 'h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal border-amber-200 bg-amber-50 text-amber-800'
+                    : 'h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal border-blue-200 bg-blue-50 text-blue-700'
                 }
               >
-                {conti.status === 'DRAFT' ? '작성 중' : '팀 공유됨'}
+                {conti.status === 'DRAFT' ? '작성 중' : '팀 공개됨'}
               </Badge>
               {conti.externalShare?.enabled && (
                 <Badge
                   variant="outline"
-                  className="h-5 border-emerald-200 bg-emerald-50 px-1.5 py-0 text-[10px] font-semibold leading-none tracking-normal text-emerald-700"
+                  className="h-5 border-emerald-200 bg-emerald-50 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal text-emerald-700"
                 >
                   외부 공유 중
                 </Badge>
@@ -97,6 +97,15 @@ export function ContiReadHeader({
                 수정
               </Button>
             )}
+
+            <ContiExportMenu
+              {...exportMenuProps}
+              sheetMusicCount={sheetMusicCount}
+              isPdfDownloading={isPdfDownloading}
+              onDownloadPdf={onDownloadPdf}
+            />
+            {conti.status === 'PUBLISHED' && <ContiShareMenu {...shareMenuProps} />}
+
             {canPublish && !isMembersLoading && (
               <Button
                 size="sm"
@@ -109,16 +118,9 @@ export function ContiReadHeader({
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {isPublishing ? '공유 중' : '팀에 공유'}
+                {isPublishing ? '공개 중' : '팀에 공개'}
               </Button>
             )}
-            <ContiExportMenu
-              {...exportMenuProps}
-              sheetMusicCount={sheetMusicCount}
-              isPdfDownloading={isPdfDownloading}
-              onDownloadPdf={onDownloadPdf}
-            />
-            <ContiShareMenu {...shareMenuProps} />
           </div>
         </div>
       </div>

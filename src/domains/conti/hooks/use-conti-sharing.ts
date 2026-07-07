@@ -59,7 +59,7 @@ export function useContiSharing({
   const copyTeamShare = async () => {
     await copyToClipboard(
       buildUrl(`/dashboard/contis/${contiId}`),
-      '팀 공유 링크를 복사했습니다.',
+      '팀 링크를 복사했습니다.',
     )
   }
 

@@ -144,7 +144,7 @@ export default function NewContiPage() {
               disabled={isSaving || !title.trim()}
             >
               <Send className="h-4 w-4" />
-              {savingIntent === 'publish' ? '공유 중...' : '저장하고 팀에 공유'}
+              {savingIntent === 'publish' ? '공개 중...' : '저장하고 팀에 공개'}
             </Button>
           </div>
         </div>

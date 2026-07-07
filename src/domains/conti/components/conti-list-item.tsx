@@ -46,7 +46,7 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
                     : 'border-blue-200 bg-blue-50 text-blue-700'
                 }
               >
-                {conti.status === 'DRAFT' ? '작성 중' : '팀 공유됨'}
+                {conti.status === 'DRAFT' ? '작성 중' : '팀 공개됨'}
               </Badge>
               {conti.externalShareEnabled && (
                 <Badge
@@ -54,7 +54,7 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
                   className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700"
                 >
                   <Share2 className="h-3 w-3" />
-                  외부 공유중
+                  외부 공유 중
                 </Badge>
               )}
             </div>

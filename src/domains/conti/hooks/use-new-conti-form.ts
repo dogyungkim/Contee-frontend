@@ -156,7 +156,7 @@ export const useNewContiForm = (teamId: string | null) => {
 
             if (intent === 'publish') {
                 await publishContiAsync(newConti.id)
-                toast.success('콘티를 팀에 공유했습니다.')
+                toast.success('콘티를 팀에 공개했습니다.')
             } else {
                 toast.success('콘티를 임시 저장했습니다.')
             }
@@ -166,7 +166,7 @@ export const useNewContiForm = (teamId: string | null) => {
             console.error('Failed to create conti:', error)
             toast.error(
                 intent === 'publish' && savedDraftId
-                    ? '콘티를 저장했지만 팀에 공유하지 못했습니다. 상세 화면에서 다시 시도해주세요.'
+                    ? '콘티를 저장했지만 팀에 공개하지 못했습니다. 상세 화면에서 다시 시도해주세요.'
                     : '콘티 생성 중 오류가 발생했습니다.',
             )
             if (savedDraftId) {
