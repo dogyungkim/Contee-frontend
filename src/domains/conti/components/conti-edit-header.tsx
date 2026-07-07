@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { HOURS, MINUTES, PERIODS } from '@/domains/conti/utils/worship-time'
 import { cn } from '@/lib/utils'
-import { ContiShareMenu, type ContiShareMenuProps } from './conti-share-menu'
 
 export interface ContiEditHeaderDraft {
   title: string
@@ -25,14 +24,12 @@ export interface ContiEditHeaderDraft {
 interface ContiEditHeaderProps {
   draft: ContiEditHeaderDraft
   songCount: number
-  shareMenuProps: ContiShareMenuProps
   onDraftChange: (patch: Partial<ContiEditHeaderDraft>) => void
 }
 
 export function ContiEditHeader({
   draft,
   songCount,
-  shareMenuProps,
   onDraftChange,
 }: ContiEditHeaderProps) {
   return (
@@ -130,7 +127,6 @@ export function ContiEditHeader({
           </div>
         </div>
 
-        <ContiShareMenu {...shareMenuProps} />
       </div>
     </div>
   )

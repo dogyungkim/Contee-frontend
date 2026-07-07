@@ -35,6 +35,7 @@ export function ContiDetailView({
   const { mutateAsync: publishConti, isPending: isPublishing } = usePublishConti()
   const sharing = useContiSharing({
     contiId: conti.id,
+    conti,
     externalShare: conti.externalShare,
   })
   const contiPdf = useContiPdfDownload(conti)
@@ -53,6 +54,11 @@ export function ContiDetailView({
       void sharing.copyExternalShare()
     },
     onRequestExternalShare: sharing.setDialogMode,
+  }
+  const exportMenuProps = {
+    onCopyYoutubeReferences: (includeKeyAndBpm?: boolean) => {
+      void sharing.copyYoutubeReferences(includeKeyAndBpm)
+    },
   }
 
   const publish = async () => {
@@ -80,6 +86,7 @@ export function ContiDetailView({
         sheetMusicCount={contiPdf.sheetMusicCount}
         isPdfDownloading={contiPdf.isDownloading}
         shareMenuProps={shareMenuProps}
+        exportMenuProps={exportMenuProps}
         onDownloadPdf={() => {
           void contiPdf.download()
         }}

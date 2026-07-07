@@ -3,7 +3,7 @@ import { DashboardContent } from '@/domains/dashboard/components/dashboard-conte
 export default function DashboardPage() {
   return (
     <div className="pb-8">
-      <DashboardContent />
+      {/* <DashboardContent /> */}
     </div>
   )
 }

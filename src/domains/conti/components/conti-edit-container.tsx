@@ -11,7 +11,6 @@ import {
   uploadContiSongSheetMusic,
 } from '@/domains/conti/api/conti.api'
 import { useContiEditor } from '@/domains/conti/hooks/use-conti-editor'
-import { useContiSharing } from '@/domains/conti/hooks/use-conti-sharing'
 import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 import { getContiApiErrorMessage } from '@/domains/conti/utils/conti-error'
 import { toast } from '@/lib/toast'
@@ -19,7 +18,6 @@ import { ContiEditHeader, type ContiEditHeaderDraft } from './conti-edit-header'
 import { ContiEditInfo } from './conti-edit-info'
 import { ContiEditSongs } from './conti-edit-songs'
 import { ContiEditorActionBar } from './conti-editor-action-bar'
-import { ContiShareDialog } from './conti-share-dialog'
 import { SongSearchDialog } from './song-search-dialog'
 
 interface ContiEditContainerProps {
@@ -32,7 +30,6 @@ interface ContiEditContainerProps {
 export function ContiEditContainer({
   conti,
   permissionTeamId,
-  canManageExternalShare,
   onClose,
 }: ContiEditContainerProps) {
   const { mutateAsync: updateConti } = useUpdateConti()
@@ -52,11 +49,6 @@ export function ContiEditContainer({
     createUpdateRequest,
   } = useContiEditor(conti)
   const hasChanges = hasContiChanges || Object.keys(sheetMusicChanges).length > 0
-  const sharing = useContiSharing({
-    contiId: conti.id,
-    externalShare: conti.externalShare,
-    hasChanges,
-  })
 
   useUnsavedChangesGuard({
     enabled: hasChanges && !isSaving,
@@ -212,22 +204,6 @@ export function ContiEditContainer({
     }
   }
 
-  const shareMenuProps = {
-    isPublished: conti.status === 'PUBLISHED',
-    externalShareEnabled: !!conti.externalShare?.enabled,
-    canManageExternalShare,
-    hasChanges,
-    isEnabling: sharing.isEnabling,
-    isDisabling: sharing.isDisabling,
-    onCopyTeamShare: () => {
-      void sharing.copyTeamShare()
-    },
-    onCopyExternalShare: () => {
-      void sharing.copyExternalShare()
-    },
-    onRequestExternalShare: sharing.setDialogMode,
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <ContiEditHeader
@@ -239,7 +215,6 @@ export function ContiEditContainer({
           minute: draft.minute,
         }}
         songCount={draft.songs.length}
-        shareMenuProps={shareMenuProps}
         onDraftChange={(patch: Partial<ContiEditHeaderDraft>) => {
           if (patch.title !== undefined) setters.setTitle(patch.title)
           if ('date' in patch) setters.setDate(patch.date)
@@ -331,16 +306,6 @@ export function ContiEditContainer({
         }}
       />
 
-      <ContiShareDialog
-        mode={sharing.dialogMode}
-        isPending={sharing.isPending}
-        shareUrl={sharing.createdShareUrl}
-        onClose={() => sharing.setDialogMode(null)}
-        onConfirm={sharing.confirmDialog}
-        onCopy={() => {
-          void sharing.copyCreatedExternalShare()
-        }}
-      />
     </div>
   )
 }
