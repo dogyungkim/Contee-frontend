@@ -68,6 +68,12 @@ export const useNewContiForm = (teamId: string | null) => {
             return
         }
 
+        const incompleteSong = tempSongs.find((song) => !song.customTitle.trim())
+        if (incompleteSong) {
+            toast.error('작성 중인 찬양의 제목을 입력해주세요.')
+            return
+        }
+
         if (!teamId) {
             toast.error('팀이 선택되지 않았습니다.')
             return
@@ -195,22 +201,22 @@ export const useNewContiForm = (teamId: string | null) => {
         ])
     }
 
-    const addNewSong = (data: CreateTeamSongRequest, sheetMusicFile?: File) => {
+    const addNewSong = () => {
         setTempSongs((prev) => [
             ...prev,
             {
-                tempId: `new-${Date.now()}`,
+                tempId: `new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 isNewSong: true,
                 orderIndex: prev.length,
-                customTitle: data.title,
-                artist: data.artist,
-                keySignature: data.keySignature,
-                bpm: data.bpm,
-                youtubeUrl: data.youtubeUrl,
-                sheetMusicUrl: data.sheetMusicUrl,
-                note: data.note,
-                songForm: data.songForm,
-                sheetMusicFile,
+                customTitle: '',
+                artist: '',
+                keySignature: '',
+                bpm: 60,
+                youtubeUrl: '',
+                sheetMusicUrl: '',
+                note: '',
+                songForm: [],
+                sheetMusicFile: null,
             },
         ])
     }

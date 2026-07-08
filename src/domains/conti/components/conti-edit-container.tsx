@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
-import type { CreateTeamSongRequest, TeamSong } from '@/types/song'
+import type { TeamSong } from '@/types/song'
 import type { Conti, ContiSong } from '@/types/conti'
 import { contiKeys, useUpdateConti } from '@/domains/conti/hooks/use-conti'
 import {
@@ -35,7 +35,6 @@ export function ContiEditContainer({
   const { mutateAsync: updateConti } = useUpdateConti()
   const queryClient = useQueryClient()
   const [searchOpen, setSearchOpen] = useState(false)
-  const [isAddingNewSong, setIsAddingNewSong] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isWordSharingOpen, setIsWordSharingOpen] = useState(true)
   const [sheetMusicChanges, setSheetMusicChanges] = useState<
@@ -75,7 +74,7 @@ export function ContiEditContainer({
     ])
   }
 
-  const addNewSong = (data: CreateTeamSongRequest, sheetMusicFile?: File) => {
+  const addNewSong = () => {
     const draftId = `draft-song-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const now = new Date().toISOString()
 
@@ -83,47 +82,31 @@ export function ContiEditContainer({
       ...current,
       {
         id: draftId,
-        title: data.title,
-        artist: data.artist,
+        title: '',
+        artist: '',
         orderIndex: current.length,
-        key: data.keySignature,
-        bpm: data.bpm,
+        key: '',
+        bpm: 60,
         note: undefined,
-        youtubeUrl: data.youtubeUrl,
-        sheetMusicUrl: data.sheetMusicUrl,
-        songForm:
-          data.songForm?.map((part, index) => ({
-            id: null,
-            partOrder: index,
-            partType: part.partType,
-            customPartName: part.customPartName,
-            repeatCount: part.repeatCount,
-            barCount: part.barCount,
-            note: part.note,
-          })) ?? [],
+        youtubeUrl: '',
+        sheetMusicUrl: '',
+        songForm: [],
         teamSong: {
           id: draftId,
           teamId: permissionTeamId,
-          title: data.title,
-          artist: data.artist,
-          keySignature: data.keySignature,
-          bpm: data.bpm,
-          youtubeUrl: data.youtubeUrl,
-          sheetMusicUrl: data.sheetMusicUrl,
-          note: data.note,
+          title: '',
+          artist: '',
+          keySignature: '',
+          bpm: 60,
+          youtubeUrl: '',
+          sheetMusicUrl: '',
+          note: '',
           isFavorite: false,
           createdAt: now,
           updatedAt: now,
         },
       },
     ])
-
-    if (sheetMusicFile) {
-      setSheetMusicChanges((current) => ({
-        ...current,
-        [draftId]: { file: sheetMusicFile, deleteExisting: false },
-      }))
-    }
   }
 
   const removeSong = (songId: string) => {
@@ -149,13 +132,18 @@ export function ContiEditContainer({
   const cancel = () => {
     reset(conti)
     setSheetMusicChanges({})
-    setIsAddingNewSong(false)
     onClose()
   }
 
   const save = async () => {
     if (!draft.title.trim()) {
       toast.error('콘티 제목을 입력해주세요.')
+      return
+    }
+
+    const incompleteSong = draft.songs.find((song) => !song.title.trim())
+    if (incompleteSong) {
+      toast.error('작성 중인 찬양의 제목을 입력해주세요.')
       return
     }
 
@@ -240,11 +228,8 @@ export function ContiEditContainer({
 
         <ContiEditSongs
           songs={draft.songs}
-          isAddingNewSong={isAddingNewSong}
-          onAddingNewSongChange={setIsAddingNewSong}
           onAddNewSong={addNewSong}
           onOpenSearch={() => {
-            setIsAddingNewSong(false)
             setSearchOpen(true)
           }}
           onRemoveSong={removeSong}
@@ -288,7 +273,6 @@ export function ContiEditContainer({
         onOpenChange={setSearchOpen}
         onSelect={(song) => {
           addExistingSong(song)
-          setIsAddingNewSong(false)
           setSearchOpen(false)
         }}
         existingSongIds={draft.songs
