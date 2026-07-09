@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuthCallback } from '@/domains/auth/hooks/use-auth-callback'
 
 export function AuthCallbackClient() {
-  const { status, message, handleGoToDashboard, handleRetry, handleGoHome } = useAuthCallback()
+  const { status, message, handleGoToContis, handleRetry, handleGoHome } = useAuthCallback()
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -35,9 +35,9 @@ export function AuthCallbackClient() {
 
             {status === 'success' && (
               <div className="text-center space-y-4">
-                <p className="text-sm text-gray-600">대시보드로 이동합니다.</p>
-                <Button onClick={handleGoToDashboard} className="w-full">
-                  대시보드로 이동
+                <p className="text-sm text-gray-600">콘티 리스트로 이동합니다.</p>
+                <Button onClick={handleGoToContis} className="w-full">
+                  콘티 리스트로 이동
                 </Button>
               </div>
             )}

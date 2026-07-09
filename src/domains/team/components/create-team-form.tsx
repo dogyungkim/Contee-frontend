@@ -44,7 +44,7 @@ export function CreateTeamForm() {
     try {
       const result = await createTeamMutation.mutateAsync(values);
       toast.success('팀이 성공적으로 생성되었습니다.');
-      router.push(`/dashboard?teamId=${result.id}`);
+      router.push(`/dashboard/contis?teamId=${result.id}`);
     } catch (error) {
       console.error('Failed to create team:', error);
       toast.error('팀 생성에 실패했습니다. 다시 시도해주세요.');

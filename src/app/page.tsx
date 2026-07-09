@@ -15,9 +15,9 @@ export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // 로그인 상태 확인 완료 후 인증된 사용자는 대시보드로 리다이렉트
+    // 로그인 상태 확인 완료 후 인증된 사용자는 콘티 리스트로 리다이렉트
     if (!isLoading && isAuthenticated) {
-      router.replace('/dashboard');
+      router.replace('/dashboard/contis');
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -27,7 +27,7 @@ export default function Home() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>{isAuthenticated ? '대시보드로 이동 중...' : '확인 중...'}</span>
+          <span>{isAuthenticated ? '콘티 리스트로 이동 중...' : '확인 중...'}</span>
         </div>
       </div>
     );

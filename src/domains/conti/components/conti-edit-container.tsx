@@ -1,12 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 
-import type { CreateTeamSongRequest, TeamSong } from '@/types/song'
+import type { TeamSong } from '@/types/song'
 import type { Conti, ContiSong } from '@/types/conti'
-import { useUpdateConti } from '@/domains/conti/hooks/use-conti'
+import { contiKeys, useUpdateConti } from '@/domains/conti/hooks/use-conti'
+import {
+  deleteContiSongSheetMusic,
+  uploadContiSongSheetMusic,
+} from '@/domains/conti/api/conti.api'
 import { useContiEditor } from '@/domains/conti/hooks/use-conti-editor'
-import { useContiSharing } from '@/domains/conti/hooks/use-conti-sharing'
 import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 import { getContiApiErrorMessage } from '@/domains/conti/utils/conti-error'
 import { toast } from '@/lib/toast'
@@ -14,7 +18,6 @@ import { ContiEditHeader, type ContiEditHeaderDraft } from './conti-edit-header'
 import { ContiEditInfo } from './conti-edit-info'
 import { ContiEditSongs } from './conti-edit-songs'
 import { ContiEditorActionBar } from './conti-editor-action-bar'
-import { ContiShareDialog } from './conti-share-dialog'
 import { SongSearchDialog } from './song-search-dialog'
 
 interface ContiEditContainerProps {
@@ -27,26 +30,24 @@ interface ContiEditContainerProps {
 export function ContiEditContainer({
   conti,
   permissionTeamId,
-  canManageExternalShare,
   onClose,
 }: ContiEditContainerProps) {
   const { mutateAsync: updateConti } = useUpdateConti()
+  const queryClient = useQueryClient()
   const [searchOpen, setSearchOpen] = useState(false)
-  const [isAddingNewSong, setIsAddingNewSong] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isWordSharingOpen, setIsWordSharingOpen] = useState(true)
+  const [sheetMusicChanges, setSheetMusicChanges] = useState<
+    Record<string, { file: File | null; deleteExisting: boolean }>
+  >({})
   const {
     draft,
     setters,
-    hasChanges,
+    hasChanges: hasContiChanges,
     reset,
     createUpdateRequest,
   } = useContiEditor(conti)
-  const sharing = useContiSharing({
-    contiId: conti.id,
-    externalShare: conti.externalShare,
-    hasChanges,
-  })
+  const hasChanges = hasContiChanges || Object.keys(sheetMusicChanges).length > 0
 
   useUnsavedChangesGuard({
     enabled: hasChanges && !isSaving,
@@ -73,7 +74,7 @@ export function ContiEditContainer({
     ])
   }
 
-  const addNewSong = (data: CreateTeamSongRequest) => {
+  const addNewSong = () => {
     const draftId = `draft-song-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const now = new Date().toISOString()
 
@@ -81,34 +82,25 @@ export function ContiEditContainer({
       ...current,
       {
         id: draftId,
-        title: data.title,
-        artist: data.artist,
+        title: '',
+        artist: '',
         orderIndex: current.length,
-        key: data.keySignature,
-        bpm: data.bpm,
+        key: '',
+        bpm: 60,
         note: undefined,
-        youtubeUrl: data.youtubeUrl,
-        sheetMusicUrl: data.sheetMusicUrl,
-        songForm:
-          data.songForm?.map((part, index) => ({
-            id: null,
-            partOrder: index,
-            partType: part.partType,
-            customPartName: part.customPartName,
-            repeatCount: part.repeatCount,
-            barCount: part.barCount,
-            note: part.note,
-          })) ?? [],
+        youtubeUrl: '',
+        sheetMusicUrl: '',
+        songForm: [],
         teamSong: {
           id: draftId,
           teamId: permissionTeamId,
-          title: data.title,
-          artist: data.artist,
-          keySignature: data.keySignature,
-          bpm: data.bpm,
-          youtubeUrl: data.youtubeUrl,
-          sheetMusicUrl: data.sheetMusicUrl,
-          note: data.note,
+          title: '',
+          artist: '',
+          keySignature: '',
+          bpm: 60,
+          youtubeUrl: '',
+          sheetMusicUrl: '',
+          note: '',
           isFavorite: false,
           createdAt: now,
           updatedAt: now,
@@ -123,6 +115,12 @@ export function ContiEditContainer({
         .filter((song) => song.id !== songId)
         .map((song, index) => ({ ...song, orderIndex: index })),
     )
+    setSheetMusicChanges((current) => {
+      if (!(songId in current)) return current
+      const next = { ...current }
+      delete next[songId]
+      return next
+    })
   }
 
   const changeSong = (changedSong: ContiSong) => {
@@ -133,7 +131,7 @@ export function ContiEditContainer({
 
   const cancel = () => {
     reset(conti)
-    setIsAddingNewSong(false)
+    setSheetMusicChanges({})
     onClose()
   }
 
@@ -143,33 +141,55 @@ export function ContiEditContainer({
       return
     }
 
+    const incompleteSong = draft.songs.find((song) => !song.title.trim())
+    if (incompleteSong) {
+      toast.error('작성 중인 찬양의 제목을 입력해주세요.')
+      return
+    }
+
     const request = createUpdateRequest()
     if (!request) return
 
     setIsSaving(true)
     try {
-      await updateConti({ contiId: conti.id, request })
-      toast.success('콘티 정보를 저장했습니다.')
+      const updatedConti = await updateConti({ contiId: conti.id, request })
+      const sheetMusicOperations = Object.entries(sheetMusicChanges).map(
+        async ([draftSongId, change]) => {
+          const draftIndex = draft.songs.findIndex((song) => song.id === draftSongId)
+          const savedSong = draftSongId.startsWith('draft-song-')
+            ? updatedConti.contiSongs?.find((song) => song.orderIndex === draftIndex)
+            : updatedConti.contiSongs?.find((song) => song.id === draftSongId)
+
+          if (!savedSong) {
+            throw new Error(`Saved conti song not found for ${draftSongId}`)
+          }
+          if (change.file) {
+            return uploadContiSongSheetMusic(conti.id, savedSong.id, change.file)
+          }
+          if (change.deleteExisting) {
+            return deleteContiSongSheetMusic(conti.id, savedSong.id)
+          }
+          return Promise.resolve()
+        },
+      )
+
+      const sheetMusicResults = await Promise.allSettled(sheetMusicOperations)
+      await queryClient.invalidateQueries({ queryKey: contiKeys.detail(conti.id) })
+
+      if (sheetMusicResults.every((result) => result.status === 'fulfilled')) {
+        toast.success('콘티 정보를 저장했습니다.')
+      } else {
+        console.error(
+          'Failed to update sheet music:',
+          sheetMusicResults.filter((result) => result.status === 'rejected'),
+        )
+        toast.error('콘티 정보는 저장됐지만 일부 악보 변경을 반영하지 못했습니다.')
+      }
       onClose()
     } catch (error) {
       toast.error(getContiApiErrorMessage(error, '콘티 정보 저장에 실패했습니다.'))
       setIsSaving(false)
     }
-  }
-
-  const shareMenuProps = {
-    externalShareEnabled: !!conti.externalShare?.enabled,
-    canManageExternalShare,
-    hasChanges,
-    isEnabling: sharing.isEnabling,
-    isDisabling: sharing.isDisabling,
-    onCopyTeamShare: () => {
-      void sharing.copyTeamShare()
-    },
-    onCopyExternalShare: () => {
-      void sharing.copyExternalShare()
-    },
-    onRequestExternalShare: sharing.setDialogMode,
   }
 
   return (
@@ -183,7 +203,6 @@ export function ContiEditContainer({
           minute: draft.minute,
         }}
         songCount={draft.songs.length}
-        shareMenuProps={shareMenuProps}
         onDraftChange={(patch: Partial<ContiEditHeaderDraft>) => {
           if (patch.title !== undefined) setters.setTitle(patch.title)
           if ('date' in patch) setters.setDate(patch.date)
@@ -209,16 +228,43 @@ export function ContiEditContainer({
 
         <ContiEditSongs
           songs={draft.songs}
-          isAddingNewSong={isAddingNewSong}
-          onAddingNewSongChange={setIsAddingNewSong}
           onAddNewSong={addNewSong}
           onOpenSearch={() => {
-            setIsAddingNewSong(false)
             setSearchOpen(true)
           }}
           onRemoveSong={removeSong}
           onUpdateOrder={setters.setSongs}
           onChangeSong={changeSong}
+          sheetMusicChanges={sheetMusicChanges}
+          onSheetMusicChange={(songId, file) => {
+            setSheetMusicChanges((current) => {
+              if (!file) {
+                const previous = current[songId]
+                if (!previous?.deleteExisting) {
+                  const next = { ...current }
+                  delete next[songId]
+                  return next
+                }
+              }
+              return {
+                ...current,
+                [songId]: { file, deleteExisting: false },
+              }
+            })
+          }}
+          onSheetMusicDeleteRequest={(songId) => {
+            setSheetMusicChanges((current) => {
+              if (current[songId]?.deleteExisting) {
+                const next = { ...current }
+                delete next[songId]
+                return next
+              }
+              return {
+                ...current,
+                [songId]: { file: null, deleteExisting: true },
+              }
+            })
+          }}
         />
       </div>
 
@@ -227,7 +273,6 @@ export function ContiEditContainer({
         onOpenChange={setSearchOpen}
         onSelect={(song) => {
           addExistingSong(song)
-          setIsAddingNewSong(false)
           setSearchOpen(false)
         }}
         existingSongIds={draft.songs
@@ -236,6 +281,7 @@ export function ContiEditContainer({
       />
 
       <ContiEditorActionBar
+        isDraft={conti.status === 'DRAFT'}
         hasChanges={hasChanges}
         isSaving={isSaving}
         onCancel={cancel}
@@ -244,12 +290,6 @@ export function ContiEditContainer({
         }}
       />
 
-      <ContiShareDialog
-        mode={sharing.dialogMode}
-        isPending={sharing.isPending}
-        onClose={() => sharing.setDialogMode(null)}
-        onConfirm={sharing.confirmDialog}
-      />
     </div>
   )
 }

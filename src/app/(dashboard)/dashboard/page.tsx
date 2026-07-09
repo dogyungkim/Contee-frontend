@@ -1,10 +1,5 @@
-import { DashboardContent } from '@/domains/dashboard/components/dashboard-content'
+import { redirect } from 'next/navigation'
 
 export default function DashboardPage() {
-  return (
-    <div className="pb-8">
-      <DashboardContent />
-    </div>
-  )
+  redirect('/dashboard/contis')
 }
-

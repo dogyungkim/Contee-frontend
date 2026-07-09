@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Save, Music, ChevronLeft, BookOpen, X, ArrowUp, ArrowDown } from 'lucide-react'
+import { Calendar, Plus, Music, ChevronLeft, BookOpen, X, ArrowUp, ArrowDown } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
@@ -18,6 +18,7 @@ import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
 import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
 import { mapRequestSongFormToUi } from '@/domains/song/utils/song-form'
 import { PERIODS, HOURS, MINUTES } from '@/domains/conti/utils/worship-time'
+import { ContiEditorActionBar } from '@/domains/conti/components/conti-editor-action-bar'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
@@ -50,15 +51,16 @@ export default function NewContiPage() {
     addExistingSong,
     addNewSong,
     updateSong,
+    updateSheetMusicFile,
     moveSong,
     removeSong,
     handleSave,
     isSaving,
+    savingIntent,
   } = useNewContiForm(selectedTeamId)
   
   // UI State (kept in component as it's purely UI-related)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [isAddingNewSong, setIsAddingNewSong] = useState(false)
   const hasChanges =
     !!title.trim() ||
     !!memo.trim() ||
@@ -96,10 +98,10 @@ export default function NewContiPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Top Header Section */}
-      <div className="sticky top-0 z-20 border-b bg-background/95 px-0 py-4 backdrop-blur">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between max-w-[1600px] mx-auto w-full">
+      <div className="top-0 z-20 border-b rounded-lg border bg-background px-0 py-4 backdrop-blur">
+        <div className="flex max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mx-auto w-full">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" asChild className="h-8 w-8">
@@ -112,25 +114,6 @@ export default function NewContiPage() {
             <p className="text-sm text-muted-foreground ml-10">
               {selectedTeam.name} 팀의 예배 콘티를 작성합니다.
             </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-9"
-              onClick={handleCancel}
-            >
-              취소
-            </Button>
-            <Button 
-              className="h-9 gap-2" 
-              onClick={handleSave}
-              disabled={isSaving || !title.trim()}
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? '저장 중...' : '저장하기'}
-            </Button>
           </div>
         </div>
       </div>
@@ -280,7 +263,7 @@ export default function NewContiPage() {
         </div>
 
         {/* Song List */}
-        <div className="space-y-4 pb-20">
+        <div className="space-y-4 pb-32">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Music className="h-4 w-4 text-neutral-500" />
@@ -341,6 +324,9 @@ export default function NewContiPage() {
                   idPrefix={`new-conti-song-${song.tempId}`}
                   identityLocked={!song.isNewSong}
                   showResourceFields={song.isNewSong}
+                  showSheetMusicUpload
+                  sheetMusicFile={song.sheetMusicFile}
+                  onSheetMusicFileChange={(file) => updateSheetMusicFile(song.tempId, file)}
                   noteLabel={song.isNewSong ? '팀 곡 메모' : '콘티 메모'}
                   notePlaceholder={song.isNewSong ? '곡 라이브러리에 저장할 메모를 입력하세요.' : '이 콘티에서만 사용할 메모를 입력하세요.'}
                   showCancelButton={false}
@@ -363,62 +349,45 @@ export default function NewContiPage() {
             ))}
           </div>
 
-          {/* New Song Editing Card (Inline Draft) */}
-          {isAddingNewSong && (
-             <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
-                 <SongDirectEditCard 
-                    onSave={(data) => {
-                      addNewSong(data)
-                      setIsAddingNewSong(false)
-                    }}
-                    onCancel={() => setIsAddingNewSong(false)}
-                 />
-             </div>
-          )}
-
           {/* Action Buttons */}
-          {!isAddingNewSong && (
-             <div className="grid grid-cols-2 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
-                  onClick={() => {
-                    setIsAddingNewSong(true)
-                  }}
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="h-10 w-10 rounded-md border bg-neutral-50 flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Plus className="h-5 w-5 text-neutral-700" />
-                    </div>
-                    <div className="text-center text-wrap">
-                      <p className="text-sm font-bold text-neutral-900">새로운 찬양 등록</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">라이브러리에 없는 곡 추가</p>
-                    </div>
-                  </div>
-                </Button>
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
+              onClick={addNewSong}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-10 w-10 rounded-md border bg-neutral-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Plus className="h-5 w-5 text-neutral-700" />
+                </div>
+                <div className="text-center text-wrap">
+                  <p className="text-sm font-bold text-neutral-900">새로운 찬양 등록</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">라이브러리에 없는 곡 추가</p>
+                </div>
+              </div>
+            </Button>
 
-                <Button
-                  variant="outline"
-                  className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
-                  onClick={() => {
-                    setSearchOpen(true)
-                  }}
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="h-10 w-10 rounded-md border bg-neutral-50 flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Music className="h-5 w-5 text-neutral-700" />
-                    </div>
-                    <div className="text-center text-wrap">
-                      <p className="text-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">팀 라이브러리에서 선택</p>
-                    </div>
-                  </div>
-                </Button>
-            </div>
-          )}
+            <Button
+              variant="outline"
+              className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"
+              onClick={() => {
+                setSearchOpen(true)
+              }}
+            >
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-10 w-10 rounded-md border bg-neutral-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Music className="h-5 w-5 text-neutral-700" />
+                </div>
+                <div className="text-center text-wrap">
+                  <p className="text-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">팀 라이브러리에서 선택</p>
+                </div>
+              </div>
+            </Button>
+          </div>
 
           {/* Empty State when no songs and not adding */}
-          {!isAddingNewSong && tempSongs.length === 0 && (
+          {tempSongs.length === 0 && (
              <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed text-center bg-muted/5 mt-4">
                <p className="text-sm text-muted-foreground/60 italic font-medium">추가된 곡이 없습니다.</p>
                <p className="text-xs text-muted-foreground/40 mt-1">예배 순서에 맞춰 곡을 추가해보세요.</p>
@@ -437,6 +406,28 @@ export default function NewContiPage() {
           setSearchOpen(false)
         }}
         existingSongIds={tempSongs.map(s => s.teamSongId).filter(Boolean) as string[]}
+      />
+
+      <ContiEditorActionBar
+        isDraft
+        hasChanges={hasChanges}
+        isSaving={isSaving}
+        badgeLabel="작성 중"
+        description="임시 저장한 콘티는 팀에 공개하기 전까지 작성자에게만 보입니다."
+        saveLabel={savingIntent === 'publish' ? '공개 중...' : '저장하고 팀에 공개'}
+        savingLabel={savingIntent === 'draft' ? '저장 중...' : '공개 중...'}
+        saveDisabled={!title.trim()}
+        onCancel={handleCancel}
+        onSave={() => {
+          void handleSave('publish')
+        }}
+        secondaryAction={{
+          label: savingIntent === 'draft' ? '저장 중...' : '임시 저장',
+          disabled: !title.trim(),
+          onClick: () => {
+            void handleSave('draft')
+          },
+        }}
       />
     </div>
   )

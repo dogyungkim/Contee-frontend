@@ -1,5 +1,7 @@
 import type { TeamSongResponseDto } from '@/domains/song/api/song.dto';
 
+export type ContiStatusDto = 'DRAFT' | 'PUBLISHED';
+
 export type ContiSongPartTypeDto =
   | 'INTRO'
   | 'VERSE'
@@ -23,6 +25,14 @@ export interface ContiSongFormPartDto {
   note?: string;
 }
 
+export interface SheetMusicFileResponseDto {
+  id: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  downloadUrl: string;
+}
+
 export interface ContiSongResponseDto {
   id: string;
   contiId?: string;
@@ -35,6 +45,7 @@ export interface ContiSongResponseDto {
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
+  sheetMusicFile?: SheetMusicFileResponseDto | null;
   songForm?: ContiSongFormPartDto[];
   teamSong?: TeamSongResponseDto;
   createdAt?: string;
@@ -52,6 +63,9 @@ export interface ContiResponseDto {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
+  status: ContiStatusDto;
+  publishedAt?: string | null;
+  publishedById?: string | null;
   songCount?: number;
   songPreview?: string[];
   externalShareEnabled?: boolean;

@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { SongFormPart } from '@/types/song'
 import { getSectionStyle, getSongFormSummary } from '@/domains/song/utils/song-form'
+import { openSheetMusic } from '@/domains/conti/utils/sheet-music'
+import { toast } from '@/lib/toast'
 
 interface ContiSongCardProps {
   index: number
@@ -190,16 +192,18 @@ export function ContiSongCard({
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">빠른 링크</Label>
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="secondary" disabled={!sheetMusicUrl} className="h-9 gap-2 text-sm" asChild={!!sheetMusicUrl}>
-                {sheetMusicUrl ? (
-                  <a href={sheetMusicUrl} target="_blank" rel="noopener noreferrer">
-                    <FileText className="h-4 w-4" /> 악보 보기
-                  </a>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4" /> 악보 보기
-                  </>
-                )}
+              <Button
+                variant="secondary"
+                disabled={!sheetMusicUrl}
+                className="h-9 gap-2 text-sm"
+                onClick={() => {
+                  if (!sheetMusicUrl) return
+                  void openSheetMusic(sheetMusicUrl).catch(() => {
+                    toast.error('악보를 불러오지 못했습니다.')
+                  })
+                }}
+              >
+                <FileText className="h-4 w-4" /> 악보 보기
               </Button>
               <Button variant="secondary" disabled={!youtubeUrl} className="h-9 gap-2 text-sm" asChild={!!youtubeUrl}>
                 {youtubeUrl ? (

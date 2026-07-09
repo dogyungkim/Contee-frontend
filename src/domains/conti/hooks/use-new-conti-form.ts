@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
-import { useCreateConti } from '@/domains/conti/hooks/use-conti'
+import { useCreateConti, usePublishConti } from '@/domains/conti/hooks/use-conti'
 import { TeamSong, CreateTeamSongRequest, SongFormPartRequest } from '@/types/song'
 import { ContiSongRequestItem } from '@/types/conti'
 import { toast } from '@/lib/toast'
 import { formatWorshipTime } from '@/domains/conti/utils/worship-time'
+import { uploadContiSongSheetMusic } from '@/domains/conti/api/conti.api'
 
 // Temp Song Type for UI State
 export interface TempContiSong {
@@ -30,10 +31,13 @@ export interface TempContiSong {
     sheetMusicUrl?: string
     note?: string // Library note (for new songs) or just note
     songForm?: SongFormPartRequest[] // Song structure for new songs
+    sheetMusicFile?: File | null
 
     // Conti Specific
     contiNote?: string
 }
+
+export type NewContiSaveIntent = 'draft' | 'publish'
 
 export const useNewContiForm = (teamId: string | null) => {
     const router = useRouter()
@@ -53,13 +57,20 @@ export const useNewContiForm = (teamId: string | null) => {
     const [tempSongs, setTempSongs] = useState<TempContiSong[]>([])
 
     // UI State
-    const [isSaving, setIsSaving] = useState(false)
+    const [savingIntent, setSavingIntent] = useState<NewContiSaveIntent | null>(null)
 
     const { mutateAsync: createContiAsync } = useCreateConti()
+    const { mutateAsync: publishContiAsync } = usePublishConti()
 
-    const handleSave = async () => {
+    const handleSave = async (intent: NewContiSaveIntent) => {
         if (!title.trim()) {
             toast.error('예배 제목을 입력해주세요.')
+            return
+        }
+
+        const incompleteSong = tempSongs.find((song) => !song.customTitle.trim())
+        if (incompleteSong) {
+            toast.error('작성 중인 찬양의 제목을 입력해주세요.')
             return
         }
 
@@ -68,7 +79,8 @@ export const useNewContiForm = (teamId: string | null) => {
             return
         }
 
-        setIsSaving(true)
+        let savedDraftId: string | null = null
+        setSavingIntent(intent)
         try {
             // API 계약: worshipDate는 YYYY-MM-DD 형식
             const worshipDate = format(date, 'yyyy-MM-dd')
@@ -119,14 +131,55 @@ export const useNewContiForm = (teamId: string | null) => {
                 sharingInfo: sharingInfo.trim() || undefined,
                 contiSongs: contiSongsRequest
             })
+            savedDraftId = newConti.id
 
-            // 4. Redirect
+            const sheetMusicUploads = tempSongs
+                .map((song, orderIndex) => ({ song, orderIndex }))
+                .filter(({ song }) => !!song.sheetMusicFile)
+
+            if (sheetMusicUploads.length > 0) {
+                const uploadResults = await Promise.allSettled(
+                    sheetMusicUploads.map(async ({ song, orderIndex }) => {
+                        const savedSong = newConti.contiSongs?.find(
+                            (contiSong) => contiSong.orderIndex === orderIndex,
+                        )
+                        if (!savedSong || !song.sheetMusicFile) {
+                            throw new Error(`Saved conti song not found for order ${orderIndex}`)
+                        }
+                        return uploadContiSongSheetMusic(
+                            newConti.id,
+                            savedSong.id,
+                            song.sheetMusicFile,
+                        )
+                    }),
+                )
+                const failedUploads = uploadResults.filter((result) => result.status === 'rejected')
+                if (failedUploads.length > 0) {
+                    console.error('Failed to upload sheet music:', failedUploads)
+                    toast.error('콘티는 생성됐지만 일부 악보를 업로드하지 못했습니다.')
+                }
+            }
+
+            if (intent === 'publish') {
+                await publishContiAsync(newConti.id)
+                toast.success('콘티를 팀에 공개했습니다.')
+            } else {
+                toast.success('콘티를 임시 저장했습니다.')
+            }
+
             router.push(`/dashboard/contis/${newConti.id}`)
         } catch (error) {
             console.error('Failed to create conti:', error)
-            toast.error('콘티 생성 중 오류가 발생했습니다.')
+            toast.error(
+                intent === 'publish' && savedDraftId
+                    ? '콘티를 저장했지만 팀에 공개하지 못했습니다. 상세 화면에서 다시 시도해주세요.'
+                    : '콘티 생성 중 오류가 발생했습니다.',
+            )
+            if (savedDraftId) {
+                router.push(`/dashboard/contis/${savedDraftId}`)
+            }
         } finally {
-            setIsSaving(false)
+            setSavingIntent(null)
         }
     }
 
@@ -148,21 +201,22 @@ export const useNewContiForm = (teamId: string | null) => {
         ])
     }
 
-    const addNewSong = (data: CreateTeamSongRequest) => {
+    const addNewSong = () => {
         setTempSongs((prev) => [
             ...prev,
             {
-                tempId: `new-${Date.now()}`,
+                tempId: `new-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 isNewSong: true,
                 orderIndex: prev.length,
-                customTitle: data.title,
-                artist: data.artist,
-                keySignature: data.keySignature,
-                bpm: data.bpm,
-                youtubeUrl: data.youtubeUrl,
-                sheetMusicUrl: data.sheetMusicUrl,
-                note: data.note,
-                songForm: data.songForm,
+                customTitle: '',
+                artist: '',
+                keySignature: '',
+                bpm: 60,
+                youtubeUrl: '',
+                sheetMusicUrl: '',
+                note: '',
+                songForm: [],
+                sheetMusicFile: null,
             },
         ])
     }
@@ -193,6 +247,12 @@ export const useNewContiForm = (teamId: string | null) => {
                     songForm: data.songForm,
                 }
             })
+        )
+    }
+
+    const updateSheetMusicFile = (tempId: string, file: File | null) => {
+        setTempSongs((prev) =>
+            prev.map((song) => (song.tempId === tempId ? { ...song, sheetMusicFile: file } : song))
         )
     }
 
@@ -238,11 +298,13 @@ export const useNewContiForm = (teamId: string | null) => {
         addExistingSong,
         addNewSong,
         updateSong,
+        updateSheetMusicFile,
         moveSong,
         removeSong,
 
         // Actions
         handleSave,
-        isSaving,
+        isSaving: savingIntent !== null,
+        savingIntent,
     }
 }

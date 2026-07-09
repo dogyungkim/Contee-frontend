@@ -36,7 +36,7 @@ export function ContiReadOnlySongList({ songs }: ContiReadOnlySongListProps) {
             teamNote={display.teamNote}
             songForm={mapApiSongFormToUi(display.songForm)}
             youtubeUrl={display.youtubeUrl}
-            sheetMusicUrl={display.sheetMusicUrl}
+            sheetMusicUrl={song.sheetMusicFile?.downloadUrl ?? display.sheetMusicUrl}
             showOriginalMeta={false}
           />
         )

@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { 
   Music, 
-  LayoutDashboard, 
   FileText, 
   Library, 
   Settings, 
@@ -57,12 +56,6 @@ const Sidebar = ({ className }: SidebarProps) => {
 
   const navItems = [
     {
-      title: '대시보드',
-      href: '/dashboard',
-      icon: LayoutDashboard,
-      requiresTeam: false,
-    },
-    {
       title: '콘티 리스트',
       href: '/dashboard/contis',
       icon: FileText,
@@ -92,7 +85,7 @@ const Sidebar = ({ className }: SidebarProps) => {
     <div className={cn("flex h-full w-62 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
-        <Link href="/dashboard" className="flex items-center gap-3">
+        <Link href="/dashboard/contis" className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1c1c] text-white">
             <Music className="h-4 w-4" />
           </div>

@@ -8,6 +8,7 @@ import type {
   SharedContiResponseDto,
   UpdateContiRequestDto,
   ContiSearchParamsDto,
+  SheetMusicFileResponseDto,
 } from '@/domains/conti/api/conti.dto';
 import { toContiModel, toSharedContiModel } from '@/domains/conti/api/conti.mapper';
 
@@ -16,7 +17,7 @@ export async function getTeamContis(
   params: ContiSearchParamsDto = {},
 ): Promise<PageDto<Conti>> {
   const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(
-    `/api/v1/teams/${teamId}/contis`,
+    `/api/v1/contis/team/${teamId}`,
     { params },
   );
   return {
@@ -40,8 +41,51 @@ export async function updateConti(contiId: string, request: UpdateContiRequestDt
   return toContiModel(data.data);
 }
 
+export async function publishConti(contiId: string): Promise<Conti> {
+  const { data } = await apiClient.post<ApiResponse<ContiResponseDto>>(
+    `/api/v1/contis/${contiId}/publish`,
+  );
+  return toContiModel(data.data);
+}
+
 export async function deleteConti(contiId: string): Promise<void> {
   await apiClient.delete<ApiResponse<void>>(`/api/v1/contis/${contiId}`);
+}
+
+export async function uploadContiSongSheetMusic(
+  contiId: string,
+  contiSongId: string,
+  file: File,
+): Promise<SheetMusicFileResponseDto> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await apiClient.put<ApiResponse<SheetMusicFileResponseDto>>(
+    `/api/v1/contis/${contiId}/songs/${contiSongId}/sheet-music`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return data.data;
+}
+
+export async function deleteContiSongSheetMusic(
+  contiId: string,
+  contiSongId: string,
+): Promise<void> {
+  await apiClient.delete<ApiResponse<void>>(
+    `/api/v1/contis/${contiId}/songs/${contiSongId}/sheet-music`,
+  );
+}
+
+export async function downloadContiSongSheetMusic(
+  downloadUrl: string,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  const { data } = await apiClient.get<ArrayBuffer>(downloadUrl, {
+    responseType: 'arraybuffer',
+    signal,
+  });
+  return new Uint8Array(data);
 }
 
 export async function enableExternalShare(contiId: string): Promise<ExternalShare> {

@@ -32,7 +32,7 @@ export function useAuthCallback() {
 
     setAccessToken(refreshQuery.data.accessToken);
     const timer = setTimeout(() => {
-      router.push('/dashboard');
+      router.push('/dashboard/contis');
     }, UI_DELAY_MS.AUTH_CALLBACK_REDIRECT);
 
     return () => clearTimeout(timer);
@@ -61,7 +61,7 @@ export function useAuthCallback() {
   return {
     status,
     message,
-    handleGoToDashboard: () => router.push('/dashboard'),
+    handleGoToContis: () => router.push('/dashboard/contis'),
     handleRetry: () => router.push('/login'),
     handleGoHome: () => router.push('/'),
   };

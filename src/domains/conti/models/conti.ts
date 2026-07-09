@@ -1,5 +1,7 @@
 import type { TeamSong } from '@/domains/song/models/song';
 
+export type ContiStatus = 'DRAFT' | 'PUBLISHED';
+
 export type ContiSongPartType =
   | 'INTRO'
   | 'VERSE'
@@ -23,6 +25,14 @@ export interface ContiSongFormPart {
   note?: string;
 }
 
+export interface SheetMusicFile {
+  id: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  downloadUrl: string;
+}
+
 export interface Conti {
   id: string;
   teamId: string;
@@ -34,6 +44,9 @@ export interface Conti {
   memo?: string;
   bibleVerse?: string;
   sharingInfo?: string;
+  status: ContiStatus;
+  publishedAt?: string | null;
+  publishedById?: string | null;
   songCount?: number;
   songPreview?: string[];
   externalShareEnabled?: boolean;
@@ -75,6 +88,7 @@ export interface ContiSong {
   note?: string;
   youtubeUrl?: string;
   sheetMusicUrl?: string;
+  sheetMusicFile?: SheetMusicFile | null;
   songForm: ContiSongFormPart[];
   teamSong?: TeamSong;
   createdAt?: string;

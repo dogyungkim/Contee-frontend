@@ -37,13 +37,27 @@ interface ContiSongItemProps {
   isEditMode: boolean
   onRemove: (id: string) => void
   onChange: (song: ContiSong) => void
+  sheetMusicChange?: { file: File | null; deleteExisting: boolean }
+  onSheetMusicChange: (songId: string, file: File | null) => void
+  onSheetMusicDeleteRequest: (songId: string) => void
 }
 
-export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onChange }: ContiSongItemProps) {
+export function ContiSongItem({
+  id,
+  contiSong,
+  index,
+  isEditMode,
+  onRemove,
+  onChange,
+  sheetMusicChange,
+  onSheetMusicChange,
+  onSheetMusicDeleteRequest,
+}: ContiSongItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const { mutate: updateTeamSong } = useUpdateTeamSong()
   const teamSong = contiSong.teamSong
   const display = getContiSongDisplay(contiSong)
+  const isNewDraftSong = contiSong.id.startsWith('draft-song-') && !contiSong.teamSongId
   const form = {
     title: display.title || '',
     artist: display.artist || '',
@@ -51,7 +65,7 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
     bpm: display.bpm || 0,
     youtubeUrl: display.youtubeUrl || '',
     sheetMusicUrl: display.sheetMusicUrl || '',
-    note: display.note || '',
+    note: isNewDraftSong ? teamSong?.note || contiSong.note || '' : display.note || '',
   }
   const songFormParts = useMemo(() => mapApiSongFormToUi(contiSong.songForm), [contiSong.songForm])
   const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
@@ -85,7 +99,7 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
         teamNote={teamSong?.note}
         songForm={songFormParts}
         youtubeUrl={display.youtubeUrl}
-        sheetMusicUrl={display.sheetMusicUrl}
+        sheetMusicUrl={contiSong.sheetMusicFile?.downloadUrl ?? display.sheetMusicUrl}
         isDragging={isDragging}
         highlightKey={isKeyOverridden}
         highlightBpm={isBpmOverridden}
@@ -139,11 +153,27 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
         {isEditMode ? (
           <SongDirectEditCard
             variant="embedded"
-            title="찬양 정보 수정"
+            title={isNewDraftSong ? '새 찬양' : '찬양 정보 수정'}
             submitLabel="변경 적용"
             idPrefix={`conti-song-${contiSong.id}`}
             showCancelButton={false}
             showFooterActions={false}
+            showSheetMusicUpload
+            noteLabel={isNewDraftSong ? '팀 곡 메모' : '콘티 메모'}
+            notePlaceholder={
+              isNewDraftSong
+                ? '곡 라이브러리에 저장할 메모를 입력하세요.'
+                : '이 콘티에서만 사용할 메모를 입력하세요.'
+            }
+            sheetMusicFile={sheetMusicChange?.file}
+            existingSheetMusicFile={contiSong.sheetMusicFile}
+            isSheetMusicMarkedForDeletion={sheetMusicChange?.deleteExisting}
+            onSheetMusicFileChange={(file) => onSheetMusicChange(contiSong.id, file)}
+            onSheetMusicDeleteRequest={
+              contiSong.sheetMusicFile
+                ? () => onSheetMusicDeleteRequest(contiSong.id)
+                : undefined
+            }
             initialValue={{
               title: form.title,
               artist: form.artist,
@@ -163,7 +193,19 @@ export function ContiSongItem({ id, contiSong, index, isEditMode, onRemove, onCh
                 bpm: data.bpm,
                 youtubeUrl: data.youtubeUrl,
                 sheetMusicUrl: data.sheetMusicUrl,
-                note: data.note,
+                note: isNewDraftSong ? undefined : data.note,
+                teamSong: isNewDraftSong && contiSong.teamSong
+                  ? {
+                      ...contiSong.teamSong,
+                      title: data.title,
+                      artist: data.artist,
+                      keySignature: data.keySignature,
+                      bpm: data.bpm,
+                      youtubeUrl: data.youtubeUrl,
+                      sheetMusicUrl: data.sheetMusicUrl,
+                      note: data.note,
+                    }
+                  : contiSong.teamSong,
                 songForm: mapRequestSongFormToConti(data.songForm),
               })
             }}

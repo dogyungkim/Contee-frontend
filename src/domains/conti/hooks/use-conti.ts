@@ -4,6 +4,7 @@ import {
     getConti,
     createConti,
     updateConti,
+    publishConti,
     deleteConti,
     enableExternalShare,
     disableExternalShare,
@@ -63,6 +64,18 @@ export const useUpdateConti = () => {
         onSuccess: (data) => {
             queryClient.setQueryData(contiKeys.detail(data.id), data);
             queryClient.invalidateQueries({ queryKey: contiKeys.detail(data.id) });
+            queryClient.invalidateQueries({ queryKey: contiKeys.list(data.teamId) });
+        },
+    });
+};
+
+export const usePublishConti = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (contiId: string) => publishConti(contiId),
+        onSuccess: (data) => {
+            queryClient.setQueryData(contiKeys.detail(data.id), data);
             queryClient.invalidateQueries({ queryKey: contiKeys.list(data.teamId) });
         },
     });
