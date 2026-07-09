@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 export const metadata: Metadata = {
-  title: '대시보드 | Contee',
-  description: '콘티와 곡을 관리하는 대시보드',
+  title: '콘티 목록 | Contee',
+  description: '콘티와 곡을 관리하는 작업 공간',
 }
 
 export default function DashboardGroupLayout({
@@ -27,7 +27,7 @@ export default function DashboardGroupLayout({
             <Sidebar className="hidden shrink-0 md:flex" />
             <div className="floating-shell relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl">
               <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-white px-4 md:hidden">
-                <Link href="/dashboard" className="font-semibold tracking-[-0.03em]">Contee</Link>
+                <Link href="/dashboard/contis" className="font-semibold tracking-[-0.03em]">Contee</Link>
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button variant="outline" size="icon" aria-label="메뉴 열기">

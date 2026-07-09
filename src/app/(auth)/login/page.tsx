@@ -12,9 +12,9 @@ export default function LoginPage() {
   const { isAuthenticated, isLoading, login } = useAuth();
 
   useEffect(() => {
-    // 이미 로그인된 사용자는 대시보드로 리다이렉트
+    // 이미 로그인된 사용자는 콘티 리스트로 리다이렉트
     if (isAuthenticated) {
-      router.push('/dashboard');
+      router.push('/dashboard/contis');
     }
   }, [isAuthenticated, router]);
 

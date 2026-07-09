@@ -98,7 +98,7 @@ export function useRequireAuth(redirectTo: string = '/login') {
   return useAuth(redirectTo);
 }
 
-export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard') {
+export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard/contis') {
   const { isAuthenticated, hasCheckedSession } = useAuthStore();
   const { isLoading: isUserLoading, isFetching } = useUserQuery();
   const router = useRouter();
