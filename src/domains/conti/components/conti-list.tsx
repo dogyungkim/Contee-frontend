@@ -49,8 +49,9 @@ export function ContiList() {
         </div>
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[1.8fr_1fr_100px_56px] md:items-center">
+            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
               <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-28" />
               <Skeleton className="h-5 w-16" />
               <Skeleton className="h-8 w-8" />
@@ -152,8 +153,9 @@ export function ContiList() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.8fr)_160px_56px_56px] items-center gap-2 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] items-center gap-3 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
               <div>Conti</div>
+              <div>Status</div>
               <div>Worship date</div>
               <div>Songs</div>
               <div className="text-right">{canEdit ? 'Menu' : null}</div>
