@@ -33,7 +33,7 @@ export function ContiDetailContainer({ contiId }: ContiDetailContainerProps) {
     currentMember?.role === 'ADMIN'
   const canPublish =
     conti?.status === 'DRAFT' &&
-    conti.createdById === String(user?.id) &&
+    conti?.createdById === String(user?.id) &&
     canEdit
   const pageMode = useContiPageMode(canEdit)
 
