@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import toast from 'react-hot-toast'
+import { toast } from '@/lib/toast'
 
 import type { Conti } from '@/types/conti'
 import { downloadContiSongSheetMusic } from '@/domains/conti/api/conti.api'
