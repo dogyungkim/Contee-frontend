@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole, createTeam } from '@/domains/team/api/team.api';
+import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole, createTeam, joinTeam } from '@/domains/team/api/team.api';
 import { UpdateTeamMemberRoleRequest } from '@/types/team';
 
 export const teamKeys = {
@@ -71,6 +71,17 @@ export const useCreateTeamMutation = () => {
         mutationFn: createTeam,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
+        },
+    });
+};
+
+export const useJoinTeamMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: joinTeam,
+        onSuccess: () => {
+            return queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
         },
     });
 };

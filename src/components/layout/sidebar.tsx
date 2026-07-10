@@ -1,11 +1,19 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Music, 
   FileText, 
@@ -13,13 +21,17 @@ import {
   Settings, 
   LogOut,
   User,
-  Users
+  Users,
+  Plus,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
 import { useTeam } from '@/context/team-context';
+import { JoinTeamForm } from '@/domains/team/components/join-team-form';
 import { cn } from '@/lib/utils';
 
 const ADD_TEAM_VALUE = '__add__';
+const JOIN_TEAM_VALUE = '__join__';
 
 interface SidebarProps {
   className?: string;
@@ -29,6 +41,7 @@ const Sidebar = ({ className }: SidebarProps) => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
   
   const { teams, selectedTeamId, setSelectedTeamId } = useTeam();
   const hasTeams = teams.length > 0;
@@ -36,6 +49,10 @@ const Sidebar = ({ className }: SidebarProps) => {
   const handleTeamChange = (value: string) => {
     if (value === ADD_TEAM_VALUE) {
       router.push('/dashboard/teams/create');
+      return;
+    }
+    if (value === JOIN_TEAM_VALUE) {
+      setIsJoinTeamOpen(true);
       return;
     }
     setSelectedTeamId(value);
@@ -82,6 +99,7 @@ const Sidebar = ({ className }: SidebarProps) => {
   ];
 
   return (
+    <>
     <div className={cn("flex h-full w-62 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
@@ -110,16 +128,38 @@ const Sidebar = ({ className }: SidebarProps) => {
                 </SelectItem>
               ))}
               <Separator className="my-1" />
-              <SelectItem value={ADD_TEAM_VALUE}>+ 팀 추가하기</SelectItem>
+              <SelectItem value={ADD_TEAM_VALUE}>
+                <span className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  새 팀 만들기
+                </span>
+              </SelectItem>
+              <SelectItem value={JOIN_TEAM_VALUE}>
+                <span className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  초대 코드로 합류
+                </span>
+              </SelectItem>
             </SelectContent>
           </Select>
         ) : (
-          <Button 
-            className="w-full" 
-            onClick={() => router.push('/dashboard/teams/create')}
-          >
-            팀 만들기
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              className="w-full" 
+              onClick={() => router.push('/dashboard/teams/create')}
+            >
+              <Plus className="h-4 w-4" />
+              팀 만들기
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setIsJoinTeamOpen(true)}
+            >
+              <UserPlus className="h-4 w-4" />
+              초대 코드로 합류
+            </Button>
+          </div>
         )}
       </div>
 
@@ -187,6 +227,18 @@ const Sidebar = ({ className }: SidebarProps) => {
         </Button>
       </div>
     </div>
+    <Dialog open={isJoinTeamOpen} onOpenChange={setIsJoinTeamOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>팀 합류하기</DialogTitle>
+          <DialogDescription>
+            팀 관리자에게 받은 초대 코드를 입력하세요.
+          </DialogDescription>
+        </DialogHeader>
+        <JoinTeamForm onJoined={() => setIsJoinTeamOpen(false)} />
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

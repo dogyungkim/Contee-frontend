@@ -40,6 +40,12 @@ export default function TeamsPage() {
     members,
     currentUserId: user?.id,
   })
+  const hasManageableMembers = members.some(
+    (member) =>
+      canManageMembers &&
+      member.userId !== String(user?.id) &&
+      member.role !== 'OWNER',
+  )
 
   if (!selectedTeam) {
     return (
@@ -137,10 +143,16 @@ export default function TeamsPage() {
               </div>
             ) : (
               <>
-                <div className="hidden grid-cols-[minmax(0,1.6fr)_120px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+                <div
+                  className={
+                    hasManageableMembers
+                      ? 'hidden grid-cols-[minmax(0,1.6fr)_120px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid'
+                      : 'hidden grid-cols-[minmax(0,1.6fr)_120px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid'
+                  }
+                >
                   <div>Member</div>
                   <div>Role</div>
-                  <div className="text-right">Menu</div>
+                  {hasManageableMembers && <div className="text-right">Menu</div>}
                 </div>
 
                 <div className="divide-y divide-border">
@@ -151,7 +163,11 @@ export default function TeamsPage() {
                   return (
                     <div
                       key={member.id}
-                      className="grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.6fr)_120px_56px] md:items-center"
+                      className={
+                        hasManageableMembers
+                          ? 'grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.6fr)_120px_56px] md:items-center'
+                          : 'grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.6fr)_120px] md:items-center'
+                      }
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -227,45 +243,47 @@ export default function TeamsPage() {
                         )}
                       </div>
 
-                      <div className="hidden justify-end md:flex">
-                        {canManageMembers && !isCurrentUser && !isOwner ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
-                                disabled={member.role === 'ADMIN'}
-                              >
-                                <Shield className="mr-2 h-4 w-4" />
-                                관리자로 변경
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
-                                disabled={member.role === 'MEMBER'}
-                              >
-                                <Shield className="mr-2 h-4 w-4" />
-                                멤버로 변경
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleRemoveMember(member.userId, member.userName)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <UserMinus className="mr-2 h-4 w-4" />
-                                팀에서 내보내기
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
-                          <div className="h-8 w-8" />
-                        )}
-                      </div>
+                      {hasManageableMembers && (
+                        <div className="hidden justify-end md:flex">
+                          {canManageMembers && !isCurrentUser && !isOwner ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
+                                  disabled={member.role === 'ADMIN'}
+                                >
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  관리자로 변경
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
+                                  disabled={member.role === 'MEMBER'}
+                                >
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  멤버로 변경
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleRemoveMember(member.userId, member.userName)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <UserMinus className="mr-2 h-4 w-4" />
+                                  팀에서 내보내기
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            <div className="h-8 w-8" />
+                          )}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
