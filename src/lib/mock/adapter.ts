@@ -337,7 +337,7 @@ export const mockAdapter: AxiosAdapter = async (config) => {
         return success(getContiDetailData(newConti));
     }
 
-    const teamContisMatch = url?.match(/^\/api\/v1\/contis\/team\/([a-zA-Z0-9-]+)$/);
+    const teamContisMatch = url?.match(/^\/api\/v1\/teams\/([a-zA-Z0-9-]+)\/contis$/);
     if (teamContisMatch && methodUpper === 'GET') {
         const teamId = teamContisMatch[1];
         const page = Number(config.params?.page ?? 0);
@@ -354,10 +354,17 @@ export const mockAdapter: AxiosAdapter = async (config) => {
             return true;
         });
         const start = page * size;
+        const content = filtered.slice(start, start + size).map(getContiListData);
+        const totalPages = Math.max(1, Math.ceil(filtered.length / size));
         return success({
-            content: filtered.slice(start, start + size).map(getContiListData),
-            totalPages: Math.max(1, Math.ceil(filtered.length / size)),
+            content,
+            totalPages,
             totalElements: filtered.length,
+            number: page,
+            size,
+            numberOfElements: content.length,
+            first: page <= 0,
+            last: page >= totalPages - 1,
         });
     }
 

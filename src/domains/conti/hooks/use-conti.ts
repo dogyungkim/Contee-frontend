@@ -27,6 +27,7 @@ export const useContis = (teamId: string | null, params: ContiSearchParamsDto = 
         queryKey: contiKeys.list(teamId || '', params),
         queryFn: () => getTeamContis(teamId!, params),
         enabled: !!teamId,
+        placeholderData: (previousData) => previousData,
     });
 };
 

@@ -17,7 +17,7 @@ export async function getTeamContis(
   params: ContiSearchParamsDto = {},
 ): Promise<PageDto<Conti>> {
   const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(
-    `/api/v1/contis/team/${teamId}`,
+    `/api/v1/teams/${teamId}/contis`,
     { params },
   );
   return {
