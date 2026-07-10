@@ -64,7 +64,9 @@ export function ContiList() {
   const isFirstPage = data?.first ?? currentPage <= 0
   const isLastPage = data?.last ?? currentPage >= totalPages - 1
   const { handleDeleteConti } = useContiActions()
-  const hasFilters = !!query.trim() || !!appliedQuery.trim() || !!selectedFrom || !!selectedTo || !!appliedFrom || !!appliedTo
+  const hasAnyFilterInput =
+    !!query.trim() || !!appliedQuery.trim() || !!selectedFrom || !!selectedTo || !!appliedFrom || !!appliedTo
+  const hasAppliedFilters = !!appliedQuery.trim() || !!appliedFrom || !!appliedTo
   const hasUnappliedFilters =
     query.trim() !== appliedQuery.trim() ||
     selectedFrom !== appliedFrom ||
@@ -77,16 +79,28 @@ export function ContiList() {
   const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
   const canEdit = canEditTeamContent(currentMember?.role)
 
-  useEffect(() => {
-    setPage(0)
-  }, [appliedQuery, appliedFrom, appliedTo, selectedTeamId])
-
   const applySearchFilters = () => {
     setAppliedQuery(query.trim())
     setAppliedFrom(selectedFrom)
     setAppliedTo(selectedTo)
     setPage(0)
   }
+
+  useEffect(() => {
+    setQuery('')
+    setAppliedQuery('')
+    setSelectedFrom('')
+    setSelectedTo('')
+    setAppliedFrom('')
+    setAppliedTo('')
+    setPendingDateRange(undefined)
+    setDateRangeOpen(false)
+    setPage(0)
+  }, [selectedTeamId])
+
+  useEffect(() => {
+    setPage(0)
+  }, [appliedQuery, appliedFrom, appliedTo])
 
   const handleDateRangeOpenChange = (open: boolean) => {
     if (open) {
@@ -229,7 +243,7 @@ export function ContiList() {
           setAppliedTo('')
           setPage(0)
         }}
-        disabled={!hasFilters && !hasUnappliedFilters}
+        disabled={!hasAnyFilterInput && !hasUnappliedFilters}
         className="gap-2"
       >
         {hasUnappliedFilters ? (
@@ -247,7 +261,7 @@ export function ContiList() {
     </form>
   )
 
-  if (contis.length === 0 && !hasFilters && !isFetching) {
+  if (contis.length === 0 && !hasAppliedFilters && !isFetching) {
     return (
       <div className="surface-card flex flex-col items-center justify-center rounded-2xl py-16 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent">
