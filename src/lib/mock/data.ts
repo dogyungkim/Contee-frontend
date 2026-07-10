@@ -255,6 +255,92 @@ export const MOCK_TEAM_SONGS: TeamSong[] = [
     },
 ];
 
+const MOCK_CONTI_TEMPLATES = [
+    { label: '주일 1부 예배', time: '오전 9:00', createdById: 'user-1', createdByName: 'Bryan Kim' },
+    { label: '주일 2부 예배', time: '오전 11:00', createdById: 'user-2', createdByName: 'Mina Lee' },
+    { label: '수요기도회', time: '오후 7:30', createdById: 'user-3', createdByName: 'Joon Park' },
+    { label: '금요성령집회', time: '오후 8:00', createdById: 'user-1', createdByName: 'Bryan Kim' },
+    { label: '새벽기도회', time: '오전 5:30', createdById: 'user-2', createdByName: 'Mina Lee' },
+];
+
+const addDays = (date: string, days: number) => {
+    const nextDate = new Date(`${date}T00:00:00Z`);
+    nextDate.setUTCDate(nextDate.getUTCDate() + days);
+    return nextDate.toISOString().slice(0, 10);
+};
+
+const createMockContis = (): Conti[] =>
+    Array.from({ length: 48 }, (_, index) => {
+        const template = MOCK_CONTI_TEMPLATES[index % MOCK_CONTI_TEMPLATES.length];
+        const worshipDate = addDays('2026-07-06', index * 2);
+        const isDraft = index % 7 === 0;
+        const isHiddenDraft = isDraft && template.createdById !== 'user-1';
+        const createdAt = `${worshipDate}T01:00:00Z`;
+        const publishedAt = `${worshipDate}T03:00:00Z`;
+
+        return {
+            id: `conti-bulk-${index + 1}`,
+            teamId: 'team-1',
+            createdById: template.createdById,
+            createdByName: template.createdByName,
+            title: `${worshipDate.replaceAll('-', '.')} ${template.label}${isDraft ? ' 초안' : ''}`,
+            worshipDate,
+            worshipTime: template.time,
+            memo: isDraft
+                ? 'mock 페이지네이션 테스트용 초안 콘티입니다.'
+                : 'mock 페이지네이션 테스트용 발행 콘티입니다.',
+            bibleVerse: '시편 95:1\n오라 우리가 여호와께 노래하며',
+            sharingInfo: '리허설 전 곡 순서와 키를 한 번 더 확인합니다.',
+            status: isDraft ? 'DRAFT' : 'PUBLISHED',
+            publishedAt: isDraft ? null : publishedAt,
+            publishedById: isDraft ? null : template.createdById,
+            externalShareEnabled: !isDraft && index % 6 === 0,
+            externalShare: !isDraft && index % 6 === 0
+                ? {
+                    enabled: true,
+                    token: `share-mock-${index + 1}`,
+                    url: `/share/contis/share-mock-${index + 1}`,
+                    createdAt: publishedAt,
+                    createdById: template.createdById,
+                }
+                : undefined,
+            createdAt,
+            updatedAt: publishedAt,
+            ...(isHiddenDraft ? { memo: '다른 사용자의 초안이라 목록에서 숨김 처리 테스트용입니다.' } : {}),
+        };
+    });
+
+const createMockContiSongs = (): ContiSong[] =>
+    createMockContis().flatMap((conti, contiIndex) => {
+        const songCount = 2 + (contiIndex % 3);
+        return Array.from({ length: songCount }, (_, songIndex) => {
+            const teamSong = MOCK_TEAM_SONGS[(contiIndex + songIndex) % 6];
+            return {
+                id: `cs-bulk-${contiIndex + 1}-${songIndex + 1}`,
+                contiId: conti.id,
+                teamSongId: teamSong.id,
+                orderIndex: songIndex,
+                key: teamSong.keySignature,
+                bpm: teamSong.bpm,
+                note: songIndex === 0 ? '첫 곡은 인트로를 짧게 진행' : '곡 사이 전환 확인',
+                youtubeUrl: teamSong.youtubeUrl,
+                sheetMusicUrl: teamSong.sheetMusicUrl,
+                createdAt: conti.createdAt,
+                updatedAt: conti.updatedAt,
+                teamSong,
+                title: teamSong.title,
+                artist: teamSong.artist,
+                songForm: [
+                    { id: 1000 + contiIndex * 10 + songIndex * 2, partOrder: 0, partType: 'VERSE', customPartName: 'V', repeatCount: 1 },
+                    { id: 1001 + contiIndex * 10 + songIndex * 2, partOrder: 1, partType: 'CHORUS', customPartName: 'C', repeatCount: 2 },
+                ],
+            };
+        });
+    });
+
+const MOCK_BULK_CONTIS = createMockContis();
+const MOCK_BULK_CONTI_SONGS = createMockContiSongs();
+
 export const MOCK_CONTIS: Conti[] = [
     {
         id: 'conti-1',
@@ -342,6 +428,7 @@ export const MOCK_CONTIS: Conti[] = [
         createdAt: '2026-06-18T10:00:00Z',
         updatedAt: '2026-06-23T18:00:00Z',
     },
+    ...MOCK_BULK_CONTIS,
 ];
 
 export const MOCK_CONTI_SONGS: ContiSong[] = [
@@ -540,6 +627,7 @@ export const MOCK_CONTI_SONGS: ContiSong[] = [
             { id: 33, partOrder: 3, partType: 'BRIDGE', customPartName: 'B', repeatCount: 2 },
         ],
     },
+    ...MOCK_BULK_CONTI_SONGS,
 ];
 
 // Special exports for dashboard components that expect simpler types

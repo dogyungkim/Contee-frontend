@@ -2,10 +2,9 @@
 
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { Calendar, FileText, MoreVertical, Share2, UserRound } from 'lucide-react'
+import { Calendar, FileText, MoreVertical, UserRound } from 'lucide-react'
 import Link from 'next/link'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Conti } from '@/types/conti'
+import { ContiExternalShareBadge, ContiStatusBadge } from './conti-badges'
 
 interface ContiListItemProps {
   conti: Conti
@@ -21,9 +21,11 @@ interface ContiListItemProps {
   onDelete: (contiId: Conti['id']) => void | Promise<void>
 }
 
+const listBadgeClassName = 'h-5 px-1.5 py-0 text-[12px] leading-none'
+
 export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) {
   return (
-    <div className="group relative grid cursor-pointer gap-2 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_160px_56px_56px] md:items-center">
+    <div className="group relative grid cursor-pointer gap-2 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center md:gap-3">
       <Link
         href={`/dashboard/contis/${conti.id}`}
         className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
@@ -38,24 +40,12 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
           <div className="min-w-0">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <div className="truncate text-sm font-medium text-foreground">{conti.title}</div>
-              <Badge
-                variant="outline"
-                className={
-                  conti.status === 'DRAFT'
-                    ? 'border-amber-200 bg-amber-50 text-amber-800'
-                    : 'border-blue-200 bg-blue-50 text-blue-700'
-                }
-              >
-                {conti.status === 'DRAFT' ? '작성 중' : '팀 공개됨'}
-              </Badge>
+              <ContiStatusBadge
+                status={conti.status}
+                className={`${listBadgeClassName} md:hidden`}
+              />
               {conti.externalShareEnabled && (
-                <Badge
-                  variant="outline"
-                  className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700"
-                >
-                  <Share2 className="h-3 w-3" />
-                  외부 공유 중
-                </Badge>
+                <ContiExternalShareBadge className={`${listBadgeClassName} md:hidden`} />
               )}
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
@@ -86,6 +76,11 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
             ) : null}
           </div>
         </div>
+      </div>
+
+      <div className="pointer-events-none relative z-10 hidden flex-col items-start gap-1.5 md:flex">
+        <ContiStatusBadge status={conti.status} className={listBadgeClassName} />
+        {conti.externalShareEnabled && <ContiExternalShareBadge className={listBadgeClassName} />}
       </div>
 
       <div className="pointer-events-none relative z-10 hidden text-sm text-foreground md:block">

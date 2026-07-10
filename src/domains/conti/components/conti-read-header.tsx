@@ -2,10 +2,10 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { LayoutList, Loader2, Send } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import type { Conti } from '@/types/conti'
+import { ContiExternalShareBadge, ContiStatusBadge } from './conti-badges'
 import { ContiExportMenu, type ContiExportMenuProps } from './conti-export-menu'
 import { ContiShareMenu, type ContiShareMenuProps } from './conti-share-menu'
 
@@ -48,23 +48,15 @@ export function ContiReadHeader({
             <LayoutList className="h-3 w-3" />
             Service Continuity
             <div className="ml-1 flex flex-wrap items-center gap-1 border-l border-border/70 pl-0">
-              <Badge
-                variant="outline"
-                className={
-                  conti.status === 'DRAFT'
-                    ? 'h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal border-amber-200 bg-amber-50 text-amber-800'
-                    : 'h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal border-blue-200 bg-blue-50 text-blue-700'
-                }
-              >
-                {conti.status === 'DRAFT' ? '작성 중' : '팀 공개됨'}
-              </Badge>
+              <ContiStatusBadge
+                status={conti.status}
+                className="h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal"
+              />
               {conti.externalShare?.enabled && (
-                <Badge
-                  variant="outline"
-                  className="h-5 border-emerald-200 bg-emerald-50 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal text-emerald-700"
-                >
-                  외부 공유 중
-                </Badge>
+                <ContiExternalShareBadge
+                  showIcon={false}
+                  className="h-5 gap-1 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal"
+                />
               )}
             </div>
           </div>

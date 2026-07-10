@@ -1,8 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Music, Search, X } from 'lucide-react'
+import { format, isSameDay, parseISO } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import type { DateRange } from 'react-day-picker'
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, Music, Search, X } from 'lucide-react'
 
 import { useContis } from '../hooks/use-conti'
 import { useContiActions } from '../hooks/use-conti-actions'
@@ -13,33 +16,133 @@ import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
 import { canEditTeamContent } from '@/domains/team/utils/team-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
+
+const CONTI_PAGE_SIZE = 20
+
+const formatDateParam = (date: Date) => format(date, 'yyyy-MM-dd')
+const formatDateLabel = (date: string) => format(parseISO(date), 'yyyy. MM. dd', { locale: ko })
+const parseDateRange = (from: string, to: string): DateRange | undefined =>
+  from
+    ? {
+        from: parseISO(from),
+        to: to ? parseISO(to) : undefined,
+      }
+    : undefined
 
 export function ContiList() {
   const { selectedTeamId } = useTeam()
   const { user } = useAuth()
   const { data: teamMembers = [] } = useTeamMembersQuery(selectedTeamId || '')
   const [query, setQuery] = useState('')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [appliedQuery, setAppliedQuery] = useState('')
+  const [selectedFrom, setSelectedFrom] = useState('')
+  const [selectedTo, setSelectedTo] = useState('')
+  const [appliedFrom, setAppliedFrom] = useState('')
+  const [appliedTo, setAppliedTo] = useState('')
+  const [page, setPage] = useState(0)
+  const [dateRangeOpen, setDateRangeOpen] = useState(false)
+  const [pendingDateRange, setPendingDateRange] = useState<DateRange | undefined>()
   const searchParams = useMemo(
     () => ({
-      page: 0,
-      size: 100,
-      q: query.trim() || undefined,
-      from: from || undefined,
-      to: to || undefined,
+      page,
+      size: CONTI_PAGE_SIZE,
+      q: appliedQuery.trim() || undefined,
+      from: appliedFrom || undefined,
+      to: appliedTo || undefined,
     }),
-    [query, from, to]
+    [page, appliedQuery, appliedFrom, appliedTo]
   )
-  const { data, isLoading, isError } = useContis(selectedTeamId, searchParams)
+  const { data, isLoading, isFetching, isError } = useContis(selectedTeamId, searchParams)
   const contis = data?.content ?? []
   const totalElements = data?.totalElements ?? contis.length
+  const totalPages = data?.totalPages ?? 1
+  const currentPage = data?.number ?? page
+  const isFirstPage = data?.first ?? currentPage <= 0
+  const isLastPage = data?.last ?? currentPage >= totalPages - 1
   const { handleDeleteConti } = useContiActions()
-  const hasFilters = !!query.trim() || !!from || !!to
+  const hasAnyFilterInput =
+    !!query.trim() || !!appliedQuery.trim() || !!selectedFrom || !!selectedTo || !!appliedFrom || !!appliedTo
+  const hasAppliedFilters = !!appliedQuery.trim() || !!appliedFrom || !!appliedTo
+  const hasUnappliedFilters =
+    query.trim() !== appliedQuery.trim() ||
+    selectedFrom !== appliedFrom ||
+    selectedTo !== appliedTo
+  const dateRangeLabel = selectedFrom
+    ? selectedTo && selectedTo !== selectedFrom
+      ? `${formatDateLabel(selectedFrom)} - ${formatDateLabel(selectedTo)}`
+      : formatDateLabel(selectedFrom)
+    : '예배일 범위'
   const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
   const canEdit = canEditTeamContent(currentMember?.role)
+
+  const applySearchFilters = () => {
+    setAppliedQuery(query.trim())
+    setAppliedFrom(selectedFrom)
+    setAppliedTo(selectedTo)
+    setPage(0)
+  }
+
+  useEffect(() => {
+    setQuery('')
+    setAppliedQuery('')
+    setSelectedFrom('')
+    setSelectedTo('')
+    setAppliedFrom('')
+    setAppliedTo('')
+    setPendingDateRange(undefined)
+    setDateRangeOpen(false)
+    setPage(0)
+  }, [selectedTeamId])
+
+  useEffect(() => {
+    setPage(0)
+  }, [appliedQuery, appliedFrom, appliedTo])
+
+  const handleDateRangeOpenChange = (open: boolean) => {
+    if (open) {
+      setPendingDateRange(parseDateRange(selectedFrom, selectedTo))
+    }
+
+    setDateRangeOpen(open)
+  }
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (!range?.from) {
+      setPendingDateRange(undefined)
+      return
+    }
+
+    setPendingDateRange({
+      from: range.from,
+      to: range.to && !isSameDay(range.from, range.to) ? range.to : undefined,
+    })
+  }
+
+  const applyDateRange = () => {
+    if (!pendingDateRange?.from) {
+      setSelectedFrom('')
+      setSelectedTo('')
+      setDateRangeOpen(false)
+      return
+    }
+
+    const nextFrom = formatDateParam(pendingDateRange.from)
+    const nextTo = pendingDateRange.to ? formatDateParam(pendingDateRange.to) : nextFrom
+
+    setSelectedFrom(nextFrom)
+    setSelectedTo(nextTo)
+    setDateRangeOpen(false)
+  }
+
+  const clearDateRange = () => {
+    setPendingDateRange(undefined)
+    setSelectedFrom('')
+    setSelectedTo('')
+  }
 
   if (isLoading) {
     return (
@@ -49,8 +152,9 @@ export function ContiList() {
         </div>
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[1.8fr_1fr_100px_56px] md:items-center">
+            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
               <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-28" />
               <Skeleton className="h-5 w-16" />
               <Skeleton className="h-8 w-8" />
@@ -70,7 +174,13 @@ export function ContiList() {
   }
 
   const filterControls = (
-    <div className="grid gap-3 border-b border-border bg-white px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_160px_160px_auto]">
+    <form
+      className="grid gap-3 border-b border-border bg-white px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_240px_auto]"
+      onSubmit={(event) => {
+        event.preventDefault()
+        applySearchFilters()
+      }}
+    >
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -81,36 +191,77 @@ export function ContiList() {
           aria-label="콘티명 검색"
         />
       </div>
-      <Input
-        type="date"
-        value={from}
-        onChange={(event) => setFrom(event.target.value)}
-        aria-label="시작 예배일"
-      />
-      <Input
-        type="date"
-        value={to}
-        onChange={(event) => setTo(event.target.value)}
-        aria-label="종료 예배일"
-      />
+      <Popover open={dateRangeOpen} onOpenChange={handleDateRangeOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="justify-start gap-2 overflow-hidden px-3 text-left font-normal"
+            aria-label="예배일 범위 선택"
+          >
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <span className="truncate">{dateRangeLabel}</span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <CalendarComponent
+            mode="range"
+            selected={pendingDateRange}
+            onSelect={handleDateRangeChange}
+            numberOfMonths={2}
+            autoFocus
+          />
+          <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearDateRange}
+              disabled={!pendingDateRange?.from && !selectedFrom}
+            >
+              날짜 지우기
+            </Button>
+            <Button type="button" size="sm" onClick={applyDateRange}>
+              적용
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
       <Button
-        type="button"
-        variant="outline"
+        type={hasUnappliedFilters ? 'submit' : 'button'}
+        variant={hasUnappliedFilters ? 'default' : 'outline'}
         onClick={() => {
+          if (hasUnappliedFilters) {
+            return
+          }
+
           setQuery('')
-          setFrom('')
-          setTo('')
+          setAppliedQuery('')
+          setSelectedFrom('')
+          setSelectedTo('')
+          setAppliedFrom('')
+          setAppliedTo('')
+          setPage(0)
         }}
-        disabled={!hasFilters}
+        disabled={!hasAnyFilterInput && !hasUnappliedFilters}
         className="gap-2"
       >
-        <X className="h-4 w-4" />
-        초기화
+        {hasUnappliedFilters ? (
+          <>
+            <Search className="h-4 w-4" />
+            검색
+          </>
+        ) : (
+          <>
+            <X className="h-4 w-4" />
+            초기화
+          </>
+        )}
       </Button>
-    </div>
+    </form>
   )
 
-  if (contis.length === 0 && !hasFilters) {
+  if (contis.length === 0 && !hasAppliedFilters && !isFetching) {
     return (
       <div className="surface-card flex flex-col items-center justify-center rounded-2xl py-16 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent">
@@ -144,7 +295,7 @@ export function ContiList() {
       </CardHeader>
 
       <CardContent className="px-0">
-        {/* {filterControls} */}
+        {filterControls}
         {contis.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 px-6 text-center">
             <p className="text-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
@@ -152,8 +303,9 @@ export function ContiList() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.8fr)_160px_56px_56px] items-center gap-2 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] items-center gap-3 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
               <div>Conti</div>
+              <div>Status</div>
               <div>Worship date</div>
               <div>Songs</div>
               <div className="text-right">{canEdit ? 'Menu' : null}</div>
@@ -169,6 +321,38 @@ export function ContiList() {
                 />
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <p className="text-sm text-muted-foreground">
+                  {currentPage + 1} / {totalPages} 페이지
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((value) => Math.max(0, value - 1))}
+                    disabled={isFirstPage || isLoading}
+                    aria-label="이전 페이지"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    이전
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((value) => value + 1)}
+                    disabled={isLastPage || isLoading}
+                    aria-label="다음 페이지"
+                  >
+                    다음
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>
