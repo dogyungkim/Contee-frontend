@@ -1,7 +1,8 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Users, Copy, Check, MoreVertical, UserMinus, Shield } from 'lucide-react'
+import { Plus, Users, Copy, Check, MoreVertical, UserMinus, Shield, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,6 +11,8 @@ import { useTeamMembersQuery, useTeamQuery } from '@/domains/team/hooks/use-team
 import { useTeamMemberActions } from '@/domains/team/hooks/use-team-member-actions'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +22,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/domains/auth/hooks/use-auth'
+import type { TeamRole } from '@/types/team'
+
+type MemberRoleFilter = 'ALL' | TeamRole
+
+const MEMBER_ROLE_FILTERS: { value: MemberRoleFilter; label: string }[] = [
+  { value: 'ALL', label: '전체 역할' },
+  { value: 'OWNER', label: '소유자' },
+  { value: 'ADMIN', label: '관리자' },
+  { value: 'MEMBER', label: '멤버' },
+  { value: 'VIEWER', label: '뷰어' },
+]
 
 export default function TeamsPage() {
   const { selectedTeam: summaryTeam, selectedTeamId } = useTeam()
@@ -26,6 +40,8 @@ export default function TeamsPage() {
   const selectedTeam = teamDetail || summaryTeam
   const { user } = useAuth()
   const { data: members = [], isLoading: isMembersLoading } = useTeamMembersQuery(selectedTeamId || '')
+  const [memberSearch, setMemberSearch] = useState('')
+  const [memberRoleFilter, setMemberRoleFilter] = useState<MemberRoleFilter>('ALL')
   const {
     copiedCode,
     canManageMembers,
@@ -40,12 +56,25 @@ export default function TeamsPage() {
     members,
     currentUserId: user?.id,
   })
-  const hasManageableMembers = members.some(
+  const hasManageableMembers = canManageMembers && members.some(
     (member) =>
-      canManageMembers &&
       member.userId !== String(user?.id) &&
       member.role !== 'OWNER',
   )
+  const filteredMembers = useMemo(() => {
+    const normalizedSearch = memberSearch.trim().toLowerCase()
+
+    return members.filter((member) => {
+      const matchesSearch =
+        normalizedSearch.length === 0 ||
+        member.userName.toLowerCase().includes(normalizedSearch) ||
+        member.userEmail.toLowerCase().includes(normalizedSearch)
+      const matchesRole =
+        memberRoleFilter === 'ALL' || member.role === memberRoleFilter
+
+      return matchesSearch && matchesRole
+    })
+  }, [memberRoleFilter, memberSearch, members])
 
   if (!selectedTeam) {
     return (
@@ -143,151 +172,192 @@ export default function TeamsPage() {
               </div>
             ) : (
               <>
+                <div className="grid gap-3 border-b border-border px-6 py-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={memberSearch}
+                      onChange={(event) => setMemberSearch(event.target.value)}
+                      placeholder="이름 또는 이메일 검색"
+                      aria-label="팀 멤버 검색"
+                      className="pl-9"
+                    />
+                  </div>
+                  <Select
+                    value={memberRoleFilter}
+                    onValueChange={(value) => setMemberRoleFilter(value as MemberRoleFilter)}
+                  >
+                    <SelectTrigger aria-label="역할 필터">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MEMBER_ROLE_FILTERS.map((filter) => (
+                        <SelectItem key={filter.value} value={filter.value}>
+                          {filter.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="text-xs text-muted-foreground sm:col-span-2">
+                    {filteredMembers.length}명 표시 중
+                  </div>
+                </div>
+
                 <div
-                  className={
-                    hasManageableMembers
-                      ? 'hidden grid-cols-[minmax(0,1.6fr)_120px_56px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid'
-                      : 'hidden grid-cols-[minmax(0,1.6fr)_120px] items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid'
-                  }
+                  className={`hidden items-center gap-4 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid 
+                    ${hasManageableMembers ?
+                      'grid-cols-[minmax(0,1.6fr)_120px_56px]' :
+                      'grid-cols-[minmax(0,1.6fr)_120px]'}`}
                 >
                   <div>Member</div>
                   <div>Role</div>
                   {hasManageableMembers && <div className="text-right">Menu</div>}
                 </div>
 
-                <div className="divide-y divide-border">
-                {members.map((member) => {
-                  const isCurrentUser = member.userId === String(user?.id)
-                  const isOwner = member.role === 'OWNER'
-                  
-                  return (
-                    <div
-                      key={member.id}
-                      className={
-                        hasManageableMembers
-                          ? 'grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.6fr)_120px_56px] md:items-center'
-                          : 'grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.6fr)_120px] md:items-center'
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                          {member.userProfileImageUrl ? (
-                            <img
-                              src={member.userProfileImageUrl}
-                              alt={member.userName}
-                              className="h-10 w-10 rounded-full"
-                            />
-                          ) : (
-                            <span className="text-sm font-semibold">
-                              {member.userName.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {member.userName}
-                            {isCurrentUser && (
-                              <span className="ml-2 text-xs text-muted-foreground">(나)</span>
-                            )}
-                          </p>
-                          <p className="text-sm text-muted-foreground">{member.userEmail}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 md:justify-start">
-                        <Badge
-                          variant={getRoleBadgeVariant(member.role)}
-                          className="rounded-md border px-2.5 py-1 text-[11px] font-medium"
-                        >
-                          {getRoleLabel(member.role)}
-                        </Badge>
-
-                        {canManageMembers && !isCurrentUser && !isOwner && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="md:hidden">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              
-                              <DropdownMenuItem
-                                onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
-                                disabled={member.role === 'ADMIN'}
-                              >
-                                <Shield className="mr-2 h-4 w-4" />
-                                관리자로 변경
-                              </DropdownMenuItem>
-                              
-                              <DropdownMenuItem
-                                onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
-                                disabled={member.role === 'MEMBER'}
-                              >
-                                <Shield className="mr-2 h-4 w-4" />
-                                멤버로 변경
-                              </DropdownMenuItem>
-                              
-                              <DropdownMenuSeparator />
-                              
-                              <DropdownMenuItem
-                                onClick={() => handleRemoveMember(member.userId, member.userName)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <UserMinus className="mr-2 h-4 w-4" />
-                                팀에서 내보내기
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-
-                      {hasManageableMembers && (
-                        <div className="hidden justify-end md:flex">
-                          {canManageMembers && !isCurrentUser && !isOwner ? (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
-                                  disabled={member.role === 'ADMIN'}
-                                >
-                                  <Shield className="mr-2 h-4 w-4" />
-                                  관리자로 변경
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
-                                  disabled={member.role === 'MEMBER'}
-                                >
-                                  <Shield className="mr-2 h-4 w-4" />
-                                  멤버로 변경
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => handleRemoveMember(member.userId, member.userName)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <UserMinus className="mr-2 h-4 w-4" />
-                                  팀에서 내보내기
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          ) : (
-                            <div className="h-8 w-8" />
-                          )}
-                        </div>
-                      )}
+                {filteredMembers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+                    <div className="mb-4 rounded-full bg-muted p-4">
+                      <Search className="h-7 w-7 text-muted-foreground" />
                     </div>
-                  )
-                })}
-                </div>
+                    <h3 className="mb-1 text-base font-semibold">검색 결과가 없습니다</h3>
+                    <p className="text-sm text-muted-foreground">
+                      검색어 또는 역할 필터를 변경해보세요.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="max-h-[520px] divide-y divide-border overflow-y-auto">
+                    {filteredMembers.map((member) => {
+                      const isCurrentUser = member.userId === String(user?.id)
+                      const isOwner = member.role === 'OWNER'
+
+                      return (
+                        <div
+                          key={member.id}
+                          className={`grid gap-4 px-6 py-4 transition-colors hover:bg-[#fafafa] md:items-center ${hasManageableMembers
+                            ? 'md:grid-cols-[minmax(0,1.6fr)_120px_56px]'
+                            : 'md:grid-cols-[minmax(0,1.6fr)_120px]'
+                            }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                              {member.userProfileImageUrl ? (
+                                <img
+                                  src={member.userProfileImageUrl}
+                                  alt={member.userName}
+                                  className="h-10 w-10 rounded-full"
+                                />
+                              ) : (
+                                <span className="text-sm font-semibold">
+                                  {member.userName.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {member.userName}
+                                {isCurrentUser && (
+                                  <span className="ml-2 text-xs text-muted-foreground">(나)</span>
+                                )}
+                              </p>
+                              <p className="text-sm text-muted-foreground">{member.userEmail}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-2 md:justify-start">
+                            <Badge
+                              variant={getRoleBadgeVariant(member.role)}
+                              className="rounded-md border px-2.5 py-1 text-[11px] font-medium"
+                            >
+                              {getRoleLabel(member.role)}
+                            </Badge>
+
+                            {canManageMembers && !isCurrentUser && !isOwner && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="md:hidden">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+
+                                  <DropdownMenuItem
+                                    onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
+                                    disabled={member.role === 'ADMIN'}
+                                  >
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    관리자로 변경
+                                  </DropdownMenuItem>
+
+                                  <DropdownMenuItem
+                                    onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
+                                    disabled={member.role === 'MEMBER'}
+                                  >
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    멤버로 변경
+                                  </DropdownMenuItem>
+
+                                  <DropdownMenuSeparator />
+
+                                  <DropdownMenuItem
+                                    onClick={() => handleRemoveMember(member.userId, member.userName)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <UserMinus className="mr-2 h-4 w-4" />
+                                    팀에서 내보내기
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
+
+                          {hasManageableMembers && (
+                            <div className="hidden justify-end md:flex">
+                              {canManageMembers && !isCurrentUser && !isOwner ? (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>멤버 관리</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => handleChangeRole(member.userId, 'ADMIN', member.userName)}
+                                      disabled={member.role === 'ADMIN'}
+                                    >
+                                      <Shield className="mr-2 h-4 w-4" />
+                                      관리자로 변경
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleChangeRole(member.userId, 'MEMBER', member.userName)}
+                                      disabled={member.role === 'MEMBER'}
+                                    >
+                                      <Shield className="mr-2 h-4 w-4" />
+                                      멤버로 변경
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => handleRemoveMember(member.userId, member.userName)}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <UserMinus className="mr-2 h-4 w-4" />
+                                      팀에서 내보내기
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              ) : (
+                                <div className="h-8 w-8" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </>
             )}
           </CardContent>

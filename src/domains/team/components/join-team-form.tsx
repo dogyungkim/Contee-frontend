@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { LogIn } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useTeam } from '@/context/team-context'
-import { useJoinTeamMutation } from '@/domains/team/hooks/use-team-query'
+import { teamKeys, useJoinTeamMutation } from '@/domains/team/hooks/use-team-query'
 import { toast } from '@/lib/toast'
+import type { TeamSummary } from '@/types/team'
 
 const formSchema = z.object({
   shortCode: z.string().trim().min(1, '초대 코드를 입력해주세요.'),
@@ -34,8 +35,7 @@ interface JoinTeamFormProps {
 export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
   const { teams, setSelectedTeamId } = useTeam()
   const joinTeamMutation = useJoinTeamMutation()
-  const [teamIdsBeforeJoin, setTeamIdsBeforeJoin] = useState<string[] | null>(null)
-  const [submittedShortCode, setSubmittedShortCode] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -44,31 +44,25 @@ export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
     },
   })
 
-  useEffect(() => {
-    if (!teamIdsBeforeJoin) return
-
-    const joinedTeam =
-      teams.find((team) => !teamIdsBeforeJoin.includes(team.id)) ||
-      teams.find((team) => team.shortCode?.toUpperCase() === submittedShortCode)
-
-    if (joinedTeam) {
-      setSelectedTeamId(joinedTeam.id)
-      setTeamIdsBeforeJoin(null)
-      setSubmittedShortCode(null)
-      onJoined?.()
-    }
-  }, [onJoined, setSelectedTeamId, submittedShortCode, teamIdsBeforeJoin, teams])
-
   const onSubmit = async (values: FormValues) => {
     const shortCode = values.shortCode.trim().toUpperCase()
     const currentTeamIds = teams.map((team) => team.id)
 
     try {
       await joinTeamMutation.mutateAsync(shortCode)
-      setTeamIdsBeforeJoin(currentTeamIds)
-      setSubmittedShortCode(shortCode)
+
+      const updatedTeams = queryClient.getQueryData<TeamSummary[]>(teamKeys.lists()) || []
+      const joinedTeam =
+        updatedTeams.find((team) => !currentTeamIds.includes(team.id)) ||
+        updatedTeams.find((team) => team.shortCode?.toUpperCase() === shortCode)
+
+      if (joinedTeam) {
+        setSelectedTeamId(joinedTeam.id)
+      }
+
       form.reset()
       toast.success('팀에 합류했습니다.')
+      onJoined?.()
     } catch (error: unknown) {
       const errorMessage =
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
