@@ -1,13 +1,11 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
 
 import { RequireAuth } from '@/domains/auth/components/require-auth'
 import Sidebar from '@/components/layout/sidebar'
+import { DashboardMobileSidebar } from '@/components/layout/dashboard-mobile-sidebar'
 import { TeamProvider } from '@/context/team-context'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 
 export const metadata: Metadata = {
   title: '콘티 목록 | Contee',
@@ -28,19 +26,7 @@ export default function DashboardGroupLayout({
             <div className="floating-shell relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-none sm:rounded-2xl">
               <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-white px-4 lg:hidden">
                 <Link href="/dashboard/contis" className="flex min-h-10 items-center font-semibold tracking-normal">Contee</Link>
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" aria-label="메뉴 열기">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="p-0">
-                    <SheetHeader className="sr-only">
-                      <SheetTitle>메뉴</SheetTitle>
-                    </SheetHeader>
-                    <Sidebar className="w-full rounded-none border-0 shadow-none" />
-                  </SheetContent>
-                </Sheet>
+                <DashboardMobileSidebar />
               </header>
               <main className="dashboard-content flex-1 overflow-y-auto bg-white p-4 sm:p-5 lg:p-9">
                 <div className="mx-auto w-full max-w-[1440px]">

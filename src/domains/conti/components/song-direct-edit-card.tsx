@@ -261,7 +261,7 @@ export function SongDirectEditCard({
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <Label>Key (조)</Label>
               <Select
                 value={key}
@@ -280,7 +280,7 @@ export function SongDirectEditCard({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-bpm`}>BPM (템포)</Label>
               <Input
                 id={`${fieldId}-bpm`}
@@ -296,7 +296,7 @@ export function SongDirectEditCard({
             </div>
             {showResourceFields && (
               <>
-                <div className="col-span-2 space-y-2 sm:col-span-1">
+                <div className="col-span-2 min-w-0 space-y-2 sm:col-span-1">
                   <Label htmlFor={`${fieldId}-youtube`}>YouTube 링크</Label>
                   <Input
                     id={`${fieldId}-youtube`}
@@ -309,7 +309,7 @@ export function SongDirectEditCard({
                   />
                 </div>
                 {!showSheetMusicUpload && (
-                  <div className="col-span-2 space-y-2 sm:col-span-1">
+                  <div className="col-span-2 min-w-0 space-y-2 sm:col-span-1">
                     <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
                     <Input
                       id={`${fieldId}-sheetMusic`}
@@ -441,11 +441,11 @@ export function SongDirectEditCard({
           {songForm.length > 0 ? (
             <button
               type="button"
-              className="flex w-full items-center gap-2 overflow-x-auto rounded-xl border bg-slate-50 p-3 text-left transition-colors hover:bg-slate-100 sm:p-4"
+              className="flex w-full flex-wrap items-center gap-2 overflow-hidden rounded-xl border bg-slate-50 p-3 text-left transition-colors hover:bg-slate-100 sm:p-4"
               onClick={() => setFormDialogOpen(true)}
             >
               {groupedFlow.map((group, index) => (
-                <div key={index} className="flex items-center gap-2 shrink-0">
+                <div key={index} className="flex items-center gap-2">
                   <div className={cn("type-badge px-3 py-1.5 rounded-md border shadow-sm", {
                     'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
                     'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',

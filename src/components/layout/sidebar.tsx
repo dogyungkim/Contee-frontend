@@ -35,9 +35,10 @@ const JOIN_TEAM_VALUE = '__join__';
 
 interface SidebarProps {
   className?: string;
+  onNavigate?: () => void;
 }
 
-const Sidebar = ({ className }: SidebarProps) => {
+const Sidebar = ({ className, onNavigate }: SidebarProps) => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,6 +49,7 @@ const Sidebar = ({ className }: SidebarProps) => {
 
   const handleTeamChange = (value: string) => {
     if (value === ADD_TEAM_VALUE) {
+      onNavigate?.();
       router.push('/dashboard/teams/create');
       return;
     }
@@ -56,9 +58,11 @@ const Sidebar = ({ className }: SidebarProps) => {
       return;
     }
     setSelectedTeamId(value);
+    onNavigate?.();
   };
 
   const handleLogout = async () => {
+    onNavigate?.();
     await logout();
     router.push('/');
   };
@@ -103,7 +107,7 @@ const Sidebar = ({ className }: SidebarProps) => {
     <div className={cn("flex h-full w-62 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
-        <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3">
+        <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3" onClick={onNavigate}>
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1c1c] text-white">
             <Music className="h-4 w-4" />
           </div>
@@ -146,7 +150,10 @@ const Sidebar = ({ className }: SidebarProps) => {
           <div className="space-y-2">
             <Button 
               className="w-full" 
-              onClick={() => router.push('/dashboard/teams/create')}
+              onClick={() => {
+                onNavigate?.();
+                router.push('/dashboard/teams/create');
+              }}
             >
               <Plus className="h-4 w-4" />
               팀 만들기
@@ -207,6 +214,7 @@ const Sidebar = ({ className }: SidebarProps) => {
                     : 'text-muted-foreground hover:bg-white/55 hover:text-foreground'
                 )}
                 aria-disabled={isDisabled}
+                onClick={isDisabled ? undefined : onNavigate}
               >
                 <item.icon className="h-4 w-4" />
                 {item.title}
