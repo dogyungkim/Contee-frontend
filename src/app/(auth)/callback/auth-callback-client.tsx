@@ -10,10 +10,10 @@ export function AuthCallbackClient() {
   const { status, message, handleGoToContis, handleRetry, handleGoHome } = useAuthCallback()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <Card>
-          <CardHeader className="text-center">
+    <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="w-full max-w-md">
+        <Card className="rounded-2xl">
+          <CardHeader className="px-4 text-center sm:px-6">
             <div className="mx-auto mb-4">
               {status === 'loading' && <Loader2 className="h-12 w-12 animate-spin text-blue-600" />}
               {status === 'success' && <CheckCircle className="h-12 w-12 text-green-600" />}
@@ -26,7 +26,7 @@ export function AuthCallbackClient() {
             </CardTitle>
             <CardDescription>{message}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-4 sm:px-6">
             {status === 'loading' && (
               <div className="text-center">
                 <p className="text-sm text-gray-600">잠시만 기다려주세요...</p>
@@ -34,7 +34,7 @@ export function AuthCallbackClient() {
             )}
 
             {status === 'success' && (
-              <div className="text-center space-y-4">
+              <div className="space-y-4 text-center">
                 <p className="text-sm text-gray-600">콘티 리스트로 이동합니다.</p>
                 <Button onClick={handleGoToContis} className="w-full">
                   콘티 리스트로 이동
@@ -43,7 +43,7 @@ export function AuthCallbackClient() {
             )}
 
             {status === 'error' && (
-              <div className="text-center space-y-4">
+              <div className="space-y-4 text-center">
                 <p className="text-sm text-red-600">다시 시도해주세요.</p>
                 <div className="space-y-2">
                   <Button onClick={handleRetry} className="w-full">

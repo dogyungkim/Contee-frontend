@@ -24,18 +24,18 @@ const issues = [
 const ProblemSection = () => {
   return (
     <section id="features" className="border-b border-border bg-[#fafafa]">
-      <div className="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <div className="text-caption-upper text-muted-foreground">Why Contee</div>
-          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+          <h2 className="mt-4 text-3xl font-semibold tracking-normal sm:text-5xl">
             예배 준비를 느리게 만드는 문제부터 덜어냅니다.
           </h2>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">
+          <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
             Contee는 화면을 화려하게 만들기보다 준비 과정을 조용하게 정리하는 데 집중합니다.
           </p>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
+        <div className="mt-10 grid gap-4 sm:mt-14 sm:gap-5 md:grid-cols-3">
           {issues.map((issue, index) => {
             const Icon = issue.icon
             const dark = index === 1
@@ -43,12 +43,12 @@ const ProblemSection = () => {
             return (
               <div
                 key={issue.title}
-                className={dark ? 'surface-dark rounded-xl p-7' : 'surface-card rounded-xl p-7'}
+                className={dark ? 'surface-dark rounded-xl p-5 sm:p-7' : 'surface-card rounded-xl p-5 sm:p-7'}
               >
                 <div className={dark ? 'flex h-10 w-10 items-center justify-center rounded-md bg-white/10' : 'flex h-10 w-10 items-center justify-center rounded-md bg-accent'}>
                   <Icon className={dark ? 'h-5 w-5 text-white' : 'h-5 w-5 text-foreground'} />
                 </div>
-                <h3 className={dark ? 'mt-6 text-2xl font-semibold tracking-[-0.03em] text-white' : 'mt-6 text-2xl font-semibold tracking-[-0.03em] text-foreground'}>
+                <h3 className={dark ? 'mt-5 text-xl font-semibold tracking-normal text-white sm:mt-6 sm:text-2xl' : 'mt-5 text-xl font-semibold tracking-normal text-foreground sm:mt-6 sm:text-2xl'}>
                   {issue.title}
                 </h3>
                 <p className={dark ? 'mt-3 text-sm leading-7 text-white/72' : 'mt-3 text-sm leading-7 text-muted-foreground'}>

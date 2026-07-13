@@ -24,8 +24,8 @@ export default function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2">
+      <div className="flex min-h-dvh items-center justify-center px-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>로그인 확인 중...</span>
         </div>
@@ -34,8 +34,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">Contee</h1>
           <p className="mt-2 text-sm text-gray-600">
@@ -43,21 +43,21 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">로그인</CardTitle>
+        <Card className="rounded-2xl">
+          <CardHeader className="space-y-1 px-4 pb-4 sm:px-6">
+            <CardTitle className="text-center text-2xl">로그인</CardTitle>
             <CardDescription className="text-center">
               Google 계정으로 로그인하여 서비스를 이용하세요
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-4 sm:px-6">
             <Button
               onClick={handleGoogleLogin}
               className="w-full"
               size="lg"
               disabled={isLoading}
             >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+              <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -98,7 +98,7 @@ export default function LoginPage() {
           <p className="text-sm text-gray-600">
             Contee는 찬양팀을 위한 콘티 관리 서비스입니다.
           </p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             예배 준비 시간을 단축하고 팀원과 효율적으로 소통하세요.
           </p>
         </div>

@@ -21,7 +21,7 @@ const Header = () => {
             <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white">
               <Music className="h-4 w-4" />
             </div>
-            <span className="text-sm font-semibold tracking-[-0.02em] sm:inline-block">Contee</span>
+            <span className="text-sm font-semibold tracking-normal sm:inline-block">Contee</span>
           </Link>
           <nav className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link href="#features" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">기능</Link>

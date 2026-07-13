@@ -30,18 +30,18 @@ const features = [
 const FeatureSection = () => {
   return (
     <section id="workflow" className="border-b border-border bg-white">
-      <div className="mx-auto w-full max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <div className="text-caption-upper text-muted-foreground">Workflow</div>
-          <h2 className="mt-4 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+          <h2 className="mt-4 text-3xl font-semibold tracking-normal sm:text-5xl">
             계획, 검색, 공유가 하나의 흐름으로 이어집니다.
           </h2>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">
+          <p className="mt-5 text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
             문서가 바뀔 때마다 팀이 다시 정렬되지 않도록, Contee는 준비 과정 전체를 같은 작업 문맥 안에 둡니다.
           </p>
         </div>
 
-        <div className="mt-16 grid gap-6">
+        <div className="mt-10 grid gap-4 sm:mt-16 sm:gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon
             const dark = index === 1
@@ -49,14 +49,14 @@ const FeatureSection = () => {
             return (
               <div
                 key={feature.title}
-                className={dark ? 'grid gap-8 rounded-xl border border-[#1a1a1a] bg-[#171717] p-6 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]' : 'surface-card grid gap-8 rounded-xl p-6 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]'}
+                className={dark ? 'grid gap-6 rounded-xl border border-[#1a1a1a] bg-[#171717] p-5 sm:gap-8 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]' : 'surface-card grid gap-6 rounded-xl p-5 sm:gap-8 sm:p-8 lg:grid-cols-[0.92fr_1.08fr]'}
               >
                 <div className="flex flex-col justify-between gap-6">
                   <div>
                     <div className={dark ? 'text-caption-upper text-white/60' : 'text-caption-upper text-muted-foreground'}>
                       {feature.eyebrow}
                     </div>
-                    <h3 className={dark ? 'mt-4 text-3xl font-semibold tracking-[-0.05em] text-white' : 'mt-4 text-3xl font-semibold tracking-[-0.05em] text-foreground'}>
+                    <h3 className={dark ? 'mt-4 text-2xl font-semibold tracking-normal text-white sm:text-3xl' : 'mt-4 text-2xl font-semibold tracking-normal text-foreground sm:text-3xl'}>
                       {feature.title}
                     </h3>
                     <p className={dark ? 'mt-4 max-w-xl text-base leading-7 text-white/72' : 'mt-4 max-w-xl text-base leading-7 text-muted-foreground'}>
@@ -67,17 +67,17 @@ const FeatureSection = () => {
                     {feature.bullets.map((bullet) => (
                       <div
                         key={bullet}
-                        className={dark ? 'flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3' : 'flex items-center justify-between rounded-lg border border-border bg-[#fafafa] px-4 py-3'}
+                        className={dark ? 'flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3' : 'flex items-center justify-between gap-3 rounded-lg border border-border bg-[#fafafa] px-4 py-3'}
                       >
                         <span className={dark ? 'text-sm text-white' : 'text-sm text-foreground'}>{bullet}</span>
-                        <ArrowUpRight className={dark ? 'h-4 w-4 text-white/55' : 'h-4 w-4 text-muted-foreground'} />
+                        <ArrowUpRight className={dark ? 'h-4 w-4 shrink-0 text-white/55' : 'h-4 w-4 shrink-0 text-muted-foreground'} />
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className={dark ? 'rounded-xl border border-white/10 bg-[#1a1a1a] p-5' : 'rounded-xl border border-border bg-[#fafafa] p-5'}>
-                  <div className={dark ? 'rounded-xl border border-white/10 bg-[#171717] p-5' : 'rounded-xl border border-border bg-white p-5'}>
+                <div className={dark ? 'rounded-xl border border-white/10 bg-[#1a1a1a] p-4 sm:p-5' : 'rounded-xl border border-border bg-[#fafafa] p-4 sm:p-5'}>
+                  <div className={dark ? 'rounded-xl border border-white/10 bg-[#171717] p-4 sm:p-5' : 'rounded-xl border border-border bg-white p-4 sm:p-5'}>
                     <div className="flex items-center justify-between">
                       <div className={dark ? 'flex h-10 w-10 items-center justify-center rounded-md bg-white/10' : 'flex h-10 w-10 items-center justify-center rounded-md bg-accent'}>
                         <Icon className={dark ? 'h-5 w-5 text-white' : 'h-5 w-5 text-foreground'} />
@@ -86,7 +86,7 @@ const FeatureSection = () => {
                         0{index + 1}
                       </div>
                     </div>
-                    <div className="mt-8 space-y-3">
+                    <div className="mt-6 space-y-3 sm:mt-8">
                       <div className={dark ? 'h-3 w-24 rounded-full bg-white/14' : 'h-3 w-24 rounded-full bg-foreground/10'} />
                       <div className={dark ? 'h-11 rounded-lg border border-white/10 bg-[#1a1a1a]' : 'h-11 rounded-lg border border-border bg-white'} />
                       <div className="grid gap-3 sm:grid-cols-2">
