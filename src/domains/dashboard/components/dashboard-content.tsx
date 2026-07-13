@@ -172,7 +172,7 @@ export function DashboardContent() {
                   <CardDescription>곡명/아티스트로 빠르게 찾기</CardDescription>
                 </div>
                 <Button asChild size="sm" variant="outline">
-                  <Link href="/dashboard/songs">곡 관리</Link>
+                  <Link href="/dashboard/songs">곡 라이브러리</Link>
                 </Button>
               </div>
             </CardHeader>
@@ -193,7 +193,7 @@ export function DashboardContent() {
                   <div className="sm:col-span-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
                     {hasSongQuery
                       ? '검색 결과가 없습니다. 다른 키워드로 다시 시도해보세요.'
-                      : '등록된 곡이 없습니다. 곡 관리에서 곡을 추가해보세요.'}
+                      : '등록된 곡이 없습니다. 곡 라이브러리에서 곡을 추가해보세요.'}
                   </div>
                 ) : (
                   filteredSongs.map((song) => (
@@ -244,7 +244,7 @@ export function DashboardContent() {
               <Button asChild className="justify-start" variant="outline">
                 <Link href="/dashboard/songs">
                   <Search className="mr-2 h-4 w-4" />
-                  곡 검색/추가
+                  곡 라이브러리
                 </Link>
               </Button>
             </CardContent>

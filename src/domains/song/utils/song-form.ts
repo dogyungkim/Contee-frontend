@@ -53,13 +53,24 @@ const toUiSongFormPart = (
     barCount?: number,
     note?: string,
     index = 0
-): SongFormPart => ({
-    id: `${partType}-${index}`,
-    type: SONG_PART_TYPE_TO_UI_MAP[partType] || 'Verse',
-    label: note || customPartName || partType,
-    bars: barCount || SONG_FORM_CONFIG.DEFAULT_BARS,
-    abbr: customPartName?.substring(0, SONG_FORM_CONFIG.CUSTOM_ABBR_MAX_LENGTH),
-})
+): SongFormPart => {
+    const type = SONG_PART_TYPE_TO_UI_MAP[partType] || 'Verse'
+    const section = AVAILABLE_SECTIONS.find(s => s.type === type)
+    const trimmedCustomName = customPartName?.trim()
+    const isDefaultSectionName =
+        !!trimmedCustomName &&
+        [section?.label, section?.abbr, partType].some(value => value?.toLowerCase() === trimmedCustomName.toLowerCase())
+
+    return {
+        id: `${partType}-${index}`,
+        type,
+        label: note || customPartName || partType,
+        bars: barCount || SONG_FORM_CONFIG.DEFAULT_BARS,
+        abbr: trimmedCustomName && !isDefaultSectionName
+            ? trimmedCustomName.substring(0, SONG_FORM_CONFIG.CUSTOM_ABBR_MAX_LENGTH)
+            : undefined,
+    }
+}
 
 export const mapApiSongFormToUi = (parts: ApiSongFormPart[] = []): SongFormPart[] =>
     parts.map((part, index) =>

@@ -29,6 +29,7 @@ interface ContiSongCardProps {
   headerAction?: ReactNode
   children?: ReactNode
   isDragging?: boolean
+  showIndex?: boolean
   highlightKey?: boolean
   highlightBpm?: boolean
   showOriginalMeta?: boolean
@@ -53,6 +54,7 @@ export function ContiSongCard({
   headerAction,
   children,
   isDragging = false,
+  showIndex = true,
   highlightKey = false,
   highlightBpm = false,
   showOriginalMeta = false,
@@ -87,12 +89,16 @@ export function ContiSongCard({
       )}
     >
       <div className="flex items-center gap-4 border-b border-neutral-100 bg-neutral-50/50 px-4 py-3">
-        <div className="flex items-center gap-2">
-          {dragHandle}
-          <span className="flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-xs font-bold text-neutral-600">
-            {index + 1}
-          </span>
-        </div>
+        {(showIndex || dragHandle) && (
+          <div className="flex items-center gap-2">
+            {dragHandle}
+            {showIndex && (
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-xs font-bold text-neutral-600">
+                {index + 1}
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
