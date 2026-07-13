@@ -100,8 +100,8 @@ export default function NewContiPage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Top Header Section */}
-      <div className="top-0 z-20 border-b rounded-lg border bg-background px-0 py-4 backdrop-blur">
-        <div className="flex max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mx-auto w-full">
+      <div className="top-0 z-20 rounded-lg border border-b bg-background px-4 py-4 backdrop-blur sm:px-5">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" asChild className="h-8 w-8">
@@ -109,9 +109,9 @@ export default function NewContiPage() {
                   <ChevronLeft className="h-4 w-4" />
                 </Link>
               </Button>
-              <h2 className="text-xl font-bold tracking-tight">새 콘티 만들기</h2>
+              <h2 className="type-section-title">새 콘티 만들기</h2>
             </div>
-            <p className="text-sm text-muted-foreground ml-10">
+            <p className="type-page-description ml-10">
               {selectedTeam.name} 팀의 예배 콘티를 작성합니다.
             </p>
           </div>
@@ -119,12 +119,12 @@ export default function NewContiPage() {
       </div>
 
       {/* Main Content */}
-      <div className="space-y-6 max-w-[1200px] mx-auto w-full">
+      <div className="mx-auto w-full max-w-[1200px] space-y-6">
         {/* Worship Info Card */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4">
-          <h3 className="font-semibold text-lg">예배 정보</h3>
+        <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4 sm:p-6">
+          <h3 className="type-card-title">예배 정보</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Date Picker */}
             <div className="space-y-2">
               <Label htmlFor="new-conti-date">예배 날짜</Label>
@@ -143,7 +143,7 @@ export default function NewContiPage() {
                     {date ? format(date, 'yyyy년 M월 d일 (EEE)', { locale: ko }) : "날짜 선택"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={date}
@@ -156,9 +156,9 @@ export default function NewContiPage() {
             {/* Time Picker */}
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium leading-none">예배 시간</legend>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] gap-2">
                 <Select value={period} onValueChange={setPeriod}>
-                  <SelectTrigger className="w-[80px]" aria-label="오전 또는 오후">
+                  <SelectTrigger className="w-full" aria-label="오전 또는 오후">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,7 +217,7 @@ export default function NewContiPage() {
         </div>
 
         {/* Bible Verse & Sharing Section */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4">
+        <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4 sm:p-6">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
@@ -226,7 +226,7 @@ export default function NewContiPage() {
               <h3 className="text-sm font-bold text-neutral-900">말씀 & 나눔</h3>
             </div>
           </div>
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4 space-y-3">
+          <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
             <div className="space-y-2">
               <Label htmlFor="bibleVerseReference">본문 위치</Label>
               <Input
@@ -248,7 +248,7 @@ export default function NewContiPage() {
               />
             </div>
           </div>
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4 space-y-3">
+          <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
             <div className="space-y-2">
               <Label htmlFor="sharingInfo">나눔</Label>
               <Textarea
@@ -275,7 +275,7 @@ export default function NewContiPage() {
           {/* Render Added Songs */}
           <div className="space-y-2">
             {tempSongs.map((song, index) => (
-              <div key={song.tempId} className="rounded-xl border border-neutral-200 bg-white p-4">
+              <div key={song.tempId} className="rounded-xl border border-neutral-200 bg-white p-3 sm:p-4">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-xs font-bold text-neutral-600">
@@ -350,7 +350,7 @@ export default function NewContiPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <Button
               variant="outline"
               className="h-32 border-dashed bg-white hover:bg-neutral-50 group transition-all"

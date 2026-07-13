@@ -38,7 +38,7 @@ export function ContiShareMenu({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 gap-2"
+          className="h-9 w-full gap-2 sm:w-auto"
           aria-label="링크 관리"
           title="링크 관리"
         >

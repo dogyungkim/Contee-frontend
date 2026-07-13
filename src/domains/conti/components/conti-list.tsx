@@ -147,12 +147,12 @@ export function ContiList() {
   if (isLoading) {
     return (
       <div className="surface-card overflow-hidden rounded-2xl">
-        <div className="border-b border-border px-6 py-4">
+        <div className="border-b border-border px-4 py-4 sm:px-6">
           <Skeleton className="h-5 w-32" />
         </div>
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
+            <div key={i} className="grid gap-3 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] lg:items-center">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-28" />
@@ -175,7 +175,7 @@ export function ContiList() {
 
   const filterControls = (
     <form
-      className="grid gap-3 border-b border-border bg-white px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_240px_auto]"
+      className="grid gap-3 border-b border-border bg-white px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_240px_auto]"
       onSubmit={(event) => {
         event.preventDefault()
         applySearchFilters()
@@ -203,12 +203,12 @@ export function ContiList() {
             <span className="truncate">{dateRangeLabel}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto" align="start">
           <CalendarComponent
             mode="range"
             selected={pendingDateRange}
             onSelect={handleDateRangeChange}
-            numberOfMonths={2}
+            numberOfMonths={1}
             autoFocus
           />
           <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-3">
@@ -263,12 +263,12 @@ export function ContiList() {
 
   if (contis.length === 0 && !hasAppliedFilters && !isFetching) {
     return (
-      <div className="surface-card flex flex-col items-center justify-center rounded-2xl py-16 text-center">
+      <div className="surface-card flex flex-col items-center justify-center rounded-2xl px-4 py-14 text-center sm:py-16">
         <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent">
           <Music className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold">생성된 콘티가 없습니다</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h3 className="type-card-title mt-4">생성된 콘티가 없습니다</h3>
+        <p className="type-page-description mt-2">
           첫 번째 예배 콘티를 작성해보세요.
         </p>
         <Button asChild className="mt-6">
@@ -283,10 +283,10 @@ export function ContiList() {
 
   return (
     <Card className="gap-0 overflow-hidden rounded-2xl py-1">
-      <CardHeader className="border-b border-border px-6 py-4">
+      <CardHeader className="border-b border-border px-4 py-4 sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-lg">예배 콘티</CardTitle>
+            <CardTitle className="type-card-title">예배 콘티</CardTitle>
             <CardDescription className="mt-1">
               총 {totalElements}개의 콘티가 등록되어 있습니다.
             </CardDescription>
@@ -303,7 +303,7 @@ export function ContiList() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] items-center gap-3 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] items-center gap-3 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground lg:grid">
               <div>Conti</div>
               <div>Status</div>
               <div>Worship date</div>

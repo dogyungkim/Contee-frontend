@@ -12,7 +12,7 @@ interface ContiReadOnlySongListProps {
 export function ContiReadOnlySongList({ songs }: ContiReadOnlySongListProps) {
   if (songs.length === 0) {
     return (
-      <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/5 text-center">
+      <div className="flex min-h-32 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/5 px-4 py-8 text-center">
         <p className="text-sm font-medium italic text-muted-foreground/60">추가된 곡이 없습니다.</p>
         <p className="mt-1 text-xs text-muted-foreground/40">예배 순서에 맞춰 곡을 추가해보세요.</p>
       </div>

@@ -55,14 +55,14 @@ export function ContiReadOnlyInfo({
       )}
     >
       {memo && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-5">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
           <p className="mb-2 text-xs font-bold text-amber-600">특이사항</p>
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-600">{memo}</p>
         </div>
       )}
 
       {hasWordSharing && (
-        <div className="rounded-xl border border-neutral-200 bg-white p-5">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
           {collapsible ? (
             <button
               type="button"
@@ -80,7 +80,7 @@ export function ContiReadOnlyInfo({
           {isWordSharingOpen && (
             <div id="read-only-word-sharing-content" className="mt-3 space-y-4">
               {bibleVerse && (
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
                   <p className="mb-1 text-xs font-bold text-neutral-700">본문</p>
                   {verse.reference && (
                     <p className="text-sm font-semibold text-neutral-900">{verse.reference}</p>
@@ -94,7 +94,7 @@ export function ContiReadOnlyInfo({
               )}
 
               {sharingInfo && (
-                <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
+                <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
                   <p className="mb-1 text-xs font-bold text-neutral-700">나눔</p>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
                     {sharingInfo}

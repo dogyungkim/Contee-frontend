@@ -74,9 +74,9 @@ export function ContiSongCard({
     },
     ...(showOriginalMeta
       ? [
-          { label: '기본 Key', value: originalKey || '-' },
-          { label: '기본 BPM', value: originalBpm || '-' },
-        ]
+        { label: '기본 Key', value: originalKey || '-' },
+        { label: '기본 BPM', value: originalBpm || '-' },
+      ]
       : []),
   ]
 
@@ -88,30 +88,26 @@ export function ContiSongCard({
         isDragging && 'border-primary shadow-xl'
       )}
     >
-      <div className="flex items-center gap-4 border-b border-neutral-100 bg-neutral-50/50 px-4 py-3">
-        {(showIndex || dragHandle) && (
-          <div className="flex items-center gap-2">
-            {dragHandle}
-            {showIndex && (
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-xs font-bold text-neutral-600">
-                {index + 1}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="truncate text-base font-bold">{title}</h4>
-            {badge}
-          </div>
-          {artist && <div className="mt-1 text-sm text-neutral-500">{artist}</div>}
+      <div className="grid gap-3 border-b border-neutral-100 bg-neutral-50/50 px-3 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:px-4">
+        <div className="flex items-center gap-2">
+          {dragHandle}
+          <span className="flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-xs font-bold text-neutral-600">
+            {index + 1}
+          </span>
         </div>
 
-        {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="min-w-0 break-words text-base font-bold sm:truncate">{title}</h4>
+            {badge}
+          </div>
+          {artist && <div className="mt-1 break-words text-sm text-neutral-500">{artist}</div>}
+        </div>
+
+        {headerAction ? <div className="justify-self-end sm:shrink-0">{headerAction}</div> : null}
       </div>
 
-      <div className="space-y-4 bg-white px-4 py-4">
+      <div className="space-y-4 bg-white px-3 py-4 sm:px-4">
         {children ? (
           children
         ) : (
@@ -197,7 +193,7 @@ export function ContiSongCard({
         {!children && (
           <div className="space-y-2">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">빠른 링크</Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               <Button
                 variant="secondary"
                 disabled={!sheetMusicUrl}

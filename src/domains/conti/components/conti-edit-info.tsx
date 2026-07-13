@@ -33,7 +33,7 @@ export function ContiEditInfo({
 }: ContiEditInfoProps) {
   return (
     <>
-      <div className="rounded-xl border border-neutral-200 bg-white p-5">
+      <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
         <p className="mb-2 text-xs font-bold text-amber-600">특이사항</p>
         <Textarea
           value={memo}
@@ -43,7 +43,7 @@ export function ContiEditInfo({
         />
       </div>
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-5">
+      <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
           <button
             type="button"
             className="flex w-full items-center justify-between gap-2 text-left"
@@ -67,7 +67,7 @@ export function ContiEditInfo({
 
           {isWordSharingOpen && (
             <div id="word-sharing-content" className="mt-3 space-y-4">
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
                 <p className="mb-1 text-xs font-bold text-neutral-700">본문</p>
                 <div className="space-y-3">
                   <div className="space-y-2">
@@ -93,7 +93,7 @@ export function ContiEditInfo({
                 </div>
               </div>
 
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
                 <p className="mb-1 text-xs font-bold text-neutral-700">나눔</p>
                 <Textarea
                   value={sharingInfo}

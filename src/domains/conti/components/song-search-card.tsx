@@ -13,27 +13,27 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
   return (
     <div
       className={cn(
-        "group relative rounded-lg border bg-white p-4 transition-all hover:border-primary/50",
+        "group relative rounded-lg border bg-white p-3 transition-all hover:border-primary/50 sm:p-4",
         isDisabled && "opacity-50 cursor-not-allowed"
       )}
     >
       {/* 1줄: 곡 제목 */}
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <h4 className="font-bold text-base leading-tight flex-1">
+      <div className="mb-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <h4 className="min-w-0 break-words text-base font-bold leading-tight">
           {song.title}
           {song.isFavorite && (
             <Star className="inline-block ml-2 h-4 w-4 text-yellow-600 fill-current" />
           )}
         </h4>
         {isDisabled ? (
-          <Badge variant="secondary" className="shrink-0">
+          <Badge variant="secondary" className="w-fit shrink-0">
             <Check className="h-3 w-3 mr-1" />
             추가됨
           </Badge>
         ) : (
           <Button
             size="sm"
-            className="shrink-0 h-8"
+            className="h-8 w-full shrink-0 sm:w-auto"
             onClick={onSelect}
           >
             선택
@@ -41,10 +41,10 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
         )}
       </div>
       {/* 2줄: 아티스트 · 키 · BPM · CCLI */}
-      <div className="flex items-center gap-2 text-xs text-neutral-600 mb-2">
+      <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-600">
         {song.artist && (
           <>
-            <span>{song.artist}</span>
+            <span className="min-w-0 break-words">{song.artist}</span>
             <span className="text-neutral-300">·</span>
           </>
         )}
@@ -62,7 +62,7 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
         )}
       </div>
       {/* 4줄: 링크 아이콘 */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mb-2">
         {song.sheetMusicUrl ? (
           <a
             href={song.sheetMusicUrl}

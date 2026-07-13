@@ -34,7 +34,7 @@ export function useContiPdfDownload(conti: Conti) {
 
       if (result.failures.length > 0) {
         const failedTitles = result.failures.map((failure) => failure.title).join(', ')
-        toast(`PDF를 만들었지만 ${failedTitles} 악보는 제외됐습니다.`, {
+        toast.info(`PDF를 만들었지만 ${failedTitles} 악보는 제외됐습니다.`, {
           icon: '⚠️',
         })
       } else {
