@@ -129,7 +129,7 @@ export default function SongsPage() {
 
   if (isTeamLoading) {
     return (
-      <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
+      <div className="flex min-h-[280px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed px-4 text-center sm:min-h-[400px]">
         <p className="text-sm font-medium text-muted-foreground">팀 정보를 불러오는 중...</p>
       </div>
     )
@@ -137,7 +137,7 @@ export default function SongsPage() {
 
   if (!selectedTeamId || !selectedTeam) {
     return (
-      <div className="flex h-[400px] flex-col items-center justify-center space-y-4 rounded-lg border border-dashed text-center">
+      <div className="flex min-h-[280px] flex-col items-center justify-center space-y-4 rounded-lg border border-dashed px-4 text-center sm:min-h-[400px]">
         <p className="text-muted-foreground">선택된 팀이 없습니다.</p>
         <p className="text-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
       </div>
