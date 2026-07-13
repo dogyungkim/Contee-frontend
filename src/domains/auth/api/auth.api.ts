@@ -12,6 +12,10 @@ export const logout = async (): Promise<void> => {
   await apiClient.post('/api/v1/auth/logout');
 };
 
+export const deleteAccount = async (): Promise<void> => {
+  await apiClient.delete('/api/v1/users/me');
+};
+
 export const refreshToken = async (): Promise<AuthResponse | null> => {
   const response = await apiClient.post<ApiResponse<AuthResponseDto | null>>('/api/v1/auth/refresh', {}, {
     withCredentials: true,

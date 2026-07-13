@@ -19,7 +19,6 @@ import {
   FileText, 
   Library, 
   Settings, 
-  LogOut,
   User,
   Users,
   Plus,
@@ -39,7 +38,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ className, onNavigate }: SidebarProps) => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
@@ -59,12 +58,6 @@ const Sidebar = ({ className, onNavigate }: SidebarProps) => {
     }
     setSelectedTeamId(value);
     onNavigate?.();
-  };
-
-  const handleLogout = async () => {
-    onNavigate?.();
-    await logout();
-    router.push('/');
   };
 
   // Helper function to determine if a navigation item is active
@@ -223,17 +216,6 @@ const Sidebar = ({ className, onNavigate }: SidebarProps) => {
           })}
       </nav>
 
-      {/* Logout Button */}
-      <div className="p-4 pt-2">
-        <Button
-          variant="ghost"
-          className="w-full justify-start rounded-lg"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          로그아웃
-        </Button>
-      </div>
     </div>
     <Dialog open={isJoinTeamOpen} onOpenChange={setIsJoinTeamOpen}>
       <DialogContent className="w-[calc(100vw-1rem)] max-w-md p-4 sm:p-6">
