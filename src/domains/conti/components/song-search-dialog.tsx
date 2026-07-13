@@ -74,10 +74,10 @@ export function SongSearchDialog({
                 </div>
               ) : filteredSongs.length === 0 ? (
                 <div className="flex h-64 flex-col items-center justify-center px-4 text-center">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="type-body-sm text-muted-foreground">
                     {searchQuery ? '검색 결과가 없습니다.' : '등록된 곡이 없습니다.'}
                   </p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">
+                  <p className="type-body-sm mt-1 text-muted-foreground/60">
                     {searchQuery ? '다른 검색어를 입력해보세요.' : '먼저 곡 라이브러리에 곡을 등록해보세요.'}
                   </p>
                 </div>

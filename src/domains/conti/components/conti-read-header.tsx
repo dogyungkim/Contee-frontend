@@ -44,7 +44,7 @@ export function ContiReadHeader({
     <div className="mx-auto w-full max-w-[1200px] rounded-xl border bg-background px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="type-badge flex flex-wrap items-center gap-2 uppercase tracking-widest text-muted-foreground">
             <span className="flex items-center gap-2">
               <LayoutList className="h-3 w-3" />
               Service Continuity
@@ -52,12 +52,12 @@ export function ContiReadHeader({
             <div className="flex flex-wrap items-center gap-1 sm:border-l sm:border-border/70 sm:pl-2">
               <ContiStatusBadge
                 status={conti.status}
-                className="h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal"
+                className="type-badge h-5 px-1.5 py-0 leading-none tracking-normal"
               />
               {conti.externalShare?.enabled && (
                 <ContiExternalShareBadge
                   showIcon={false}
-                  className="h-5 gap-1 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal"
+                  className="type-badge h-5 gap-1 px-1.5 py-0 leading-none tracking-normal"
                 />
               )}
             </div>
@@ -66,7 +66,7 @@ export function ContiReadHeader({
           <div>
             <h2 className="type-section-title break-words">{conti.title}</h2>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          <div className="type-body-sm flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
             <span className="font-semibold text-primary/80">
               {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
             </span>

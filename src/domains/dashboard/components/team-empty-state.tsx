@@ -19,7 +19,7 @@ export function TeamEmptyState() {
             <h2 className="type-section-title">
               환영합니다! 먼저 팀을 만들어보세요.
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="type-body-sm text-muted-foreground">
               Contee를 시작하려면 팀이 필요합니다.<br />
               찬양팀을 위한 워크스페이스를 만들어보세요.
             </p>

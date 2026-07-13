@@ -167,7 +167,7 @@ export function ContiList() {
 
   if (isError) {
     return (
-      <div className="surface-card flex h-40 items-center justify-center rounded-2xl text-sm text-muted-foreground">
+      <div className="surface-card type-body-sm flex h-40 items-center justify-center rounded-2xl text-muted-foreground">
         콘티 목록을 불러오는 중 오류가 발생했습니다.
       </div>
     )
@@ -298,8 +298,8 @@ export function ContiList() {
         {filterControls}
         {contis.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 px-6 text-center">
-            <p className="text-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
-            <p className="text-xs text-muted-foreground">검색어 또는 예배일 범위를 조정해보세요.</p>
+            <p className="type-body-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
+            <p className="type-body-sm text-muted-foreground">검색어 또는 예배일 범위를 조정해보세요.</p>
           </div>
         ) : (
           <>
@@ -324,7 +324,7 @@ export function ContiList() {
 
             {totalPages > 1 && (
               <div className="flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <p className="text-sm text-muted-foreground">
+                <p className="type-body-sm text-muted-foreground">
                   {currentPage + 1} / {totalPages} 페이지
                 </p>
                 <div className="flex items-center gap-2">

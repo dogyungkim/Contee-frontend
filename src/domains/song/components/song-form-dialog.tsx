@@ -58,8 +58,8 @@ export function SongFormDialog({ open, onOpenChange, value, onChange }: SongForm
         </div>
 
         <DialogFooter className="mt-1 shrink-0 sm:mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-8 w-full text-xs sm:h-9 sm:w-auto sm:text-sm">취소</Button>
-          <Button onClick={handleSave} className="h-8 w-full text-xs sm:h-9 sm:w-auto sm:text-sm">완료</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-8 w-full sm:h-9 sm:w-auto">취소</Button>
+          <Button onClick={handleSave} className="h-8 w-full sm:h-9 sm:w-auto">완료</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

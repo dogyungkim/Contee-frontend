@@ -58,8 +58,8 @@ export function ContiEditSongs({
               <Plus className="h-5 w-5 text-neutral-700" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-neutral-900">새로운 찬양 등록</p>
-              <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">
+              <p className="type-body-sm font-bold text-neutral-900">새로운 찬양 등록</p>
+              <p className="type-badge mt-0.5 text-muted-foreground">
                 라이브러리에 없는 곡 추가
               </p>
             </div>
@@ -76,8 +76,8 @@ export function ContiEditSongs({
               <Music className="h-5 w-5 text-neutral-700" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
-              <p className="mt-0.5 text-[10px] font-medium text-muted-foreground">
+              <p className="type-body-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
+              <p className="type-badge mt-0.5 text-muted-foreground">
                 팀 라이브러리에서 선택
               </p>
             </div>

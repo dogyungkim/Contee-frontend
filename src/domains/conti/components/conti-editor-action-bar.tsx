@@ -55,7 +55,7 @@ export function ContiEditorActionBar({
               </Badge>
             )}
           </div>
-          <p className="text-xs leading-5 text-muted-foreground sm:text-sm">{actionDescription}</p>
+          <p className="type-body-sm text-muted-foreground">{actionDescription}</p>
         </div>
 
         <div className={cn(

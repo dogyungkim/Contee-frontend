@@ -335,8 +335,8 @@ export function SongDirectEditCard({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-2">
                     <FileText className="h-4 w-4 shrink-0 text-red-500" />
-                    <span className="truncate text-sm font-medium">{selectedSheetMusicFile.name}</span>
-                    <span className="shrink-0 text-xs text-muted-foreground">
+                    <span className="type-body-sm truncate font-medium">{selectedSheetMusicFile.name}</span>
+                    <span className="type-badge shrink-0 text-muted-foreground">
                       {(selectedSheetMusicFile.size / 1024 / 1024).toFixed(1)}MB
                     </span>
                   </div>
@@ -348,7 +348,7 @@ export function SongDirectEditCard({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-2">
                     <FileText className="h-4 w-4 shrink-0 text-red-500" />
-                    <span className="truncate text-sm font-medium">{existingSheetMusicFile.fileName}</span>
+                    <span className="type-body-sm truncate font-medium">{existingSheetMusicFile.fileName}</span>
                   </div>
                   <div className="grid shrink-0 grid-cols-[1fr_auto] gap-1 sm:flex sm:justify-end">
                     <Button
@@ -387,12 +387,12 @@ export function SongDirectEditCard({
                     onClick={openSheetMusicFilePicker}
                   >
                     <Upload className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">
+                    <span className="type-body-sm font-medium">
                       {isSheetMusicMarkedForDeletion
                         ? '새 악보 파일을 선택하거나 삭제 상태로 저장하세요'
                         : '악보 파일 선택'}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="type-body-sm text-muted-foreground">
                       PDF 최대 20MB · PNG/JPG/JPEG 최대 5MB
                     </span>
                   </Button>
@@ -419,7 +419,7 @@ export function SongDirectEditCard({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="mx-auto mt-3 flex text-xs text-primary"
+                  className="mx-auto mt-3 flex text-primary"
                   onClick={openSheetMusicFilePicker}
                 >
                   <Upload className="h-3.5 w-3.5" />
@@ -436,7 +436,7 @@ export function SongDirectEditCard({
         <div className="space-y-2">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label>곡 구성 (Song Form)</Label>
-            <Button variant="outline" size="sm" onClick={() => setFormDialogOpen(true)} className="h-8 w-full text-xs sm:h-7 sm:w-auto">
+            <Button variant="outline" size="sm" onClick={() => setFormDialogOpen(true)} className="h-8 w-full sm:h-7 sm:w-auto">
               {songForm.length > 0 ? '편집하기' : '구성 설정하기'}
             </Button>
           </div>
@@ -445,7 +445,7 @@ export function SongDirectEditCard({
             <div className="flex items-center gap-2 overflow-x-auto rounded-xl border bg-slate-50 p-3 sm:p-4">
               {groupedFlow.map((group, index) => (
                 <div key={index} className="flex items-center gap-2 shrink-0">
-                  <div className={cn("px-3 py-1.5 rounded-md text-sm font-bold border shadow-sm", {
+                  <div className={cn("type-badge px-3 py-1.5 rounded-md border shadow-sm", {
                     'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
                     'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
                     'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
@@ -455,8 +455,8 @@ export function SongDirectEditCard({
                     'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
                   })}>
                     {group.abbr}
-                    {group.showBars && <span className="ml-1 text-xs opacity-70 font-normal">({group.bars})</span>}
-                    {group.count > 1 && <span className="ml-1 text-[10px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
+                    {group.showBars && <span className="type-badge ml-1 opacity-70 font-normal">({group.bars})</span>}
+                    {group.count > 1 && <span className="type-badge ml-1 bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
                   </div>
                   {index < groupedFlow.length - 1 && <span className="text-slate-300">→</span>}
                 </div>
@@ -470,8 +470,8 @@ export function SongDirectEditCard({
               <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
                 <Music className="h-4 w-4 text-slate-500" />
               </div>
-              <p className="text-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
-              <p className="text-xs text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
+              <p className="type-body-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
+              <p className="type-body-sm text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
             </div>
           )}
 

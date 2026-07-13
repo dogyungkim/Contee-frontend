@@ -65,7 +65,7 @@ function SourceItem({ type, onClick }: { type: SongFormPart['type'], onClick: ()
       <PlusCircle className="h-3.5 w-3.5 shrink-0 text-gray-400 group-hover:text-primary sm:h-4 sm:w-4" />
       <div className={cn("h-5 w-1 shrink-0 rounded-full sm:h-6", styleInfo.color)}></div>
       <span className="type-control truncate text-gray-700">{styleInfo.label}</span>
-      <span className="ml-auto hidden text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 sm:inline">Add</span>
+      <span className="type-badge ml-auto hidden text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 sm:inline">Add</span>
     </button>
   )
 }
@@ -106,10 +106,10 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
       >
         {part.type === 'Verse' ? (
              <div className="flex items-center gap-1" onPointerDown={(e) => e.stopPropagation()}>
-               <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Verse</span>
+               <span className="type-badge uppercase tracking-wider text-blue-600">Verse</span>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button type="button" className="h-5 min-w-[28px] rounded border border-blue-200 bg-white px-1 text-[10px] font-bold text-blue-600 shadow-sm transition-all hover:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-400 sm:h-6 sm:min-w-[32px]">
+                        <button type="button" className="type-badge h-5 min-w-[28px] rounded border border-blue-200 bg-white px-1 text-blue-600 shadow-sm transition-all hover:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-400 sm:h-6 sm:min-w-[32px]">
                             {(part.label ?? '').replace(/[^0-9]/g, '') || '1'}
                             <ChevronDown className="h-3 w-3 text-blue-400" />
                         </button>
@@ -119,7 +119,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                             <DropdownMenuItem 
                                 key={num} 
                                 onClick={() => onUpdate(part.id, { label: `Verse ${num}` })}
-                                className="justify-center text-xs py-1 cursor-pointer"
+                                className="justify-center py-1 cursor-pointer"
                             >
                                 {num}
                             </DropdownMenuItem>
@@ -128,7 +128,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                  </DropdownMenu>
              </div>
         ) : (
-            <span className={cn("text-[10px] font-bold uppercase tracking-wider", {
+            <span className={cn("type-badge uppercase tracking-wider", {
                 'text-slate-500': part.type === 'Intro',
                 'text-purple-600': part.type === 'Chorus',
             })}>
@@ -141,7 +141,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                <div className="relative">
                  <Input 
                    type="number"
-                   className="h-5 w-12 bg-white/50 pl-1 pr-4 text-right text-[11px] transition-colors border-gray-300 focus:bg-white sm:h-6 sm:w-14 sm:pr-5 sm:text-xs"
+                   className="type-badge h-5 w-12 bg-white/50 pl-1 pr-4 text-right transition-colors border-gray-300 focus:bg-white sm:h-6 sm:w-14 sm:pr-5"
                    value={part.bars || ''}
                    onChange={(e) => onUpdate(part.id, { bars: Number.parseInt(e.target.value) || 0 })}
                    min={0}
@@ -158,7 +158,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                             <DropdownMenuItem 
                                 key={bars} 
                                 onClick={() => onUpdate(part.id, { bars })}
-                                className="justify-center text-xs py-1 cursor-pointer"
+                                className="justify-center py-1 cursor-pointer"
                             >
                                 {bars} 마디
                             </DropdownMenuItem>
@@ -166,7 +166,7 @@ function SortableItem({ part, onRemove, onUpdate }: { part: SongFormPart; onRemo
                     </DropdownMenuContent>
                  </DropdownMenu>
                </div>
-               <span className="text-xs text-gray-500 font-medium whitespace-nowrap">마디</span>
+               <span className="type-badge text-gray-500 whitespace-nowrap">마디</span>
              </div>
           )}
           <GripHorizontal className="ml-auto h-3.5 w-3.5 text-gray-400 sm:h-4 sm:w-4" />
@@ -290,7 +290,7 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
           <div className="flex h-[30dvh] min-h-[220px] max-h-[300px] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm sm:h-auto sm:max-h-[260px] lg:h-full lg:max-h-none">
             <div className="shrink-0 border-b border-gray-100 p-3 sm:p-4">
               <h3 className="type-panel-title">송폼 컴포넌트</h3>
-              <p className="mt-0.5 text-[11px] text-gray-500 sm:mt-1 sm:text-xs">클릭하여 송폼에 추가</p>
+              <p className="type-badge mt-0.5 text-gray-500 sm:mt-1">클릭하여 송폼에 추가</p>
             </div>
             
             <div className="custom-scrollbar grid flex-1 grid-cols-2 gap-1.5 overflow-y-auto p-2.5 sm:gap-2 sm:p-4 lg:flex lg:flex-col">
@@ -310,42 +310,42 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
                   <PopoverContent className="w-[calc(100vw-2rem)] sm:w-72" align="center" side="bottom">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm">커스텀 섹션</h4>
-                        <p className="text-xs text-muted-foreground">자유롭게 섹션을 만들 수 있습니다</p>
+                        <h4 className="type-body-sm font-medium">커스텀 섹션</h4>
+                        <p className="type-body-sm text-muted-foreground">자유롭게 섹션을 만들 수 있습니다</p>
                       </div>
                       
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <Label htmlFor="custom-abbr" className="text-xs">약어 (송폼 요약)</Label>
+                          <Label htmlFor="custom-abbr">약어 (송폼 요약)</Label>
                           <Input 
                             id="custom-abbr"
                             type="text"
                             placeholder="예: S, Solo"
-                            className="h-8 text-xs"
+                            className="h-8"
                             value={customForm.abbr}
                             onChange={(e) => setCustomForm(prev => ({ ...prev, abbr: e.target.value }))}
                           />
                         </div>
                         
                         <div className="space-y-1.5">
-                          <Label htmlFor="custom-label" className="text-xs">라벨 (타임라인 표시)</Label>
+                          <Label htmlFor="custom-label">라벨 (타임라인 표시)</Label>
                           <Input 
                             id="custom-label"
                             type="text"
                             placeholder="예: Solo, Guitar Solo"
-                            className="h-8 text-xs"
+                            className="h-8"
                             value={customForm.label}
                             onChange={(e) => setCustomForm(prev => ({ ...prev, label: e.target.value }))}
                           />
                         </div>
                         
                         <div className="space-y-1.5">
-                          <Label htmlFor="custom-bars" className="text-xs">마디</Label>
+                          <Label htmlFor="custom-bars">마디</Label>
                           <Input 
                             id="custom-bars"
                             type="number"
                             min={0}
-                            className="h-8 text-xs"
+                            className="h-8"
                             value={customForm.bars}
                             onChange={(e) => setCustomForm(prev => ({ ...prev, bars: Number.parseInt(e.target.value) || 0 }))}
                           />
@@ -353,10 +353,10 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
                       </div>
                       
                       <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setCustomPopoverOpen(false)}>
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => setCustomPopoverOpen(false)}>
                           취소
                         </Button>
-                        <Button size="sm" className="flex-1 text-xs" onClick={handleAddCustom}>
+                        <Button size="sm" className="flex-1" onClick={handleAddCustom}>
                           추가
                         </Button>
                       </div>
@@ -373,14 +373,14 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
             <div className="flex flex-col gap-2 border-b border-gray-100 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-6">
               <h2 className="type-panel-title">송폼</h2>
               <div className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:w-auto sm:shrink-0">
-                <div className="flex h-7 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 text-[11px] font-medium text-gray-600 sm:h-auto sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs">
+                <div className="type-badge flex h-7 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 text-gray-600 sm:h-auto sm:gap-2 sm:px-3 sm:py-1.5">
                    {value.length} Parts
                 </div>
                 {value.length > 0 && (
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="h-7 w-full text-[11px] sm:h-7 sm:w-auto sm:text-xs"
+                    className="h-7 w-full sm:h-7 sm:w-auto"
                     onClick={() => onChange([])}
                   >
                     전체 삭제
@@ -401,8 +401,8 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
             </div>
             {/* Flow Summary - Read Only */}
             <div className="flex shrink-0 flex-col gap-1.5 rounded-b-xl border-t border-gray-100 bg-gray-50 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4 sm:px-6 sm:py-4">
-                <span className="shrink-0 text-[11px] font-bold uppercase tracking-widest text-gray-400 sm:text-xs">송폼 요약</span>
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-xs font-medium text-gray-600 sm:gap-2 sm:text-sm">
+                <span className="type-badge shrink-0 uppercase tracking-widest text-gray-400">송폼 요약</span>
+                <div className="type-body-sm flex min-w-0 flex-wrap items-center gap-1.5 font-mono font-medium text-gray-600 sm:gap-2">
                     {groupedFlow.map((group, index) => (
                         <div key={index} className="flex items-center gap-2">
                             <span className={cn({
@@ -410,8 +410,8 @@ export function SongFormEditor({ value, onChange }: SongFormEditorProps) {
                                 'text-slate-600': group.type !== 'Chorus'
                             })}>
                                 {group.abbr}
-                                {group.showBars && <span className="ml-1 text-xs text-gray-500 font-normal">({group.bars})</span>}
-                                {group.count > 1 && <span className="ml-1 text-[10px] bg-gray-200 px-1 rounded text-gray-500">x{group.count}</span>}
+                                {group.showBars && <span className="type-badge ml-1 text-gray-500 font-normal">({group.bars})</span>}
+                                {group.count > 1 && <span className="type-badge ml-1 bg-gray-200 px-1 rounded text-gray-500">x{group.count}</span>}
                             </span>
                             {index < groupedFlow.length - 1 && <span className="text-gray-300">→</span>}
                         </div>

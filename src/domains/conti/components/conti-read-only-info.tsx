@@ -35,7 +35,7 @@ export function ContiReadOnlyInfo({
         <div className="flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
           <BookOpen className="h-4 w-4 text-neutral-600" />
         </div>
-        <h3 className="text-sm font-bold text-neutral-900">말씀 & 나눔</h3>
+        <h3 className="type-card-title text-neutral-900">말씀 & 나눔</h3>
       </div>
       {collapsible && (
         <ChevronDown
@@ -56,8 +56,8 @@ export function ContiReadOnlyInfo({
     >
       {memo && (
         <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
-          <p className="mb-2 text-xs font-bold text-amber-600">특이사항</p>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-600">{memo}</p>
+          <p className="type-label mb-2 text-amber-600">특이사항</p>
+          <p className="type-body-sm whitespace-pre-wrap text-neutral-600">{memo}</p>
         </div>
       )}
 
@@ -81,12 +81,12 @@ export function ContiReadOnlyInfo({
             <div id="read-only-word-sharing-content" className="mt-3 space-y-4">
               {bibleVerse && (
                 <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
-                  <p className="mb-1 text-xs font-bold text-neutral-700">본문</p>
+                  <p className="type-label mb-1 text-neutral-700">본문</p>
                   {verse.reference && (
-                    <p className="text-sm font-semibold text-neutral-900">{verse.reference}</p>
+                    <p className="type-body-sm font-semibold text-neutral-900">{verse.reference}</p>
                   )}
                   {verse.content && (
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
+                    <p className="type-body-sm mt-1 whitespace-pre-wrap text-neutral-700">
                       {verse.content}
                     </p>
                   )}
@@ -95,8 +95,8 @@ export function ContiReadOnlyInfo({
 
               {sharingInfo && (
                 <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
-                  <p className="mb-1 text-xs font-bold text-neutral-700">나눔</p>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
+                  <p className="type-label mb-1 text-neutral-700">나눔</p>
+                  <p className="type-body-sm whitespace-pre-wrap text-neutral-700">
                     {sharingInfo}
                   </p>
                 </div>

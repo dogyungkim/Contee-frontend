@@ -19,7 +19,7 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
     >
       {/* 1줄: 곡 제목 */}
       <div className="mb-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-        <h4 className="min-w-0 break-words text-base font-bold leading-tight">
+        <h4 className="type-emphasis min-w-0 break-words">
           {song.title}
           {song.isFavorite && (
             <Star className="inline-block ml-2 h-4 w-4 text-yellow-600 fill-current" />
@@ -41,7 +41,7 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
         )}
       </div>
       {/* 2줄: 아티스트 · 키 · BPM · CCLI */}
-      <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-600">
+      <div className="type-body-sm mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-neutral-600">
         {song.artist && (
           <>
             <span className="min-w-0 break-words">{song.artist}</span>
@@ -68,14 +68,14 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
             href={song.sheetMusicUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            className="type-body-sm inline-flex items-center gap-1 text-primary hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
             <FileText className="h-3 w-3" />
             악보
           </a>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
+          <span className="type-body-sm inline-flex items-center gap-1 text-neutral-400">
             <FileText className="h-3 w-3" />
             악보
           </span>
@@ -86,14 +86,14 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
             href={song.youtubeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-red-600 hover:underline"
+            className="type-body-sm inline-flex items-center gap-1 text-red-600 hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
             <Youtube className="h-3 w-3" />
             유튜브
           </a>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs text-neutral-400">
+          <span className="type-body-sm inline-flex items-center gap-1 text-neutral-400">
             <Youtube className="h-3 w-3" />
             유튜브
           </span>

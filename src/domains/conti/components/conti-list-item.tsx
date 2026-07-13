@@ -21,7 +21,7 @@ interface ContiListItemProps {
   onDelete: (contiId: Conti['id']) => void | Promise<void>
 }
 
-const listBadgeClassName = 'h-5 px-1.5 py-0 text-[12px] leading-none'
+const listBadgeClassName = 'type-badge h-5 px-1.5 py-0 leading-none'
 
 export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) {
   return (
@@ -39,7 +39,7 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
           </div>
           <div className="min-w-0">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="truncate text-sm font-medium text-foreground">{conti.title}</div>
+              <div className="type-body-sm truncate font-medium text-foreground">{conti.title}</div>
               <ContiStatusBadge
                 status={conti.status}
                 className={`${listBadgeClassName} lg:hidden`}
@@ -48,20 +48,20 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
                 <ContiExternalShareBadge className={`${listBadgeClassName} lg:hidden`} />
               )}
             </div>
-            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="type-body-sm mt-1 flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
               {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })} ·{' '}
               {conti.worshipTime}
             </div>
             {conti.memo ? (
-              <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{conti.memo}</p>
+              <p className="type-body-sm mt-2 line-clamp-1 text-muted-foreground">{conti.memo}</p>
             ) : null}
             {conti.songPreview && conti.songPreview.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {conti.songPreview.map((title, index) => (
                   <span
                     key={`${title}-${index}`}
-                    className="rounded-md border border-border bg-[#fafafa] px-2 py-0.5 text-[11px] text-muted-foreground"
+                    className="type-badge rounded-md border border-border bg-[#fafafa] px-2 py-0.5 text-muted-foreground"
                   >
                     {index + 1}. {title}
                   </span>
@@ -69,7 +69,7 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
               </div>
             ) : null}
             {conti.createdByName ? (
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="type-badge mt-2 flex items-center gap-1.5 text-muted-foreground">
                 <UserRound className="h-3 w-3" />
                 {conti.createdByName}
               </div>
@@ -83,13 +83,13 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
         {conti.externalShareEnabled && <ContiExternalShareBadge className={listBadgeClassName} />}
       </div>
 
-      <div className="pointer-events-none relative z-10 hidden text-sm text-foreground lg:block">
+      <div className="type-body-sm pointer-events-none relative z-10 hidden text-foreground lg:block">
         <div>{format(new Date(conti.worshipDate), 'yyyy.MM.dd', { locale: ko })}</div>
-        <div className="mt-1 text-xs text-muted-foreground">{conti.worshipTime}</div>
+        <div className="type-body-sm mt-1 text-muted-foreground">{conti.worshipTime}</div>
       </div>
 
       <div className="pointer-events-none relative z-10 col-start-1 row-start-2 lg:col-auto lg:row-auto">
-        <div className="inline-flex rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-foreground">
+        <div className="type-badge inline-flex rounded-md bg-accent px-2.5 py-1 text-foreground">
           {conti.songCount ?? 0}곡
         </div>
       </div>

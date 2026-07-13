@@ -83,7 +83,7 @@ export default function NewContiPage() {
   if (isTeamLoading) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
-        <p className="text-sm font-medium text-muted-foreground">팀 정보를 불러오는 중...</p>
+        <p className="type-body-sm text-muted-foreground">팀 정보를 불러오는 중...</p>
       </div>
     )
   }
@@ -92,7 +92,7 @@ export default function NewContiPage() {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-4 rounded-lg border border-dashed text-center">
         <p className="text-muted-foreground">선택된 팀이 없습니다.</p>
-        <p className="text-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
+        <p className="type-body-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
       </div>
     )
   }
@@ -155,7 +155,7 @@ export default function NewContiPage() {
             </div>
             {/* Time Picker */}
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium leading-none">예배 시간</legend>
+              <legend className="type-label">예배 시간</legend>
               <div className="grid grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)] gap-2">
                 <Select value={period} onValueChange={setPeriod}>
                   <SelectTrigger className="w-full" aria-label="오전 또는 오후">
@@ -200,7 +200,7 @@ export default function NewContiPage() {
               placeholder="예: 2026.01.25 주일예배"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-base"
+              className="type-body"
             />
           </div>
           {/* Memo */}
@@ -223,7 +223,7 @@ export default function NewContiPage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
                 <BookOpen className="h-4 w-4 text-neutral-600" />
               </div>
-              <h3 className="text-sm font-bold text-neutral-900">말씀 & 나눔</h3>
+              <h3 className="type-card-title text-neutral-900">말씀 & 나눔</h3>
             </div>
           </div>
           <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
@@ -234,7 +234,7 @@ export default function NewContiPage() {
                 placeholder="예: 요한복음 : 3 : 16"
                 value={bibleVerseReference}
                 onChange={(e) => setBibleVerseReference(e.target.value)}
-                className="text-base bg-white"
+                className="type-body bg-white"
               />
             </div>
             <div className="space-y-2">
@@ -268,7 +268,7 @@ export default function NewContiPage() {
             <div className="flex items-center gap-2">
               <Music className="h-4 w-4 text-neutral-500" />
               <h3 className="font-semibold text-neutral-900">곡 목록</h3>
-              <span className="text-sm text-muted-foreground">({tempSongs.length}곡)</span>
+              <span className="type-body-sm text-muted-foreground">({tempSongs.length}곡)</span>
             </div>
           </div>
 
@@ -278,10 +278,10 @@ export default function NewContiPage() {
               <div key={song.tempId} className="rounded-xl border border-neutral-200 bg-white p-3 sm:p-4">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-xs font-bold text-neutral-600">
+                    <span className="type-label flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-neutral-600">
                       {index + 1}
                     </span>
-                    <span className="text-sm font-semibold text-neutral-900">
+                    <span className="type-body-sm font-semibold text-neutral-900">
                       {song.isNewSong ? '새 찬양' : '기존 찬양'}
                     </span>
                   </div>
@@ -361,8 +361,8 @@ export default function NewContiPage() {
                   <Plus className="h-5 w-5 text-neutral-700" />
                 </div>
                 <div className="text-center text-wrap">
-                  <p className="text-sm font-bold text-neutral-900">새로운 찬양 등록</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">라이브러리에 없는 곡 추가</p>
+                  <p className="type-body-sm font-bold text-neutral-900">새로운 찬양 등록</p>
+                  <p className="type-badge mt-0.5 text-muted-foreground">라이브러리에 없는 곡 추가</p>
                 </div>
               </div>
             </Button>
@@ -379,8 +379,8 @@ export default function NewContiPage() {
                   <Music className="h-5 w-5 text-neutral-700" />
                 </div>
                 <div className="text-center text-wrap">
-                  <p className="text-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">팀 라이브러리에서 선택</p>
+                  <p className="type-body-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
+                  <p className="type-badge mt-0.5 text-muted-foreground">팀 라이브러리에서 선택</p>
                 </div>
               </div>
             </Button>
@@ -389,8 +389,8 @@ export default function NewContiPage() {
           {/* Empty State when no songs and not adding */}
           {tempSongs.length === 0 && (
              <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed text-center bg-muted/5 mt-4">
-               <p className="text-sm text-muted-foreground/60 italic font-medium">추가된 곡이 없습니다.</p>
-               <p className="text-xs text-muted-foreground/40 mt-1">예배 순서에 맞춰 곡을 추가해보세요.</p>
+               <p className="type-body-sm text-muted-foreground/60 italic font-medium">추가된 곡이 없습니다.</p>
+               <p className="type-body-sm mt-1 text-muted-foreground/40">예배 순서에 맞춰 곡을 추가해보세요.</p>
              </div>
           )}
 

@@ -36,7 +36,7 @@ export function ContiEditHeader({
     <div className="mx-auto w-full max-w-[1200px] rounded-xl border bg-background px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="type-badge flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
             <LayoutList className="h-3 w-3" />
             Service Continuity Editor
           </div>
@@ -46,9 +46,9 @@ export function ContiEditHeader({
             placeholder="콘티명을 입력하세요"
             className="type-section-title h-11 max-w-xl border-none bg-transparent px-0 shadow-none focus-visible:ring-0"
           />
-          <div className="grid gap-3 text-sm text-muted-foreground lg:flex lg:flex-wrap lg:items-center">
+          <div className="type-body-sm grid gap-3 text-muted-foreground lg:flex lg:flex-wrap lg:items-center">
             <div className="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)] sm:items-center lg:flex lg:gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:w-[72px] lg:w-auto">
+              <span className="type-label uppercase tracking-wide text-muted-foreground sm:w-[72px] lg:w-auto">
                 예배일
               </span>
               <Popover>
@@ -80,7 +80,7 @@ export function ContiEditHeader({
             </div>
 
             <div className="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)] sm:items-center lg:flex lg:gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:w-[72px] lg:w-auto">
+              <span className="type-label uppercase tracking-wide text-muted-foreground sm:w-[72px] lg:w-auto">
                 예배 시간
               </span>
               <div className="grid grid-cols-3 gap-2">
@@ -123,7 +123,7 @@ export function ContiEditHeader({
               </div>
             </div>
             <Separator orientation="vertical" className="hidden h-3 lg:block" />
-            <span className="flex items-center gap-1 text-xs sm:text-sm">
+            <span className="type-body-sm flex items-center gap-1">
               총 <span className="font-bold text-foreground">{songCount}</span>곡
             </span>
           </div>

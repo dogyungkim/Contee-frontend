@@ -195,6 +195,14 @@
     letter-spacing: 0;
   }
 
+  .type-badge {
+    font-family: var(--font-caption);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
   .type-control {
     font-size: 0.8125rem;
     line-height: 1.25rem;
@@ -242,6 +250,11 @@
     .type-control {
       font-size: 0.875rem;
       line-height: 1.25rem;
+    }
+
+    .type-badge {
+      font-size: 0.75rem;
+      line-height: 1rem;
     }
 
     .type-kpi {

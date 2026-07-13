@@ -39,7 +39,7 @@ export function DashboardContent() {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="text-destructive">데이터를 불러오는 중 오류가 발생했습니다.</div>
-          <div className="mt-2 text-sm text-muted-foreground">잠시 후 다시 시도해주세요.</div>
+          <div className="type-body-sm mt-2 text-muted-foreground">잠시 후 다시 시도해주세요.</div>
         </div>
       </div>
     )
@@ -83,14 +83,14 @@ export function DashboardContent() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Card className="rounded-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">다가오는 예배</CardTitle>
+                <CardTitle>다가오는 예배</CardTitle>
                 <CardDescription>
                   {hasUpcomingService ? summary.nextServiceLabel : '등록된 예배 일정이 없습니다'}
                 </CardDescription>
               </CardHeader>
               {hasUpcomingService ? (
                 <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                  <div className="type-body-sm flex min-w-0 items-center gap-2 text-muted-foreground">
                     <Clock className="h-4 w-4" />
                     <span className="truncate">{summary.nextServiceDateLabel}</span>
                   </div>
@@ -100,7 +100,7 @@ export function DashboardContent() {
                 </CardContent>
               ) : (
                 <CardContent>
-                  <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                  <div className="type-body-sm rounded-md border border-dashed p-3 text-muted-foreground">
                     아직 다가오는 예배가 설정되지 않았습니다. 새 콘티를 만들면 여기서 바로 확인할 수 있어요.
                   </div>
                 </CardContent>
@@ -109,7 +109,7 @@ export function DashboardContent() {
 
             <Card className="rounded-xl">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">이번 주 요약</CardTitle>
+                <CardTitle>이번 주 요약</CardTitle>
                 <CardDescription>진행 현황을 빠르게 확인하세요</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
@@ -129,7 +129,7 @@ export function DashboardContent() {
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <CardTitle className="text-base">최근 콘티</CardTitle>
+                  <CardTitle>최근 콘티</CardTitle>
                   <CardDescription>최근 작업한 콘티를 바로 열어보세요</CardDescription>
                 </div>
                 <Button asChild size="sm" className="w-full sm:w-auto">
@@ -139,15 +139,15 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="grid gap-3">
               {recentContis.length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                <div className="type-body-sm rounded-md border border-dashed p-4 text-muted-foreground">
                   최근 콘티가 아직 없습니다. 새 콘티를 만들어보세요.
                 </div>
               ) : (
                 recentContis.map((conti) => (
                   <div key={conti.id} className="group grid gap-3 rounded-xl border p-4 transition-colors hover:bg-[#f3f3f3] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">{conti.title}</div>
-                      <div className="mt-1 font-[var(--font-caption)] text-[12px] text-muted-foreground">
+                      <div className="type-body-sm truncate font-medium">{conti.title}</div>
+                      <div className="type-badge mt-1 text-muted-foreground">
                         {format(new Date(conti.worshipDate), 'yyyy. M. d', { locale: ko })} ·{' '}
                         {conti.songCount}곡
                       </div>
@@ -168,7 +168,7 @@ export function DashboardContent() {
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <CardTitle className="text-base">곡 빠른 검색</CardTitle>
+                  <CardTitle>곡 빠른 검색</CardTitle>
                   <CardDescription>곡명/아티스트로 빠르게 찾기</CardDescription>
                 </div>
                 <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
@@ -190,7 +190,7 @@ export function DashboardContent() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 {filteredSongs.length === 0 ? (
-                  <div className="sm:col-span-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  <div className="type-body-sm rounded-md border border-dashed p-4 text-muted-foreground sm:col-span-2">
                     {hasSongQuery
                       ? '검색 결과가 없습니다. 다른 키워드로 다시 시도해보세요.'
                       : '등록된 곡이 없습니다. 곡 라이브러리에서 곡을 추가해보세요.'}
@@ -199,13 +199,13 @@ export function DashboardContent() {
                   filteredSongs.map((song) => (
                     <div key={song.id} className="rounded-xl border p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 break-words text-sm font-medium">{song.title}</div>
-                        <div className="shrink-0 rounded-md bg-white px-2 py-1 font-[var(--font-caption)] text-[12px] text-foreground">
+                        <div className="type-body-sm min-w-0 break-words font-medium">{song.title}</div>
+                        <div className="type-badge shrink-0 rounded-md bg-white px-2 py-1 text-foreground">
                           <Layers3 className="mr-1 inline h-3 w-3" />
                           {song.keySignature || '-'}
                         </div>
                       </div>
-                      <div className="mt-1 break-words font-[var(--font-caption)] text-[12px] text-muted-foreground">
+                      <div className="type-badge mt-1 break-words text-muted-foreground">
                         {song.artist}
                         {typeof song.bpm === 'number' ? ` · ${song.bpm}bpm` : ''}
                       </div>
@@ -225,7 +225,7 @@ export function DashboardContent() {
         <div className="grid gap-6 lg:col-span-4">
           <Card className="rounded-xl">
             <CardHeader>
-              <CardTitle className="text-base">빠른 작업</CardTitle>
+              <CardTitle>빠른 작업</CardTitle>
               <CardDescription>자주 쓰는 기능으로 바로 이동</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-2">
@@ -252,19 +252,19 @@ export function DashboardContent() {
 
           <Card className="rounded-xl">
             <CardHeader>
-              <CardTitle className="text-base">최근 활동</CardTitle>
+              <CardTitle>최근 활동</CardTitle>
               <CardDescription>최근 상태를 확인하세요</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
               {activities.length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                <div className="type-body-sm rounded-md border border-dashed p-4 text-muted-foreground">
                   최근 활동이 없습니다.
                 </div>
               ) : (
                 activities.map((a) => (
                   <div key={a.id} className="rounded-xl border p-4">
-                    <div className="font-[var(--font-caption)] text-[12px] text-muted-foreground">{a.timeLabel}</div>
-                    <div className="mt-1 text-sm">{a.message}</div>
+                    <div className="type-badge text-muted-foreground">{a.timeLabel}</div>
+                    <div className="type-body-sm mt-1">{a.message}</div>
                   </div>
                 ))
               )}

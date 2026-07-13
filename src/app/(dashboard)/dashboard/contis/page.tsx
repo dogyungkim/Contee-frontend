@@ -13,7 +13,7 @@ export default function ContisPage() {
   if (isLoading) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
-        <p className="text-sm font-medium text-muted-foreground">팀 정보를 불러오는 중...</p>
+        <p className="type-body-sm text-muted-foreground">팀 정보를 불러오는 중...</p>
       </div>
     )
   }
@@ -22,7 +22,7 @@ export default function ContisPage() {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-4 rounded-lg border border-dashed text-center">
         <p className="text-muted-foreground">선택된 팀이 없습니다.</p>
-        <p className="text-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
+        <p className="type-body-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
       </div>
     )
   }

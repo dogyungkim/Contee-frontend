@@ -84,7 +84,7 @@ export default function TeamsPage() {
           <CardContent className="flex flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
             <Users className="mb-4 h-16 w-16 text-muted-foreground" />
             <h3 className="type-card-title mb-2">팀이 없습니다</h3>
-            <p className="mb-6 text-center text-sm text-muted-foreground">
+            <p className="type-body-sm mb-6 text-center text-muted-foreground">
               새로운 팀을 만들어 팀원들과 함께 작업을 시작하세요.
             </p>
             <Button asChild className="w-full sm:w-auto">
@@ -126,7 +126,7 @@ export default function TeamsPage() {
             {selectedTeam.description && (
               <div>
                 <div className="text-caption-upper text-muted-foreground">Description</div>
-                <p className="mt-2 break-words text-sm text-foreground">{selectedTeam.description}</p>
+                <p className="type-body mt-2 break-words text-foreground">{selectedTeam.description}</p>
               </div>
             )}
 
@@ -140,7 +140,7 @@ export default function TeamsPage() {
                   {copiedCode ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">이 코드를 공유하여 팀원을 초대하세요.</p>
+              <p className="type-body-sm mt-2 text-muted-foreground">이 코드를 공유하여 팀원을 초대하세요.</p>
             </div>
           </CardContent>
         </Card>
@@ -167,7 +167,7 @@ export default function TeamsPage() {
                   <Users className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="type-card-title mb-1">멤버가 없습니다</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
+                <p className="type-body-sm mb-4 text-muted-foreground">
                   초대 코드를 공유하여 팀원을 초대하세요.
                 </p>
               </div>
@@ -199,7 +199,7 @@ export default function TeamsPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <div className="text-xs text-muted-foreground lg:col-span-2">
+                  <div className="type-label text-muted-foreground lg:col-span-2">
                     {filteredMembers.length}명 표시 중
                   </div>
                 </div>
@@ -220,8 +220,8 @@ export default function TeamsPage() {
                     <div className="mb-4 rounded-full bg-muted p-4">
                       <Search className="h-7 w-7 text-muted-foreground" />
                     </div>
-                    <h3 className="mb-1 text-base font-semibold">검색 결과가 없습니다</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="type-card-title mb-1">검색 결과가 없습니다</h3>
+                    <p className="type-body-sm text-muted-foreground">
                       검색어 또는 역할 필터를 변경해보세요.
                     </p>
                   </div>
@@ -249,7 +249,7 @@ export default function TeamsPage() {
                                   className="h-10 w-10 rounded-full"
                                 />
                               ) : (
-                                <span className="text-sm font-semibold">
+                                <span className="type-label">
                                   {member.userName.charAt(0).toUpperCase()}
                                 </span>
                               )}
@@ -258,17 +258,17 @@ export default function TeamsPage() {
                               <p className="truncate font-medium">
                                 {member.userName}
                                 {isCurrentUser && (
-                                  <span className="ml-2 text-xs text-muted-foreground">(나)</span>
+                                  <span className="type-label ml-2 text-muted-foreground">(나)</span>
                                 )}
                               </p>
-                              <p className="truncate text-sm text-muted-foreground">{member.userEmail}</p>
+                              <p className="type-body-sm truncate text-muted-foreground">{member.userEmail}</p>
                             </div>
                           </div>
 
                           <div className="col-start-1 row-start-2 flex items-center gap-2 lg:col-auto lg:row-auto lg:justify-start">
                             <Badge
                               variant={getRoleBadgeVariant(member.role)}
-                              className="rounded-md border px-2.5 py-1 text-[11px] font-medium"
+                              className="type-badge rounded-md border px-2.5 py-1"
                             >
                               {getRoleLabel(member.role)}
                             </Badge>

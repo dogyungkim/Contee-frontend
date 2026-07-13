@@ -9,7 +9,7 @@ function FullPageLoading({ label }: { label: string }) {
   return (
     <div className="min-h-[calc(100dvh-3.5rem)]">
       <div className="container flex items-center justify-center px-4 py-10 text-center sm:py-16">
-        <div className="text-sm text-muted-foreground">{label}</div>
+        <div className="type-body-sm text-muted-foreground">{label}</div>
       </div>
     </div>
   )

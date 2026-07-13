@@ -108,7 +108,7 @@ const Sidebar = ({ className }: SidebarProps) => {
             <Music className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold tracking-normal">Contee</div>
+            <div className="type-body-sm font-semibold tracking-normal">Contee</div>
             <div className="text-caption-upper text-muted-foreground">Team workspace</div>
           </div>
         </Link>
@@ -180,8 +180,8 @@ const Sidebar = ({ className }: SidebarProps) => {
               )}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">{user?.name || '사용자'}</p>
-              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+              <p className="type-body-sm truncate font-medium">{user?.name || '사용자'}</p>
+              <p className="type-label truncate text-muted-foreground">{user?.email}</p>
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ const Sidebar = ({ className }: SidebarProps) => {
                 key={item.href}
                 href={isDisabled ? '#' : item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'type-control flex items-center gap-3 rounded-md px-3 py-2 transition-colors',
                   isDisabled && 'pointer-events-none opacity-50',
                   isActive
                     ? 'bg-white/80 text-foreground'
