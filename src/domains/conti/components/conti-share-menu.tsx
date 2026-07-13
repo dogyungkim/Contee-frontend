@@ -43,7 +43,7 @@ export function ContiShareMenu({
           title="링크 관리"
         >
           <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">링크 관리</span>
+          <span>링크 관리</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

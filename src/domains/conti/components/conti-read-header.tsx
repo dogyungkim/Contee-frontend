@@ -86,12 +86,6 @@ export function ContiReadHeader({
                 권한 확인 중
               </Button>
             )}
-            {canEdit && !isMembersLoading && (
-              <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto" onClick={onStartEdit}>
-                수정
-              </Button>
-            )}
-
             <ContiExportMenu
               {...exportMenuProps}
               sheetMusicCount={sheetMusicCount}
@@ -99,6 +93,16 @@ export function ContiReadHeader({
               onDownloadPdf={onDownloadPdf}
             />
             {conti.status === 'PUBLISHED' && <ContiShareMenu {...shareMenuProps} />}
+            {canEdit && !isMembersLoading && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="col-span-2 h-9 w-full sm:col-span-1 sm:w-auto"
+                onClick={onStartEdit}
+              >
+                수정
+              </Button>
+            )}
 
             {canPublish && !isMembersLoading && (
               <Button

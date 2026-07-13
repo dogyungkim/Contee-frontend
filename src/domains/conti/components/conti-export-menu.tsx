@@ -40,7 +40,7 @@ export function ContiExportMenu({
           ) : (
             <Download className="h-4 w-4" />
           )}
-          <span className="hidden sm:inline">내보내기</span>
+          <span>내보내기</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">

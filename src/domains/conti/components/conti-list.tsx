@@ -152,7 +152,7 @@ export function ContiList() {
         </div>
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="grid gap-3 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] lg:items-center">
+            <div key={i} className="grid gap-3 px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-28" />
@@ -175,7 +175,7 @@ export function ContiList() {
 
   const filterControls = (
     <form
-      className="grid gap-3 border-b border-border bg-white px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_240px_auto]"
+      className="grid gap-3 border-b border-border bg-white px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_240px_auto]"
       onSubmit={(event) => {
         event.preventDefault()
         applySearchFilters()
@@ -303,7 +303,7 @@ export function ContiList() {
           </div>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] items-center gap-3 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground lg:grid">
+            <div className="hidden grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] items-center gap-3 border-b border-border px-6 py-3 text-caption-upper text-muted-foreground md:grid">
               <div>Conti</div>
               <div>Status</div>
               <div>Worship date</div>
