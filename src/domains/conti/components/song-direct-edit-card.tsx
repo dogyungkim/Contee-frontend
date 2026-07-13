@@ -241,7 +241,7 @@ export function SongDirectEditCard({
                   setSongTitle(e.target.value)
                   emitChange({ title: e.target.value })
                 }}
-                className="type-emphasis"
+                className="type-body sm:type-emphasis font-semibold"
                 readOnly={identityLocked}
                 autoFocus
               />
@@ -434,15 +434,16 @@ export function SongDirectEditCard({
 
         {/* Song Form Editor */}
         <div className="space-y-2">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
             <Label>곡 구성 (Song Form)</Label>
-            <Button variant="outline" size="sm" onClick={() => setFormDialogOpen(true)} className="h-8 w-full sm:h-7 sm:w-auto">
-              {songForm.length > 0 ? '편집하기' : '구성 설정하기'}
-            </Button>
           </div>
 
           {songForm.length > 0 ? (
-            <div className="flex items-center gap-2 overflow-x-auto rounded-xl border bg-slate-50 p-3 sm:p-4">
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 overflow-x-auto rounded-xl border bg-slate-50 p-3 text-left transition-colors hover:bg-slate-100 sm:p-4"
+              onClick={() => setFormDialogOpen(true)}
+            >
               {groupedFlow.map((group, index) => (
                 <div key={index} className="flex items-center gap-2 shrink-0">
                   <div className={cn("type-badge px-3 py-1.5 rounded-md border shadow-sm", {
@@ -461,10 +462,11 @@ export function SongDirectEditCard({
                   {index < groupedFlow.length - 1 && <span className="text-slate-300">→</span>}
                 </div>
               ))}
-            </div>
+            </button>
           ) : (
-            <div
-              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-slate-50 p-5 text-center transition-colors hover:bg-slate-100 sm:p-8"
+            <button
+              type="button"
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-slate-50 p-5 text-center transition-colors hover:bg-slate-100 sm:p-8"
               onClick={() => setFormDialogOpen(true)}
             >
               <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
@@ -472,7 +474,7 @@ export function SongDirectEditCard({
               </div>
               <p className="type-body-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
               <p className="type-body-sm text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
-            </div>
+            </button>
           )}
 
           <SongFormDialog

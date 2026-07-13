@@ -160,11 +160,7 @@ export function ContiSongItem({
             showFooterActions={false}
             showSheetMusicUpload
             noteLabel={isNewDraftSong ? '팀 곡 메모' : '콘티 메모'}
-            notePlaceholder={
-              isNewDraftSong
-                ? '곡 라이브러리에 저장할 메모를 입력하세요.'
-                : '이 콘티에서만 사용할 메모를 입력하세요.'
-            }
+            notePlaceholder={'특별히 필요한 내용을 메모하세요'}
             sheetMusicFile={sheetMusicChange?.file}
             existingSheetMusicFile={contiSong.sheetMusicFile}
             isSheetMusicMarkedForDeletion={sheetMusicChange?.deleteExisting}

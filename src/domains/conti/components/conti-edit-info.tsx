@@ -68,7 +68,6 @@ export function ContiEditInfo({
           {isWordSharingOpen && (
             <div id="word-sharing-content" className="mt-3 space-y-4">
               <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
-                <p className="type-label mb-1 text-neutral-700">본문</p>
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label htmlFor="bible-verse-reference">본문 위치</Label>

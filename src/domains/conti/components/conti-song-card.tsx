@@ -88,7 +88,7 @@ export function ContiSongCard({
         isDragging && 'border-primary shadow-xl'
       )}
     >
-      <div className="grid gap-3 border-b border-neutral-100 bg-neutral-50/50 px-3 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:px-4">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-neutral-100 bg-neutral-50/50 px-3 py-3 sm:gap-3 sm:px-4">
         <div className="flex items-center gap-2">
           {dragHandle}
           <span className="type-label flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-neutral-600">
@@ -96,15 +96,15 @@ export function ContiSongCard({
           </span>
         </div>
 
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="type-emphasis min-w-0 break-words sm:truncate">{title}</h4>
+        <div className="min-w-0 overflow-hidden">
+          <div className="flex min-w-0 items-center gap-2">
+            <h4 className="type-emphasis min-w-0 truncate">{title}</h4>
             {badge}
           </div>
           {artist && <div className="type-body-sm mt-1 break-words text-neutral-500">{artist}</div>}
         </div>
 
-        {headerAction ? <div className="justify-self-end sm:shrink-0">{headerAction}</div> : null}
+        {headerAction ? <div className="shrink-0 justify-self-end">{headerAction}</div> : null}
       </div>
 
       <div className="space-y-4 bg-white px-3 py-4 sm:px-4">
