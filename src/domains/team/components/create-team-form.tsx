@@ -52,14 +52,14 @@ export function CreateTeamForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>새 팀 만들기</CardTitle>
-        <CardDescription>
+    <Card className="mx-auto w-full max-w-md rounded-2xl">
+      <CardHeader className="px-4 pb-4 sm:px-6">
+        <CardTitle className="break-words">새 팀 만들기</CardTitle>
+        <CardDescription className="break-words">
           함께 찬양을 준비할 팀을 만들어보세요.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField

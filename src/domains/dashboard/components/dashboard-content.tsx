@@ -54,27 +54,27 @@ export function DashboardContent() {
       <DashboardHeader />
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="grid gap-6 lg:col-span-8">
-          <div className="surface-card overflow-hidden rounded-xl p-6 sm:p-7">
+          <div className="surface-card overflow-hidden rounded-xl p-4 sm:p-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 <div className="text-caption-upper text-muted-foreground">This week</div>
-                <div className="mt-3 text-3xl font-semibold tracking-[-0.05em]">
+                <div className="type-page-title mt-3">
                   팀의 최근 준비 흐름을
                   <br className="hidden sm:block" />
                   한 화면에서 확인하세요.
                 </div>
-                <p className="mt-3 max-w-xl text-sm text-muted-foreground">
+                <p className="type-page-description mt-3 max-w-xl">
                   콘티 작성, 곡 확인, 공유 상태를 하나의 작업 표면 안에서 관리할 수 있습니다.
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:w-[320px]">
+              <div className="grid grid-cols-2 gap-3 sm:w-[320px] sm:shrink-0">
                 <div className="rounded-xl border border-border bg p-4">
                   <div className="text-caption-upper text-muted-foreground">Contis</div>
-                  <div className="mt-2 text-2xl font-semibold">{summary.thisWeekContiCount}</div>
+                  <div className="type-kpi mt-2">{summary.thisWeekContiCount}</div>
                 </div>
                 <div className="rounded-xl border border-border bg p-4">
                   <div className="text-caption-upper text-muted-foreground">Songs</div>
-                  <div className="mt-2 text-2xl font-semibold">{summary.totalSongCount}</div>
+                  <div className="type-kpi mt-2">{summary.totalSongCount}</div>
                 </div>
               </div>
             </div>
@@ -89,12 +89,12 @@ export function DashboardContent() {
                 </CardDescription>
               </CardHeader>
               {hasUpcomingService ? (
-                <CardContent className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
-                    <span>{summary.nextServiceDateLabel}</span>
+                    <span className="truncate">{summary.nextServiceDateLabel}</span>
                   </div>
-                  <Button asChild size="sm" variant="outline">
+                  <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
                     <Link href="/dashboard/contis">콘티 보기</Link>
                   </Button>
                 </CardContent>
@@ -115,11 +115,11 @@ export function DashboardContent() {
               <CardContent className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border p-4">
                   <div className="text-caption-upper text-muted-foreground">이번 주 콘티</div>
-                  <div className="mt-1 text-xl font-semibold">{summary.thisWeekContiCount}</div>
+                  <div className="type-kpi mt-1">{summary.thisWeekContiCount}</div>
                 </div>
                 <div className="rounded-xl border p-4">
                   <div className="text-caption-upper text-muted-foreground">등록된 곡</div>
-                  <div className="mt-1 text-xl font-semibold">{summary.totalSongCount}</div>
+                  <div className="type-kpi mt-1">{summary.totalSongCount}</div>
                 </div>
               </CardContent>
             </Card>
@@ -127,12 +127,12 @@ export function DashboardContent() {
 
           <Card className="rounded-xl">
             <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <CardTitle className="text-base">최근 콘티</CardTitle>
                   <CardDescription>최근 작업한 콘티를 바로 열어보세요</CardDescription>
                 </div>
-                <Button asChild size="sm">
+                <Button asChild size="sm" className="w-full sm:w-auto">
                   <Link href="/dashboard/contis">전체 보기</Link>
                 </Button>
               </div>
@@ -144,7 +144,7 @@ export function DashboardContent() {
                 </div>
               ) : (
                 recentContis.map((conti) => (
-                  <div key={conti.id} className="group flex items-center justify-between rounded-xl border p-4 transition-colors hover:bg-[#f3f3f3]">
+                  <div key={conti.id} className="group grid gap-3 rounded-xl border p-4 transition-colors hover:bg-[#f3f3f3] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{conti.title}</div>
                       <div className="mt-1 font-[var(--font-caption)] text-[12px] text-muted-foreground">
@@ -152,7 +152,7 @@ export function DashboardContent() {
                         {conti.songCount}곡
                       </div>
                     </div>
-                    <Button asChild size="sm" variant="outline">
+                    <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
                       <Link href={`/dashboard/contis/${conti.id}`}>
                         열기
                         <ChevronRight className="h-4 w-4" />
@@ -166,13 +166,13 @@ export function DashboardContent() {
 
           <Card className="rounded-xl">
             <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <CardTitle className="text-base">곡 빠른 검색</CardTitle>
                   <CardDescription>곡명/아티스트로 빠르게 찾기</CardDescription>
                 </div>
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/dashboard/songs">곡 라이브러리</Link>
+                <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                  <Link href="/dashboard/songs">곡 관리</Link>
                 </Button>
               </div>
             </CardHeader>
@@ -199,18 +199,18 @@ export function DashboardContent() {
                   filteredSongs.map((song) => (
                     <div key={song.id} className="rounded-xl border p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="text-sm font-medium">{song.title}</div>
-                        <div className="rounded-md bg-white px-2 py-1 font-[var(--font-caption)] text-[12px] text-foreground">
+                        <div className="min-w-0 break-words text-sm font-medium">{song.title}</div>
+                        <div className="shrink-0 rounded-md bg-white px-2 py-1 font-[var(--font-caption)] text-[12px] text-foreground">
                           <Layers3 className="mr-1 inline h-3 w-3" />
                           {song.keySignature || '-'}
                         </div>
                       </div>
-                      <div className="mt-1 font-[var(--font-caption)] text-[12px] text-muted-foreground">
+                      <div className="mt-1 break-words font-[var(--font-caption)] text-[12px] text-muted-foreground">
                         {song.artist}
                         {typeof song.bpm === 'number' ? ` · ${song.bpm}bpm` : ''}
                       </div>
                       <div className="mt-3">
-                        <Button asChild size="sm" variant="outline">
+                        <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
                           <Link href="/dashboard/songs">자세히</Link>
                         </Button>
                       </div>

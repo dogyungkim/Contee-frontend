@@ -9,14 +9,14 @@ import { Card, CardContent } from '@/components/ui/card'
 export function TeamEmptyState() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardContent className="flex flex-col items-center gap-6 p-12 text-center">
-          <div className="rounded-full bg-primary/10 p-6">
-            <Users className="h-12 w-12 text-primary" />
+      <Card className="w-full max-w-md rounded-2xl">
+        <CardContent className="flex flex-col items-center gap-5 px-4 py-10 text-center sm:gap-6 sm:p-12">
+          <div className="rounded-full bg-primary/10 p-5 sm:p-6">
+            <Users className="h-10 w-10 text-primary sm:h-12 sm:w-12" />
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 className="type-section-title">
               환영합니다! 먼저 팀을 만들어보세요.
             </h2>
             <p className="text-sm text-muted-foreground">

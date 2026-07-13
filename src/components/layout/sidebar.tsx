@@ -103,12 +103,12 @@ const Sidebar = ({ className }: SidebarProps) => {
     <div className={cn("flex h-full w-62 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
-        <Link href="/dashboard/contis" className="flex items-center gap-3">
+        <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1c1c] text-white">
             <Music className="h-4 w-4" />
           </div>
-          <div>
-            <div className="text-sm font-semibold tracking-[-0.03em]">Contee</div>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold tracking-normal">Contee</div>
             <div className="text-caption-upper text-muted-foreground">Team workspace</div>
           </div>
         </Link>
@@ -168,12 +168,12 @@ const Sidebar = ({ className }: SidebarProps) => {
         <div className="rounded-xl border border-[#dcdee0] bg-white/60 p-4">
           <div className="text-caption-upper text-muted-foreground">Signed in</div>
           <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
               {user?.profileImageUrl ? (
                 <img
                   src={user.profileImageUrl}
                   alt={user.name}
-                  className="h-10 w-10 rounded-full"
+                  className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
                 <User className="h-4 w-4" />
@@ -228,8 +228,8 @@ const Sidebar = ({ className }: SidebarProps) => {
       </div>
     </div>
     <Dialog open={isJoinTeamOpen} onOpenChange={setIsJoinTeamOpen}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-md p-4 sm:p-6">
+        <DialogHeader className="pr-8 sm:pr-10">
           <DialogTitle>팀 합류하기</DialogTitle>
           <DialogDescription>
             팀 관리자에게 받은 초대 코드를 입력하세요.
