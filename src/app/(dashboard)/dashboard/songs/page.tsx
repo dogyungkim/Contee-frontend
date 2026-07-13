@@ -182,8 +182,8 @@ export default function SongsPage() {
 
       <SongEditorDialog
         editor={editor}
-        songForm={selectedSongForm}
-        isSongFormLoading={isSongFormLoading}
+        songForm={editor?.mode === 'edit' ? selectedSongForm : []}
+        isSongFormLoading={editor?.mode === 'edit' && isSongFormLoading}
         isSaving={isSaving}
         onClose={() => setEditor(null)}
         onSave={(request) => { void handleSave(request) }}

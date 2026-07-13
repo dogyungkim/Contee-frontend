@@ -158,6 +158,9 @@ function SongLibraryRow({
   onDeleteSong,
 }: SongLibraryRowProps) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement
+    if (target.closest('button, [role="menuitem"]')) return
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
       onSelectSong(song)
@@ -188,7 +191,6 @@ function SongLibraryRow({
       <div
         className="flex items-center justify-end gap-1"
         onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => event.stopPropagation()}
       >
         {canEdit && (
           <>
