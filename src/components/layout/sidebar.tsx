@@ -105,7 +105,8 @@ const Sidebar = ({ className, onNavigate }: SidebarProps) => {
         <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3" onClick={onNavigate}>
           <Image src="/logo-text.svg" alt="Logo" width={100} height={24} />
           <div className="min-w-0">
-            <div className="text-caption-upper text-muted-foreground">Team workspace</div>
+            <div className="text-caption-upper text-muted-foreground">Team</div>
+            <div className="text-caption-upper text-muted-foreground">workspace</div>
           </div>
         </Link>
       </div>

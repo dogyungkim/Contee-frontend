@@ -188,10 +188,7 @@ function MemberFilters({
 function MemberTableHeader({ hasManageableMembers }: { hasManageableMembers: boolean }) {
   return (
     <div
-      className={cn(
-        'grid items-center gap-2 border-b border-border px-4 py-2 text-caption-upper text-muted-foreground sm:px-5 lg:gap-4 lg:px-6 lg:py-3',
-        getMemberGridColumns(hasManageableMembers),
-      )}
+      className={`${getMemberGridColumns(hasManageableMembers)} grid items-center gap-2 border-b border-border px-4 py-2 text-caption-upper text-muted-foreground sm:px-5 lg:gap-4 lg:px-6 lg:py-3`}
     >
       <div>Member</div>
       <div className="text-right lg:text-left">Role</div>

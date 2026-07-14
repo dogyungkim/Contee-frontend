@@ -9,6 +9,7 @@ import type { User as AuthUser } from '@/domains/auth/models/auth'
 import { useUpdateProfileImageMutation } from '@/domains/auth/hooks/use-auth-query'
 import { useProfileImageSrc } from '@/domains/auth/hooks/use-profile-image-src'
 import { toast } from '@/lib/toast'
+import Image from 'next/image'
 
 interface ProfileCardProps {
   user: AuthUser | null | undefined
@@ -90,7 +91,6 @@ export function ProfileCard({ user }: ProfileCardProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
             {displayedProfileImageSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={displayedProfileImageSrc}
                 alt={user?.name || '사용자'}
