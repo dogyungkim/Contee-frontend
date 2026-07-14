@@ -53,7 +53,7 @@ export function CreateTeamForm() {
 
   return (
     <Card className="mx-auto w-full max-w-md rounded-2xl">
-      <CardHeader className="px-4 pb-4 sm:px-6">
+      <CardHeader className="px-4 pb-3 sm:px-5 lg:px-6 lg:pb-4">
         <CardTitle className="break-words">새 팀 만들기</CardTitle>
         <CardDescription className="break-words">
           함께 찬양을 준비할 팀을 만들어보세요.

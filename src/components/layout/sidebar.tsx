@@ -14,8 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { 
-  Music, 
+import {
   FileText, 
   Library, 
   Settings, 
@@ -29,6 +28,7 @@ import { useProfileImageSrc } from '@/domains/auth/hooks/use-profile-image-src';
 import { useTeam } from '@/context/team-context';
 import { JoinTeamForm } from '@/domains/team/components/join-team-form';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 const ADD_TEAM_VALUE = '__add__';
 const JOIN_TEAM_VALUE = '__join__';
@@ -103,11 +103,8 @@ const Sidebar = ({ className, onNavigate }: SidebarProps) => {
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
         <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3" onClick={onNavigate}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Music className="h-4 w-4" />
-          </div>
+          <Image src="/logo-text.svg" alt="Logo" width={100} height={24} />
           <div className="min-w-0">
-            <div className="type-body-sm font-semibold tracking-normal">Contee</div>
             <div className="text-caption-upper text-muted-foreground">Team workspace</div>
           </div>
         </Link>

@@ -283,7 +283,7 @@ export function ContiList() {
 
   return (
     <Card className="gap-0 overflow-hidden rounded-2xl py-1">
-      <CardHeader className="border-b border-border px-4 py-4 sm:px-6">
+      <CardHeader className="border-b border-border px-4 py-3 sm:px-5 lg:px-6 lg:py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <CardTitle className="type-card-title">예배 콘티</CardTitle>

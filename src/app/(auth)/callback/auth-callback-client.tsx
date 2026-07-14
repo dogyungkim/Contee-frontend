@@ -13,7 +13,7 @@ export function AuthCallbackClient() {
     <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div className="w-full max-w-md">
         <Card className="rounded-2xl">
-          <CardHeader className="px-4 text-center sm:px-6">
+          <CardHeader className="px-4 text-center sm:px-5 lg:px-6">
             <div className="mx-auto mb-4">
               {status === 'loading' && <Loader2 className="h-12 w-12 animate-spin text-blue-600" />}
               {status === 'success' && <CheckCircle className="h-12 w-12 text-green-600" />}

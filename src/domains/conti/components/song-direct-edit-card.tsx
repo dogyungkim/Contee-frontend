@@ -203,7 +203,7 @@ export function SongDirectEditCard({
   const content = (
     <>
       {variant === 'card' && (
-        <CardHeader className="bg-muted/5 pb-4">
+        <CardHeader className="bg-muted/5 pb-3 lg:pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">

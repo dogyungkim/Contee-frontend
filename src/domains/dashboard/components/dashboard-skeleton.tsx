@@ -19,7 +19,7 @@ export function DashboardSkeleton() {
           {/* Summary Cards Skeleton */}
           <div className="grid gap-4 sm:grid-cols-2">
             <Card>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2 lg:pb-3">
                 <Skeleton className="h-5 w-24 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </CardHeader>
@@ -30,7 +30,7 @@ export function DashboardSkeleton() {
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2 lg:pb-3">
                 <Skeleton className="h-5 w-24 mb-2" />
                 <Skeleton className="h-4 w-40" />
               </CardHeader>

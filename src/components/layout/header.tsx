@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ChevronRight, Menu, Music } from 'lucide-react';
+import Image from 'next/image';
 
 /**
  * Header Component - For Unauthenticated Users Only
@@ -18,10 +19,7 @@ const Header = () => {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="mr-4 hidden items-center gap-6 md:flex">
           <Link href="/" className="mr-2 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Music className="h-4 w-4" />
-            </div>
-            <span className="whitespace-nowrap text-sm font-semibold tracking-normal sm:inline-block">Contee</span>
+            <Image src="/logo-text.svg" alt='logo-long' width={125} height={24} />
           </Link>
         </div>
 

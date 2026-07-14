@@ -82,7 +82,7 @@ export function ProfileCard({ user }: ProfileCardProps) {
 
   return (
     <Card className="rounded-2xl">
-      <CardHeader className="border-b border-border pb-4">
+      <CardHeader className="border-b border-border pb-3 lg:pb-4">
         <CardTitle className="text-lg">내 프로필</CardTitle>
         <CardDescription>현재 로그인된 계정 정보와 프로필 사진입니다.</CardDescription>
       </CardHeader>

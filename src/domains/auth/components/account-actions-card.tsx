@@ -65,7 +65,7 @@ export function AccountActionsCard() {
   return (
     <>
       <Card className="rounded-2xl">
-        <CardHeader className="border-b border-border pb-4">
+        <CardHeader className="border-b border-border pb-3 lg:pb-4">
           <CardTitle className="text-lg">계정</CardTitle>
           <CardDescription>로그인 세션과 계정 상태를 관리합니다.</CardDescription>
         </CardHeader>

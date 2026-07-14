@@ -44,7 +44,7 @@ export default function LoginPage() {
         </div>
 
         <Card className="rounded-2xl">
-          <CardHeader className="space-y-1 px-4 pb-4 sm:px-6">
+          <CardHeader className="space-y-1 px-4 pb-3 sm:px-5 lg:px-6 lg:pb-4">
             <CardTitle className="text-center text-2xl">로그인</CardTitle>
             <CardDescription className="text-center">
               Google 계정으로 로그인하여 서비스를 이용하세요
