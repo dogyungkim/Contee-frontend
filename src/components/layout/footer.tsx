@@ -14,10 +14,10 @@ const Footer = () => {
           </p>
         </div>
         <div className="flex items-center gap-5">
-          <Link href="/terms" className="text-sm text-[#476cff] transition-colors hover:opacity-80">
+          <Link href="/terms" className="text-sm text-primary transition-colors hover:text-[#303a52]">
             이용약관
           </Link>
-          <Link href="/privacy" className="text-sm text-[#476cff] transition-colors hover:opacity-80">
+          <Link href="/privacy" className="text-sm text-primary transition-colors hover:text-[#303a52]">
             개인정보처리방침
           </Link>
         </div>

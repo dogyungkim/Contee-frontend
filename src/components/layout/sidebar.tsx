@@ -103,7 +103,7 @@ const Sidebar = ({ className, onNavigate }: SidebarProps) => {
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
         <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3" onClick={onNavigate}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1c1c] text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Music className="h-4 w-4" />
           </div>
           <div className="min-w-0">

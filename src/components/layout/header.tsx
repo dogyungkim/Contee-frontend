@@ -18,16 +18,11 @@ const Header = () => {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="mr-4 hidden items-center gap-6 md:flex">
           <Link href="/" className="mr-2 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Music className="h-4 w-4" />
             </div>
-            <span className="text-sm font-semibold tracking-normal sm:inline-block">Contee</span>
+            <span className="whitespace-nowrap text-sm font-semibold tracking-normal sm:inline-block">Contee</span>
           </Link>
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href="#features" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">기능</Link>
-            <Link href="#workflow" className="rounded-md px-3 py-2 hover:bg-accent hover:text-foreground">워크플로우</Link>
-            <Link href="#contact" className="rounded-md px-3 py-2 hover:bg-accent hover:text-foreground">문의</Link>
-          </nav>
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -41,14 +36,14 @@ const Header = () => {
               <SheetContent side="left" className="border-border bg-background px-6">
                 <nav className="grid gap-6 pt-8 text-lg font-medium">
                   <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                       <Music className="h-4 w-4" />
                     </div>
                     <span>Contee</span>
                   </Link>
-                  <Link href="#features">기능</Link>
-                  <Link href="#workflow">워크플로우</Link>
-                  <Link href="#contact">문의</Link>
+                  <Link href="#app-screens">앱 화면</Link>
+                  <Link href="#song-form">송폼</Link>
+                  <Link href="#share-preview">공유</Link>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -60,7 +55,7 @@ const Header = () => {
             </Button>
             <Button asChild className="hidden sm:inline-flex">
               <Link href="/login">
-                시작하기
+                <span className="whitespace-nowrap">시작하기</span>
                 <ChevronRight className="h-4 w-4 opacity-80" />
               </Link>
             </Button>

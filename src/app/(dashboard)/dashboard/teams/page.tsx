@@ -28,9 +28,9 @@ import type { TeamRole } from '@/types/team'
 type MemberRoleFilter = 'ALL' | TeamRole
 
 const MEMBER_ROLE_FILTERS: { value: MemberRoleFilter; label: string }[] = [
-  { value: 'ALL', label: '전체 역할' },
+  { value: 'ALL', label: '모든 역할' },
   { value: 'OWNER', label: '소유자' },
-  { value: 'ADMIN', label: '관리자' },
+  { value: 'ADMIN', label: '리더' },
   { value: 'MEMBER', label: '멤버' },
   { value: 'VIEWER', label: '뷰어' },
 ]

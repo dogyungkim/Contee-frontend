@@ -7,7 +7,7 @@ import { AuthProvider } from '@/components/auth/auth-provider'
 
 export const metadata: Metadata = {
   title: 'Contee',
-  description: '찬양팀 리더를 위한 콘티 작성 및 공유 서비스',
+  description: '찬양팀이 콘티와 곡 자료를 함께 정리하는 공간',
   manifest: '/manifest.json',
   applicationName: 'Contee',
   icons: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#18181b',
+  themeColor: '#3b4663',
 }
 
 import QueryProvider from '@/components/providers/query-provider'
