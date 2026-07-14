@@ -25,6 +25,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
+import { useProfileImageSrc } from '@/domains/auth/hooks/use-profile-image-src';
 import { useTeam } from '@/context/team-context';
 import { JoinTeamForm } from '@/domains/team/components/join-team-form';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ interface SidebarProps {
 
 const Sidebar = ({ className, onNavigate }: SidebarProps) => {
   const { user } = useAuth();
+  const profileImageSrc = useProfileImageSrc(user?.profileImageUrl);
   const router = useRouter();
   const pathname = usePathname();
   const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
@@ -169,10 +171,10 @@ const Sidebar = ({ className, onNavigate }: SidebarProps) => {
           <div className="text-caption-upper text-muted-foreground">Signed in</div>
           <div className="mt-3 flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
-              {user?.profileImageUrl ? (
+              {profileImageSrc ? (
                 <img
-                  src={user.profileImageUrl}
-                  alt={user.name}
+                  src={profileImageSrc}
+                  alt={user?.name || '사용자'}
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (

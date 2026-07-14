@@ -145,7 +145,7 @@ export function AccountActionsCard() {
               onClick={handleDeleteAccount}
               disabled={!canDelete || deleteAccountMutation.isPending}
             >
-              {deleteAccountMutation.isPending ? '탈퇴 처리 중' : '영구 탈퇴'}
+              {deleteAccountMutation.isPending ? '탈퇴 처리 중' : '탈퇴'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -35,3 +35,16 @@ export const getMe = async (accessToken?: string | null): Promise<User | null> =
 
   return response.data.data ? toUserModel(response.data.data) : null;
 };
+
+export const uploadProfileImage = async (file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await apiClient.put<ApiResponse<UserDto>>(
+    '/api/v1/users/me/profile-image',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+
+  return toUserModel(response.data.data);
+};
