@@ -13,10 +13,26 @@ const AUTH_REFRESH_PATH = '/api/v1/auth/refresh';
 const isAuthRefreshRequest = (url?: string) =>
   url?.split('?')[0].endsWith(AUTH_REFRESH_PATH) ?? false;
 
-const redirectToLogin = () => {
-  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-    window.location.replace('/login');
+let refreshAccessTokenPromise: Promise<string | null> | null = null;
+
+const refreshAccessToken = () => {
+  if (!refreshAccessTokenPromise) {
+    refreshAccessTokenPromise = axios
+      .post(`${process.env.NEXT_PUBLIC_API_URL}${AUTH_REFRESH_PATH}`, {}, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        const accessToken = response.data?.data?.accessToken;
+        return typeof accessToken === 'string' && accessToken.length > 0
+          ? accessToken
+          : null;
+      })
+      .finally(() => {
+        refreshAccessTokenPromise = null;
+      });
   }
+
+  return refreshAccessTokenPromise;
 };
 
 const apiClient = axios.create({
@@ -95,13 +111,8 @@ apiClient.interceptors.response.use(
       try {
         const { setAccessToken, reset } = useAuthStore.getState();
 
-        // 인증 인터셉터를 타지 않는 별도의 요청으로 토큰 갱신 시도
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh`, {}, {
-          withCredentials: true,
-        });
-
-        if (response.data.success && response.data.data) {
-          const { accessToken } = response.data.data;
+        const accessToken = await refreshAccessToken();
+        if (accessToken) {
           setAccessToken(accessToken);
 
           // 새 토큰으로 원래 요청 재시도
@@ -109,12 +120,19 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         } else {
           reset();
-          redirectToLogin();
         }
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        useAuthStore.getState().reset();
-        redirectToLogin();
+        if (axios.isAxiosError(refreshError)) {
+          const status = refreshError.response?.status;
+          if (!status || status >= 500) {
+            useAuthStore.getState().setUnavailable('서버에 연결할 수 없습니다.');
+          } else {
+            useAuthStore.getState().reset();
+          }
+        } else {
+          useAuthStore.getState().setUnavailable('서버에 연결할 수 없습니다.');
+        }
       }
     }
 

@@ -10,10 +10,11 @@ export const teamKeys = {
     members: (id: string) => [...teamKeys.detail(id), 'members'] as const,
 };
 
-export const useMyTeamsQuery = () => {
+export const useMyTeamsQuery = (enabled = true) => {
     return useQuery({
         queryKey: teamKeys.lists(),
         queryFn: getMyTeams,
+        enabled,
     });
 };
 

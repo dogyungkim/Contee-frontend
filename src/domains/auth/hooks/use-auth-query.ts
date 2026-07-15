@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
 import { deleteAccount, getMe, logout, refreshToken, uploadProfileImage } from '@/domains/auth/api/auth.api';
 import { useAuthStore } from '@/stores/auth-store';
 import { STALE_TIME } from '@/constants/time';
@@ -7,7 +6,8 @@ import { DEV_AUTH_BYPASS_ENABLED, DEV_AUTH_BYPASS_USER } from '@/domains/auth/de
 
 export const authKeys = {
     all: ['auth'] as const,
-    user: () => [...authKeys.all, 'user'] as const,
+    currentUser: () => [...authKeys.all, 'user'] as const,
+    user: (sessionVersion: number) => [...authKeys.currentUser(), sessionVersion] as const,
     sessionRecovery: () => [...authKeys.all, 'session-recovery'] as const,
 };
 
@@ -22,31 +22,25 @@ export const useSessionRecoveryQuery = (enabled: boolean) => {
     });
 };
 
-export const useUserQuery = () => {
-    const { accessToken, reset } = useAuthStore();
+export const useUserQuery = (enabled = true) => {
+    const accessToken = useAuthStore((state) => state.accessToken);
+    const hasCheckedSession = useAuthStore((state) => state.hasCheckedSession);
+    const sessionVersion = useAuthStore((state) => state.sessionVersion);
 
     return useQuery({
-        queryKey: authKeys.user(),
+        queryKey: authKeys.user(sessionVersion),
         queryFn: async () => {
             if (DEV_AUTH_BYPASS_ENABLED) return DEV_AUTH_BYPASS_USER;
             if (!accessToken) return null;
 
-            console.log('[useUserQuery] Fetching user data with token');
-            try {
-                return await getMe(accessToken);
-            } catch (error) {
-                console.error('[useUserQuery] Error:', error);
-                const status = (error as AxiosError).response?.status;
-                if (status === 401 || status === 403) {
-                    reset();
-                    return null;
-                }
-                throw error;
-            }
+            return await getMe(accessToken);
         },
-        enabled: DEV_AUTH_BYPASS_ENABLED || !!accessToken, // Only run when we have a token
+        enabled: enabled && (DEV_AUTH_BYPASS_ENABLED || (hasCheckedSession && !!accessToken)),
         staleTime: STALE_TIME.FIVE_MINUTES,
         retry: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
+        refetchOnWindowFocus: false,
     });
 };
 
@@ -58,14 +52,14 @@ export const useLogoutMutation = () => {
         mutationFn: DEV_AUTH_BYPASS_ENABLED ? async () => undefined : logout,
         onSuccess: () => {
             reset();
-            queryClient.setQueryData(authKeys.user(), null);
+            queryClient.setQueryData(authKeys.currentUser(), null);
             queryClient.removeQueries({ queryKey: authKeys.all });
         },
         onError: (error) => {
             console.error('Logout failed:', error);
             // Still reset local state on error
             reset();
-            queryClient.setQueryData(authKeys.user(), null);
+            queryClient.setQueryData(authKeys.currentUser(), null);
         }
     });
 };
@@ -78,7 +72,7 @@ export const useDeleteAccountMutation = () => {
         mutationFn: DEV_AUTH_BYPASS_ENABLED ? async () => undefined : deleteAccount,
         onSuccess: () => {
             reset();
-            queryClient.setQueryData(authKeys.user(), null);
+            queryClient.setQueryData(authKeys.currentUser(), null);
             queryClient.removeQueries({ queryKey: authKeys.all });
         },
         onError: (error) => {
@@ -89,13 +83,15 @@ export const useDeleteAccountMutation = () => {
 
 export const useUpdateProfileImageMutation = () => {
     const queryClient = useQueryClient();
+    const setUser = useAuthStore((state) => state.setUser);
 
     return useMutation({
         mutationFn: DEV_AUTH_BYPASS_ENABLED
             ? async () => DEV_AUTH_BYPASS_USER
             : (file: File) => uploadProfileImage(file),
         onSuccess: (user) => {
-            queryClient.setQueryData(authKeys.user(), user);
+            setUser(user);
+            queryClient.setQueriesData({ queryKey: authKeys.currentUser() }, user);
         },
         onError: (error) => {
             console.error('Profile image update failed:', error);
