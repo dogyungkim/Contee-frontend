@@ -4,6 +4,8 @@ import './globals.css'
 import { ConditionalHeader } from '@/components/layout/conditional-header'
 import { ConditionalFooter } from '@/components/layout/conditional-footer'
 import { AuthProvider } from '@/components/auth/auth-provider'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import QueryProvider from '@/components/providers/query-provider'
 
 export const metadata: Metadata = {
   title: 'Contee',
@@ -22,7 +24,7 @@ export const viewport: Viewport = {
   themeColor: '#3b4663',
 }
 
-import QueryProvider from '@/components/providers/query-provider'
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 export default function RootLayout({
   children,
@@ -51,6 +53,7 @@ export default function RootLayout({
             },
           }}
         />
+        <GoogleAnalytics measurementId={gaMeasurementId} />
         <script
           dangerouslySetInnerHTML={{
             __html: `

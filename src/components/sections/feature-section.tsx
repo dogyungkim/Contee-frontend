@@ -7,7 +7,6 @@ import {
   Plus,
   Search,
   Star,
-  Upload,
   Youtube,
 } from 'lucide-react'
 
@@ -91,7 +90,7 @@ const FeatureSection = () => {
                   콘티 상세 화면
                 </h3>
                 <p className="type-body mt-3 text-muted-foreground">
-                  예배 정보, 말씀과 나눔, 곡별 Key/BPM, 송폼, 악보와 유튜브 링크가 한 화면에 모입니다.
+                  예배 정보, 말씀과 나눔, 곡별 Key/BPM, 송폼, 악보와 유튜브 링크를 관리하고 공유합니다.
                 </p>
                 <div className="mt-5 grid gap-2">
                   {['공개 상태', '외부 공유', 'PDF 내보내기', '말씀 & 나눔'].map((item) => (
@@ -188,10 +187,10 @@ const FeatureSection = () => {
               <div className="border-b border-white/10 p-5 sm:p-7 lg:border-b-0 lg:border-r">
                 <div className="text-caption-upper text-white/55">Song-form editor</div>
                 <h3 className="mt-3 text-2xl font-semibold tracking-normal text-white">
-                  곡 흐름을 부품처럼 조립합니다.
+                  송폼을 간편하게 추가하고 정할 수 있습니다.
                 </h3>
                 <p className="type-body mt-3 text-white/72">
-                  실제 송폼 편집 화면처럼 왼쪽에서 섹션을 추가하고, 오른쪽 타임라인에서 순서와 마디 수를 정리합니다.
+                  섹션을 추가하고 순서와 마디 수를 정리합니다. 요약된 송폼은 콘티 PDF에도 함께 담을 수 있습니다.
                 </p>
               </div>
 
@@ -269,7 +268,7 @@ const FeatureSection = () => {
               <div className="max-w-xl">
                 <div className="text-caption-upper text-muted-foreground">Share and export</div>
                 <h3 className="mt-3 text-2xl font-semibold tracking-normal text-foreground">
-                  공유와 내보내기도 실제 메뉴 이름 그대로 보여줍니다.
+                  팀 안에서는 물론, 필요할 땐 외부 공유까지 지원합니다.
                 </h3>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:w-[680px]">
@@ -293,14 +292,14 @@ const FeatureSection = () => {
               <div>
                 <div className="text-caption-upper text-muted-foreground">Song library</div>
                 <h3 className="mt-3 text-2xl font-semibold tracking-normal text-foreground">
-                  곡 라이브러리 화면도 제품 맥락에 맞게 짧게 노출합니다.
+                  한번 등록한 곡은 다음 콘티에서 바로 다시 사용할 수 있습니다.
                 </h3>
               </div>
               <div className="rounded-md border border-border bg-[#fafafa]">
                 <div className="flex flex-col gap-3 border-b border-border bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h4 className="type-card-title">팀 레퍼토리</h4>
-                    <p className="type-body-sm mt-1 text-muted-foreground">총 128곡 중 24곡을 표시합니다.</p>
+                    <h4 className="type-card-title">팀 라이브러리</h4>
+                    <p className="type-body-sm mt-1 text-muted-foreground">총 128곡 중 3곡을 표시합니다.</p>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-[220px_auto]">
                     <div className="inline-flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-white px-3 text-sm text-muted-foreground">
@@ -315,9 +314,9 @@ const FeatureSection = () => {
                 </div>
                 <div className="divide-y divide-border bg-white">
                   {[
-                    ['주의 은혜라', '손경민', 'A Key', '72 BPM'],
+                    ['주님을 예배하는 것', '제이어스', 'A Key', '72 BPM'],
                     ['주 이름 찬양', '마커스워십', 'B Key', '128 BPM'],
-                    ['예수 우리 왕이여', '어노인팅', 'G Key', '74 BPM'],
+                    ['주 안에서 기뻐해', '어노인팅', 'E Key', '144 BPM'],
                   ].map(([title, artist, key, bpm]) => (
                     <div key={title} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_120px_120px_80px] md:items-center">
                       <div className="min-w-0">
@@ -328,7 +327,6 @@ const FeatureSection = () => {
                       </div>
                       <span className="font-mono text-xs text-muted-foreground">{key}</span>
                       <span className="font-mono text-xs text-muted-foreground">{bpm}</span>
-                      <Upload className="hidden h-4 w-4 text-muted-foreground md:block" />
                     </div>
                   ))}
                 </div>
