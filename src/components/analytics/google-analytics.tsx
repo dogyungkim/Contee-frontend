@@ -21,7 +21,9 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
         src={`https://www.googletagmanager.com/gtag/js?id=${encodedMeasurementId}`}
         strategy="afterInteractive"
       />
-      <script
+      <Script
+        id="gtag-init"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
           window.dataLayer = window.dataLayer || [];

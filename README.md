@@ -40,18 +40,6 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 | `NEXT_PUBLIC_API_LOG` | API request/response 로그 출력 |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 measurement ID |
 
-## Auth Flow
-
-앱은 저장된 token/cookie가 있다고 바로 로그인으로 판단하지 않습니다. `/api/v1/auth/refresh`와 `/api/v1/users/me` 검증이 끝난 뒤에만 인증된 상태로 처리합니다.
-
-인증 상태는 다음처럼 구분합니다.
-
-- `checking`: 세션 확인 중
-- `authenticated`: `/me` 성공 후 dashboard 접근 가능
-- `unauthenticated`: 세션 없음 또는 401/403
-- `unavailable`: 서버 연결 실패 또는 5xx
-
-서버가 꺼져 있거나 API에 연결할 수 없으면 dashboard 화면을 렌더링하지 않고 서버 연결 실패 화면을 보여줍니다. 공개 홈(`/`)은 먼저 렌더링하고, 인증 확인이 성공했을 때만 dashboard로 이동합니다.
 
 ## Analytics
 

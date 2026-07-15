@@ -46,12 +46,16 @@ export function GoogleAnalyticsPageView({
 
     const pagePath = maskAnalyticsPath(pathname)
 
-    sendGtag('event', 'page_view', {
-      page_title: document.title,
-      page_location: `${window.location.origin}${pagePath}`,
-      page_path: pagePath,
-      send_to: measurementId,
-    })
+    const handle = window.setTimeout(() => {
+      sendGtag('event', 'page_view', {
+        page_title: document.title,
+        page_location: `${window.location.origin}${pagePath}`,
+        page_path: pagePath,
+        send_to: measurementId,
+      })
+    }, 0)
+
+    return () => window.clearTimeout(handle)
   }, [measurementId, pathname])
 
   return null

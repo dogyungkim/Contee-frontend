@@ -20,6 +20,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const userQuery = useUserQuery(hasCheckedSession && !!accessToken);
 
   useEffect(() => {
+    window.localStorage.removeItem('auth-storage');
+  }, []);
+
+  useEffect(() => {
     setLoading(!hasCheckedSession || userQuery.isLoading);
   }, [hasCheckedSession, setLoading, userQuery.isLoading]);
 

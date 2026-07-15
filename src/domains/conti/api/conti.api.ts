@@ -1,4 +1,5 @@
 import apiClient from '@/lib/api';
+import { isSafeApiUrl } from '@/lib/safe-url';
 import type { ApiResponse, PageDto } from '@/types/api';
 import type { Conti, ExternalShare, SharedConti } from '@/domains/conti/models/conti';
 import type {
@@ -81,6 +82,10 @@ export async function downloadContiSongSheetMusic(
   downloadUrl: string,
   signal?: AbortSignal,
 ): Promise<Uint8Array> {
+  if (!isSafeApiUrl(downloadUrl)) {
+    throw new Error('Unsafe sheet music download URL');
+  }
+
   const { data } = await apiClient.get<ArrayBuffer>(downloadUrl, {
     responseType: 'arraybuffer',
     signal,

@@ -52,14 +52,13 @@ export const useLogoutMutation = () => {
         mutationFn: DEV_AUTH_BYPASS_ENABLED ? async () => undefined : logout,
         onSuccess: () => {
             reset();
-            queryClient.setQueryData(authKeys.currentUser(), null);
-            queryClient.removeQueries({ queryKey: authKeys.all });
+            queryClient.clear();
         },
         onError: (error) => {
             console.error('Logout failed:', error);
             // Still reset local state on error
             reset();
-            queryClient.setQueryData(authKeys.currentUser(), null);
+            queryClient.clear();
         }
     });
 };
@@ -72,8 +71,7 @@ export const useDeleteAccountMutation = () => {
         mutationFn: DEV_AUTH_BYPASS_ENABLED ? async () => undefined : deleteAccount,
         onSuccess: () => {
             reset();
-            queryClient.setQueryData(authKeys.currentUser(), null);
-            queryClient.removeQueries({ queryKey: authKeys.all });
+            queryClient.clear();
         },
         onError: (error) => {
             console.error('Delete account failed:', error);

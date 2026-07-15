@@ -6,6 +6,7 @@ import { FileText, Youtube } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { getSafeLinkHref, getSafeYouTubeUrl } from '@/lib/safe-url'
 import type { SongFormPart } from '@/types/song'
 import { getSectionStyle, getSongFormSummary } from '@/domains/song/utils/song-form'
 import { openSheetMusic } from '@/domains/conti/utils/sheet-music'
@@ -61,6 +62,8 @@ export function ContiSongCard({
   showBodyMeta = true,
 }: ContiSongCardProps) {
   const groupedFlow = getSongFormSummary(songForm)
+  const safeSheetMusicUrl = getSafeLinkHref(sheetMusicUrl)
+  const safeYoutubeUrl = getSafeYouTubeUrl(youtubeUrl)
   const metaCards = [
     {
       label: 'Key',
@@ -91,9 +94,11 @@ export function ContiSongCard({
       <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-neutral-100 bg-neutral-50/50 px-3 py-3 sm:gap-3 sm:px-4">
         <div className="flex items-center gap-2">
           {dragHandle}
-          <span className="type-label flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-neutral-600">
-            {index + 1}
-          </span>
+          {showIndex && (
+            <span className="type-label flex h-6 w-6 items-center justify-center rounded bg-neutral-200 text-neutral-600">
+              {index + 1}
+            </span>
+          )}
         </div>
 
         <div className="min-w-0 overflow-hidden">
@@ -196,20 +201,20 @@ export function ContiSongCard({
             <div className="grid gap-2 sm:grid-cols-2">
               <Button
                 variant="secondary"
-                disabled={!sheetMusicUrl}
+                disabled={!safeSheetMusicUrl}
                 className="h-9 gap-2"
                 onClick={() => {
-                  if (!sheetMusicUrl) return
-                  void openSheetMusic(sheetMusicUrl).catch(() => {
+                  if (!safeSheetMusicUrl) return
+                  void openSheetMusic(safeSheetMusicUrl).catch(() => {
                     toast.error('악보를 불러오지 못했습니다.')
                   })
                 }}
               >
                 <FileText className="h-4 w-4" /> 악보 보기
               </Button>
-              <Button variant="secondary" disabled={!youtubeUrl} className="h-9 gap-2" asChild={!!youtubeUrl}>
-                {youtubeUrl ? (
-                  <a href={youtubeUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" disabled={!safeYoutubeUrl} className="h-9 gap-2" asChild={!!safeYoutubeUrl}>
+                {safeYoutubeUrl ? (
+                  <a href={safeYoutubeUrl} target="_blank" rel="noopener noreferrer">
                     <Youtube className="h-4 w-4 text-red-500" /> 유튜브
                   </a>
                 ) : (

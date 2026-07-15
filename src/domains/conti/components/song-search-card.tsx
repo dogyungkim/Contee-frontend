@@ -4,12 +4,16 @@ import { TeamSong } from '@/types/song'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { getSafeLinkHref, getSafeYouTubeUrl } from '@/lib/safe-url'
 interface SongSearchCardProps {
   song: TeamSong
   isDisabled?: boolean  // 이미 추가된 곡
   onSelect: () => void
 }
 export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardProps) {
+  const safeSheetMusicUrl = getSafeLinkHref(song.sheetMusicUrl)
+  const safeYoutubeUrl = getSafeYouTubeUrl(song.youtubeUrl)
+
   return (
     <div
       className={cn(
@@ -63,9 +67,9 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
       </div>
       {/* 4줄: 링크 아이콘 */}
       <div className="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mb-2">
-        {song.sheetMusicUrl ? (
+        {safeSheetMusicUrl ? (
           <a
-            href={song.sheetMusicUrl}
+            href={safeSheetMusicUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="type-body-sm inline-flex items-center gap-1 text-primary hover:underline"
@@ -81,9 +85,9 @@ export function SongSearchCard({ song, isDisabled, onSelect }: SongSearchCardPro
           </span>
         )}
         
-        {song.youtubeUrl ? (
+        {safeYoutubeUrl ? (
           <a
-            href={song.youtubeUrl}
+            href={safeYoutubeUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="type-body-sm inline-flex items-center gap-1 text-red-600 hover:underline"
