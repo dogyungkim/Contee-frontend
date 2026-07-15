@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useMyTeamsQuery } from '@/domains/team/hooks/use-team-query'
+import { useAuthStore } from '@/stores/auth-store'
 import { TeamSummary } from '@/types/team'
 
 interface TeamContextType {
@@ -16,7 +17,8 @@ interface TeamContextType {
 const TeamContext = createContext<TeamContextType | undefined>(undefined)
 
 export function TeamProvider({ children }: { children: ReactNode }) {
-  const { data: teams = [], isLoading } = useMyTeamsQuery()
+  const authStatus = useAuthStore((state) => state.authStatus)
+  const { data: teams = [], isLoading } = useMyTeamsQuery(authStatus === 'authenticated')
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
   const searchParams = useSearchParams()
 

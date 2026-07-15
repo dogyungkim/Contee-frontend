@@ -6,18 +6,18 @@ import { Button } from '@/components/ui/button'
 const nextSteps = [
   {
     icon: Users,
-    title: '팀 만들기',
-    description: '초대 코드로 팀원을 받습니다.',
+    title: '콘티 만들기',
+    description: '이번 주 콘티를 간편하게 만들어요.',
   },
   {
     icon: Library,
-    title: '곡 등록하기',
-    description: 'Key, BPM, 링크를 남겨둡니다.',
+    title: '곡 모으기',
+    description: 'Key, BPM, 송폼, 악보 등 자동으로 저장됩니다.',
   },
   {
     icon: FileText,
-    title: '콘티 공개하기',
-    description: '팀과 바로 공유합니다.',
+    title: '콘티 공유하기',
+    description: '팀원들과 콘티를 공유할 수 있어요.',
   },
 ]
 
@@ -30,10 +30,10 @@ const CtaSection = () => {
             <div>
               <div className="text-caption-upper text-muted-foreground">시작하기</div>
               <h2 className="mt-4 text-3xl font-semibold tracking-normal text-foreground sm:text-5xl">
-                이번 주 콘티부터 만들어보세요.
+                이번 주 콘티부터 지금 바로 만들어보세요.
               </h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                팀을 만들고 곡을 모아두면, 다음 준비가 조금 가벼워집니다.
+                콘티 공유가 쉬워지고, 곡을 모아두면 다음 콘티 준비가 조금 더 편해집니다.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg" className="w-full sm:w-auto">

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import { useAuthStore } from '@/stores/auth-store';
-import { useUserQuery, useLogoutMutation, useSessionRecoveryQuery } from './use-auth-query';
+import { useLogoutMutation, useSessionRecoveryQuery } from './use-auth-query';
 import { getGoogleLoginUrl } from '@/domains/auth/api/auth.api';
 import {
   DEV_AUTH_BYPASS_ENABLED,
@@ -19,7 +20,16 @@ import {
  * Attempts to recover session from refresh token cookie
  */
 export function useInitialAuth() {
-  const { accessToken, setAccessToken, hasCheckedSession, setHasCheckedSession } = useAuthStore();
+  const {
+    accessToken,
+    setAccessToken,
+    setUser,
+    reset,
+    hasCheckedSession,
+    setHasCheckedSession,
+    setLoading,
+    setUnavailable,
+  } = useAuthStore();
   const shouldRecoverSession = !hasCheckedSession && !accessToken;
   const sessionRecoveryQuery = useSessionRecoveryQuery(shouldRecoverSession);
 
@@ -28,9 +38,11 @@ export function useInitialAuth() {
       if (!accessToken) {
         setAccessToken(DEV_AUTH_BYPASS_TOKEN);
       }
+      setUser(DEV_AUTH_BYPASS_USER);
       if (!hasCheckedSession) {
         setHasCheckedSession(true);
       }
+      setLoading(false);
       return;
     }
 
@@ -45,15 +57,36 @@ export function useInitialAuth() {
 
     if (sessionRecoveryQuery.data?.accessToken) {
       setAccessToken(sessionRecoveryQuery.data.accessToken);
+      setHasCheckedSession(true);
+      return;
     }
 
-    setHasCheckedSession(true);
+    if (sessionRecoveryQuery.isError) {
+      if (axios.isAxiosError(sessionRecoveryQuery.error)) {
+        const status = sessionRecoveryQuery.error.response?.status;
+        if (!status || status >= 500) {
+          setUnavailable('서버에 연결할 수 없습니다.');
+          return;
+        }
+      }
+
+      reset();
+      return;
+    }
+
+    reset();
   }, [
     accessToken,
     hasCheckedSession,
     setAccessToken,
+    setUser,
+    reset,
     setHasCheckedSession,
+    setLoading,
+    setUnavailable,
     sessionRecoveryQuery.data,
+    sessionRecoveryQuery.error,
+    sessionRecoveryQuery.isError,
     sessionRecoveryQuery.isPending,
   ]);
 
@@ -61,21 +94,26 @@ export function useInitialAuth() {
 }
 
 export function useAuth(redirectTo?: string) {
-  const { isAuthenticated, error, clearError, hasCheckedSession } = useAuthStore();
-  const { data: user, isLoading: isUserLoading, isFetching } = useUserQuery();
+  const { authStatus, isAuthenticated, isLoading, user, error, clearError } = useAuthStore();
   const logoutMutation = useLogoutMutation();
   const router = useRouter();
 
   const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED ? true : isAuthenticated;
   const bypassedUser = DEV_AUTH_BYPASS_ENABLED ? DEV_AUTH_BYPASS_USER : user;
-  const isLoading = DEV_AUTH_BYPASS_ENABLED ? false : !hasCheckedSession || isUserLoading || isFetching;
+  const bypassedIsLoading = DEV_AUTH_BYPASS_ENABLED ? false : isLoading;
+  const bypassedAuthStatus = DEV_AUTH_BYPASS_ENABLED ? 'authenticated' : authStatus;
 
   useEffect(() => {
     // Only redirect if we are sure about the auth state (not loading)
-    if (!isLoading && !bypassedIsAuthenticated && redirectTo) {
+    if (
+      !bypassedIsLoading &&
+      bypassedAuthStatus === 'unauthenticated' &&
+      !bypassedIsAuthenticated &&
+      redirectTo
+    ) {
       router.push(redirectTo);
     }
-  }, [bypassedIsAuthenticated, isLoading, redirectTo, router]);
+  }, [bypassedAuthStatus, bypassedIsAuthenticated, bypassedIsLoading, redirectTo, router]);
 
   const login = () => {
     if (DEV_AUTH_BYPASS_ENABLED) return;
@@ -83,8 +121,9 @@ export function useAuth(redirectTo?: string) {
   };
 
   return {
+    authStatus: bypassedAuthStatus,
     isAuthenticated: bypassedIsAuthenticated,
-    isLoading,
+    isLoading: bypassedIsLoading,
     user: bypassedUser,
     error,
     clearError,
@@ -99,18 +138,22 @@ export function useRequireAuth(redirectTo: string = '/login') {
 }
 
 export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard/contis') {
-  const { isAuthenticated, hasCheckedSession } = useAuthStore();
-  const { isLoading: isUserLoading, isFetching } = useUserQuery();
+  const { authStatus, isAuthenticated, isLoading } = useAuthStore();
   const router = useRouter();
 
   const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED ? true : isAuthenticated;
-  const isLoading = DEV_AUTH_BYPASS_ENABLED ? false : !hasCheckedSession || isUserLoading || isFetching;
+  const bypassedIsLoading = DEV_AUTH_BYPASS_ENABLED ? false : isLoading;
+  const bypassedAuthStatus = DEV_AUTH_BYPASS_ENABLED ? 'authenticated' : authStatus;
 
   useEffect(() => {
-    if (!isLoading && bypassedIsAuthenticated) {
+    if (!bypassedIsLoading && bypassedAuthStatus === 'authenticated' && bypassedIsAuthenticated) {
       router.push(redirectTo);
     }
-  }, [bypassedIsAuthenticated, isLoading, redirectTo, router]);
+  }, [bypassedAuthStatus, bypassedIsAuthenticated, bypassedIsLoading, redirectTo, router]);
 
-  return { isAuthenticated: bypassedIsAuthenticated, isLoading };
+  return {
+    authStatus: bypassedAuthStatus,
+    isAuthenticated: bypassedIsAuthenticated,
+    isLoading: bypassedIsLoading,
+  };
 }
