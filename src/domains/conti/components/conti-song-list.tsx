@@ -39,8 +39,8 @@ export function ContiSongList({
   if (songs.length === 0) {
     return (
       <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed text-center bg-muted/5">
-        <p className="text-sm text-muted-foreground/60 italic font-medium">추가된 곡이 없습니다.</p>
-        <p className="text-xs text-muted-foreground/40 mt-1">예배 순서에 맞춰 곡을 추가해보세요.</p>
+        <p className="type-body-sm text-muted-foreground/60 italic font-medium">추가된 곡이 없습니다.</p>
+        <p className="type-body-sm mt-1 text-muted-foreground/40">예배 순서에 맞춰 곡을 추가해보세요.</p>
       </div>
     )
   }

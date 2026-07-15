@@ -10,8 +10,8 @@ export function DashboardSkeleton() {
     <>
       {/* Header Skeleton */}
       <div className="mb-6">
-        <Skeleton className="h-8 w-48 mb-2" />
-        <Skeleton className="h-4 w-96" />
+        <Skeleton className="mb-2 h-8 w-48 max-w-full" />
+        <Skeleton className="h-4 w-full max-w-96" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12">
@@ -19,18 +19,18 @@ export function DashboardSkeleton() {
           {/* Summary Cards Skeleton */}
           <div className="grid gap-4 sm:grid-cols-2">
             <Card>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2 lg:pb-3">
                 <Skeleton className="h-5 w-24 mb-2" />
                 <Skeleton className="h-4 w-32" />
               </CardHeader>
-              <CardContent className="flex items-center justify-between">
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Skeleton className="h-4 w-28" />
-                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-full sm:w-20" />
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-2 lg:pb-3">
                 <Skeleton className="h-5 w-24 mb-2" />
                 <Skeleton className="h-4 w-40" />
               </CardHeader>
@@ -50,22 +50,22 @@ export function DashboardSkeleton() {
           {/* Recent Contis Skeleton */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
-                  <Skeleton className="h-5 w-24 mb-2" />
-                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="mb-2 h-5 w-24" />
+                  <Skeleton className="h-4 w-full max-w-48" />
                 </div>
-                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-full sm:w-20" />
               </div>
             </CardHeader>
             <CardContent className="grid gap-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between rounded-md border p-3">
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-40 mb-2" />
-                    <Skeleton className="h-3 w-32" />
+                <div key={i} className="grid gap-3 rounded-md border p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <div className="min-w-0">
+                    <Skeleton className="mb-2 h-4 w-full max-w-40" />
+                    <Skeleton className="h-3 w-full max-w-32" />
                   </div>
-                  <Skeleton className="h-9 w-16" />
+                  <Skeleton className="h-9 w-full sm:w-16" />
                 </div>
               ))}
             </CardContent>
@@ -74,12 +74,12 @@ export function DashboardSkeleton() {
           {/* Song Search Skeleton */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
-                  <Skeleton className="h-5 w-24 mb-2" />
-                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="mb-2 h-5 w-24" />
+                  <Skeleton className="h-4 w-full max-w-40" />
                 </div>
-                <Skeleton className="h-9 w-20" />
+                <Skeleton className="h-9 w-full sm:w-20" />
               </div>
             </CardHeader>
             <CardContent className="grid gap-4">
@@ -87,9 +87,9 @@ export function DashboardSkeleton() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="rounded-md border p-3">
-                    <Skeleton className="h-4 w-32 mb-2" />
-                    <Skeleton className="h-3 w-24 mb-3" />
-                    <Skeleton className="h-9 w-16" />
+                    <Skeleton className="mb-2 h-4 w-full max-w-32" />
+                    <Skeleton className="mb-3 h-3 w-full max-w-24" />
+                    <Skeleton className="h-9 w-full sm:w-16" />
                   </div>
                 ))}
               </div>

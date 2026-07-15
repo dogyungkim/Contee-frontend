@@ -41,7 +41,7 @@ export function ContiDetailContainer({ contiId }: ContiDetailContainerProps) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin text-primary/40" />
-        <p className="text-sm font-medium">콘티 정보를 불러오는 중...</p>
+        <p className="type-body-sm font-medium">콘티 정보를 불러오는 중...</p>
       </div>
     )
   }
@@ -50,7 +50,7 @@ export function ContiDetailContainer({ contiId }: ContiDetailContainerProps) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed bg-muted/5">
         <Info className="mb-2 h-8 w-8 text-muted-foreground/30" />
-        <p className="text-sm font-medium text-muted-foreground">콘티를 찾을 수 없습니다.</p>
+        <p className="type-body-sm font-medium text-muted-foreground">콘티를 찾을 수 없습니다.</p>
         <Button variant="link" asChild className="mt-2">
           <Link href="/dashboard/contis">목록으로 돌아가기</Link>
         </Button>

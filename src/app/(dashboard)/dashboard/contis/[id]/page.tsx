@@ -17,7 +17,7 @@ export default function ContiDetailPage() {
         <Button variant="ghost" size="sm" asChild>
           <Link href="/dashboard/contis">
             <ChevronLeft className="h-4 w-4" />
-            <span className="text-sm font-medium">콘티 목록으로</span>
+            <span className="type-control">콘티 목록으로</span>
           </Link>
         </Button>
       </div>

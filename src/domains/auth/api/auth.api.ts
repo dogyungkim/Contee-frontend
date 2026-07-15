@@ -12,6 +12,10 @@ export const logout = async (): Promise<void> => {
   await apiClient.post('/api/v1/auth/logout');
 };
 
+export const deleteAccount = async (): Promise<void> => {
+  await apiClient.delete('/api/v1/users/me');
+};
+
 export const refreshToken = async (): Promise<AuthResponse | null> => {
   const response = await apiClient.post<ApiResponse<AuthResponseDto | null>>('/api/v1/auth/refresh', {}, {
     withCredentials: true,
@@ -30,4 +34,17 @@ export const getMe = async (accessToken?: string | null): Promise<User | null> =
   });
 
   return response.data.data ? toUserModel(response.data.data) : null;
+};
+
+export const uploadProfileImage = async (file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await apiClient.put<ApiResponse<UserDto>>(
+    '/api/v1/users/me/profile-image',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+
+  return toUserModel(response.data.data);
 };

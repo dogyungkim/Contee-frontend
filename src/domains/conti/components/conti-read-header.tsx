@@ -41,36 +41,38 @@ export function ContiReadHeader({
   onPublish,
 }: ContiReadHeaderProps) {
   return (
-    <div className="mx-auto w-full max-w-[1200px] rounded-xl border bg-background px-6 py-4 sm:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto w-full max-w-[1200px] rounded-xl border bg-background px-4 py-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 space-y-1">
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <LayoutList className="h-3 w-3" />
-            Service Continuity
-            <div className="ml-1 flex flex-wrap items-center gap-1 border-l border-border/70 pl-0">
+          <div className="type-badge flex flex-wrap items-center gap-2 uppercase tracking-widest text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <LayoutList className="h-3 w-3" />
+              Service Continuity
+            </span>
+            <div className="flex flex-wrap items-center gap-1 sm:border-l sm:border-border/70 sm:pl-2">
               <ContiStatusBadge
                 status={conti.status}
-                className="h-5 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal"
+                className="type-badge h-5 px-1.5 py-0 leading-none tracking-normal"
               />
               {conti.externalShare?.enabled && (
                 <ContiExternalShareBadge
                   showIcon={false}
-                  className="h-5 gap-1 px-1.5 py-0 text-[11px] font-semibold leading-none tracking-normal"
+                  className="type-badge h-5 gap-1 px-1.5 py-0 leading-none tracking-normal"
                 />
               )}
             </div>
           </div>
 
           <div>
-            <h2 className="text-xl font-bold tracking-tight">{conti.title}</h2>
+            <h2 className="type-section-title break-words">{conti.title}</h2>
           </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <div className="type-body-sm flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
             <span className="font-semibold text-primary/80">
               {format(new Date(conti.worshipDate), 'yyyy. MM. dd (EEE)', { locale: ko })}
             </span>
-            <Separator orientation="vertical" className="h-3" />
+            <Separator orientation="vertical" className="hidden h-3 sm:block" />
             <span>{conti.worshipTime}</span>
-            <Separator orientation="vertical" className="h-3" />
+            <Separator orientation="vertical" className="hidden h-3 sm:block" />
             <span className="flex items-center gap-1">
               총 <span className="font-bold text-foreground">{songCount}</span>곡
             </span>
@@ -78,18 +80,12 @@ export function ContiReadHeader({
         </div>
 
         <div className="flex flex-col gap-4 sm:items-end">
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             {isMembersLoading && (
-              <Button variant="outline" size="sm" className="h-9" disabled>
+              <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto" disabled>
                 권한 확인 중
               </Button>
             )}
-            {canEdit && !isMembersLoading && (
-              <Button variant="outline" size="sm" className="h-9" onClick={onStartEdit}>
-                수정
-              </Button>
-            )}
-
             <ContiExportMenu
               {...exportMenuProps}
               sheetMusicCount={sheetMusicCount}
@@ -97,11 +93,21 @@ export function ContiReadHeader({
               onDownloadPdf={onDownloadPdf}
             />
             {conti.status === 'PUBLISHED' && <ContiShareMenu {...shareMenuProps} />}
+            {canEdit && !isMembersLoading && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="col-span-2 h-9 w-full sm:col-span-1 sm:w-auto"
+                onClick={onStartEdit}
+              >
+                수정
+              </Button>
+            )}
 
             {canPublish && !isMembersLoading && (
               <Button
                 size="sm"
-                className="h-9 gap-2"
+                className="col-span-2 h-9 w-full gap-2 sm:col-span-1 sm:w-auto"
                 disabled={isPublishing}
                 onClick={onPublish}
               >

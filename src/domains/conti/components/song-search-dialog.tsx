@@ -44,15 +44,15 @@ export function SongSearchDialog({
   })
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[min(720px,calc(100vh-2rem))] max-w-3xl flex-col overflow-hidden p-0 sm:max-w-3xl">
-        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
+      <DialogContent className="flex h-[calc(100dvh-2rem)] w-[calc(100vw-1rem)] max-w-3xl flex-col overflow-hidden p-0 sm:h-[min(720px,calc(100dvh-2rem))] sm:max-w-3xl">
+        <DialogHeader className="shrink-0 px-4 pb-3 pt-5 sm:px-6 sm:pb-4 sm:pt-6">
           <DialogTitle>곡 추가하기</DialogTitle>
           <DialogDescription>
             팀 곡 목록에서 콘티에 추가할 곡을 선택하세요.
           </DialogDescription>
         </DialogHeader>
         {/* 검색바 */}
-        <div className="shrink-0 px-6 pb-4">
+        <div className="shrink-0 px-4 pb-3 sm:px-6 sm:pb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -64,8 +64,8 @@ export function SongSearchDialog({
             />
           </div>
         </div>
-        <div className="min-h-0 flex-1 px-6 pb-6">
-            <ScrollArea className="h-full min-h-0 pr-4">
+        <div className="min-h-0 flex-1 px-4 pb-4 sm:px-6 sm:pb-6">
+            <ScrollArea className="h-full min-h-0 pr-2 sm:pr-4">
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map(i => (
@@ -73,11 +73,11 @@ export function SongSearchDialog({
                   ))}
                 </div>
               ) : filteredSongs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex h-64 flex-col items-center justify-center px-4 text-center">
+                  <p className="type-body-sm text-muted-foreground">
                     {searchQuery ? '검색 결과가 없습니다.' : '등록된 곡이 없습니다.'}
                   </p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">
+                  <p className="type-body-sm mt-1 text-muted-foreground/60">
                     {searchQuery ? '다른 검색어를 입력해보세요.' : '먼저 곡 라이브러리에 곡을 등록해보세요.'}
                   </p>
                 </div>

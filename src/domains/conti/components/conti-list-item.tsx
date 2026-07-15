@@ -21,25 +21,25 @@ interface ContiListItemProps {
   onDelete: (contiId: Conti['id']) => void | Promise<void>
 }
 
-const listBadgeClassName = 'h-5 px-1.5 py-0 text-[12px] leading-none'
+const listBadgeClassName = 'type-badge h-5 px-1.5 py-0 leading-none'
 
 export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) {
   return (
-    <div className="group relative grid cursor-pointer gap-2 px-6 py-4 transition-colors hover:bg-[#fafafa] md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center md:gap-3">
+    <div className="group relative grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 px-4 py-4 transition-colors hover:bg-[#fafafa] sm:px-6 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center md:gap-3">
       <Link
         href={`/dashboard/contis/${conti.id}`}
         className="absolute inset-0 z-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         aria-label={`${conti.title} 콘티 상세 보기`}
       />
 
-      <div className="pointer-events-none relative z-10 min-w-0">
+      <div className="pointer-events-none relative z-10 col-start-1 row-start-1 min-w-0 md:col-auto md:row-auto">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-md bg-accent text-foreground">
             <FileText className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="truncate text-sm font-medium text-foreground">{conti.title}</div>
+              <div className="type-body-sm truncate font-medium text-foreground">{conti.title}</div>
               <ContiStatusBadge
                 status={conti.status}
                 className={`${listBadgeClassName} md:hidden`}
@@ -48,20 +48,20 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
                 <ContiExternalShareBadge className={`${listBadgeClassName} md:hidden`} />
               )}
             </div>
-            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="type-body-sm mt-1 flex items-center gap-2 text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
               {format(new Date(conti.worshipDate), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })} ·{' '}
               {conti.worshipTime}
             </div>
             {conti.memo ? (
-              <p className="mt-2 line-clamp-1 text-sm text-muted-foreground">{conti.memo}</p>
+              <p className="type-body-sm mt-2 line-clamp-1 text-muted-foreground">{conti.memo}</p>
             ) : null}
             {conti.songPreview && conti.songPreview.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {conti.songPreview.map((title, index) => (
                   <span
                     key={`${title}-${index}`}
-                    className="rounded-md border border-border bg-[#fafafa] px-2 py-0.5 text-[11px] text-muted-foreground"
+                    className="type-badge rounded-md border border-border bg-[#fafafa] px-2 py-0.5 text-muted-foreground"
                   >
                     {index + 1}. {title}
                   </span>
@@ -69,7 +69,7 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
               </div>
             ) : null}
             {conti.createdByName ? (
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <div className="type-badge mt-2 flex items-center gap-1.5 text-muted-foreground">
                 <UserRound className="h-3 w-3" />
                 {conti.createdByName}
               </div>
@@ -83,18 +83,18 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
         {conti.externalShareEnabled && <ContiExternalShareBadge className={listBadgeClassName} />}
       </div>
 
-      <div className="pointer-events-none relative z-10 hidden text-sm text-foreground md:block">
+      <div className="type-body-sm pointer-events-none relative z-10 hidden text-foreground md:block">
         <div>{format(new Date(conti.worshipDate), 'yyyy.MM.dd', { locale: ko })}</div>
-        <div className="mt-1 text-xs text-muted-foreground">{conti.worshipTime}</div>
+        <div className="type-body-sm mt-1 text-muted-foreground">{conti.worshipTime}</div>
       </div>
 
-      <div className="pointer-events-none relative z-10">
-        <div className="inline-flex rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-foreground">
+      <div className="pointer-events-none relative z-10 hidden md:col-auto md:row-auto md:block">
+        <div className="type-badge inline-flex rounded-md bg-accent px-2.5 py-1 text-foreground">
           {conti.songCount ?? 0}곡
         </div>
       </div>
 
-      <div className="relative z-10 flex justify-end">
+      <div className="relative z-10 col-start-2 row-start-1 flex flex-col items-end gap-2 self-start md:col-auto md:row-auto md:self-center">
         {canEdit && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -117,6 +117,9 @@ export function ContiListItem({ conti, canEdit, onDelete }: ContiListItemProps) 
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        <div className="type-badge inline-flex rounded-md bg-accent px-2.5 py-1 text-foreground md:hidden">
+          {conti.songCount ?? 0}곡
+        </div>
       </div>
     </div>
   )

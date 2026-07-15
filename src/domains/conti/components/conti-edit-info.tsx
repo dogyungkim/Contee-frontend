@@ -33,8 +33,8 @@ export function ContiEditInfo({
 }: ContiEditInfoProps) {
   return (
     <>
-      <div className="rounded-xl border border-neutral-200 bg-white p-5">
-        <p className="mb-2 text-xs font-bold text-amber-600">특이사항</p>
+      <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
+        <p className="type-label mb-2 text-amber-600">특이사항</p>
         <Textarea
           value={memo}
           onChange={(event) => onMemoChange(event.target.value)}
@@ -43,7 +43,7 @@ export function ContiEditInfo({
         />
       </div>
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-5">
+      <div className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5">
           <button
             type="button"
             className="flex w-full items-center justify-between gap-2 text-left"
@@ -55,7 +55,7 @@ export function ContiEditInfo({
               <div className="flex h-7 w-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
                 <BookOpen className="h-4 w-4 text-neutral-600" />
               </div>
-              <h3 className="text-sm font-bold text-neutral-900">말씀 & 나눔</h3>
+              <h3 className="type-card-title text-neutral-900">말씀 & 나눔</h3>
             </div>
             <ChevronDown
               className={cn(
@@ -67,8 +67,7 @@ export function ContiEditInfo({
 
           {isWordSharingOpen && (
             <div id="word-sharing-content" className="mt-3 space-y-4">
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
-                <p className="mb-1 text-xs font-bold text-neutral-700">본문</p>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label htmlFor="bible-verse-reference">본문 위치</Label>
@@ -93,8 +92,8 @@ export function ContiEditInfo({
                 </div>
               </div>
 
-              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-4">
-                <p className="mb-1 text-xs font-bold text-neutral-700">나눔</p>
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50/40 p-3 sm:p-4">
+                <p className="type-label mb-1 text-neutral-700">나눔</p>
                 <Textarea
                   value={sharingInfo}
                   onChange={(event) => onSharingInfoChange(event.target.value)}

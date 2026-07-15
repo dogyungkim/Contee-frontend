@@ -12,7 +12,7 @@
   --color-popover: #ffffff;
   --color-popover-foreground: #1a1c1c;
 
-  --color-primary: #000000;
+  --color-primary: #3b4663;
   --color-primary-foreground: #ffffff;
 
   --color-secondary: #f3f3f3;
@@ -29,22 +29,22 @@
 
   --color-border: #f0f0f3;
   --color-input: #dcdee0;
-  --color-ring: #1a1c1c;
+  --color-ring: #3b4663;
 
-  --color-chart-1: #0d74ce;
-  --color-chart-2: #476cff;
+  --color-chart-1: #3b4663;
+  --color-chart-2: #303a52;
   --color-chart-3: #1a1c1c;
   --color-chart-4: #a8c8e8;
   --color-chart-5: #5f5e5e;
 
   --color-sidebar: #f3f3f3;
   --color-sidebar-foreground: #1a1c1c;
-  --color-sidebar-primary: #e2dfde;
-  --color-sidebar-primary-foreground: #1a1c1c;
+  --color-sidebar-primary: #3b4663;
+  --color-sidebar-primary-foreground: #ffffff;
   --color-sidebar-accent: #e8e8e8;
   --color-sidebar-accent-foreground: #1a1c1c;
   --color-sidebar-border: #f0f0f3;
-  --color-sidebar-ring: #1a1c1c;
+  --color-sidebar-ring: #3b4663;
 
   --radius-lg: 0.75rem;
   --radius-md: 0.5rem;
@@ -138,6 +138,175 @@
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .text-keep {
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+
+  .text-anywhere {
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .landing-copy-shell {
+    width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+
+  .landing-copy-text {
+    max-width: calc(100vw - 2rem);
+  }
+
+  .landing-screen-shell {
+    width: 100%;
+    max-width: calc(100vw - 2rem);
+  }
+
+  @media (min-width: 640px) {
+    .landing-copy-shell {
+      width: auto;
+      max-width: 42rem;
+    }
+
+    .landing-copy-text {
+      max-width: 36rem;
+    }
+
+    .landing-screen-shell {
+      max-width: none;
+    }
+  }
+
+  .type-page-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .type-page-description {
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: var(--muted-foreground);
+  }
+
+  .type-card-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .type-section-title {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .type-panel-title {
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .type-body {
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+  }
+
+  .type-body-sm {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .type-label {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .type-badge {
+    font-family: var(--font-caption);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .type-control {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+  }
+
+  .type-emphasis {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .type-kpi {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  @media (min-width: 640px) {
+    .type-page-title {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+
+    .type-card-title,
+    .type-emphasis {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+    }
+
+    .type-section-title {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+    }
+
+    .type-body {
+      font-size: 0.9375rem;
+      line-height: 1.5rem;
+    }
+
+    .type-body-sm,
+    .type-control {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+    }
+
+    .type-badge {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+
+    .type-kpi {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .type-page-title {
+      font-size: 2rem;
+      line-height: 2.5rem;
+    }
   }
 
   .surface-card {
@@ -249,7 +418,7 @@
   }
 
   a {
-    color: #0d74ce;
+    color: #3b4663;
     text-decoration: none;
   }
 

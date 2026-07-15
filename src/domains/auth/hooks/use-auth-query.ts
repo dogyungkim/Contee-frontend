@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
-import { getMe, logout, refreshToken } from '@/domains/auth/api/auth.api';
+import { deleteAccount, getMe, logout, refreshToken, uploadProfileImage } from '@/domains/auth/api/auth.api';
 import { useAuthStore } from '@/stores/auth-store';
 import { STALE_TIME } from '@/constants/time';
 import { DEV_AUTH_BYPASS_ENABLED, DEV_AUTH_BYPASS_USER } from '@/domains/auth/dev-auth';
@@ -67,5 +67,38 @@ export const useLogoutMutation = () => {
             reset();
             queryClient.setQueryData(authKeys.user(), null);
         }
+    });
+};
+
+export const useDeleteAccountMutation = () => {
+    const queryClient = useQueryClient();
+    const { reset } = useAuthStore();
+
+    return useMutation({
+        mutationFn: DEV_AUTH_BYPASS_ENABLED ? async () => undefined : deleteAccount,
+        onSuccess: () => {
+            reset();
+            queryClient.setQueryData(authKeys.user(), null);
+            queryClient.removeQueries({ queryKey: authKeys.all });
+        },
+        onError: (error) => {
+            console.error('Delete account failed:', error);
+        },
+    });
+};
+
+export const useUpdateProfileImageMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: DEV_AUTH_BYPASS_ENABLED
+            ? async () => DEV_AUTH_BYPASS_USER
+            : (file: File) => uploadProfileImage(file),
+        onSuccess: (user) => {
+            queryClient.setQueryData(authKeys.user(), user);
+        },
+        onError: (error) => {
+            console.error('Profile image update failed:', error);
+        },
     });
 };

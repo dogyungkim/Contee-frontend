@@ -31,7 +31,7 @@ export function ContiExportMenu({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 gap-2"
+          className="h-9 w-full gap-2 sm:w-auto"
           aria-label="내보내기"
           title="내보내기"
         >
@@ -40,7 +40,7 @@ export function ContiExportMenu({
           ) : (
             <Download className="h-4 w-4" />
           )}
-          <span className="hidden sm:inline">내보내기</span>
+          <span>내보내기</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">

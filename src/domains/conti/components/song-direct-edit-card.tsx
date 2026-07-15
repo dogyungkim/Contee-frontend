@@ -203,33 +203,33 @@ export function SongDirectEditCard({
   const content = (
     <>
       {variant === 'card' && (
-        <CardHeader className="bg-muted/5 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <CardHeader className="bg-muted/5 pb-3 lg:pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Music className="h-4 w-4 text-primary" />
               </div>
-              <CardTitle className="text-lg">{displayTitle}</CardTitle>
+              <CardTitle className="type-card-title min-w-0 break-words">{displayTitle}</CardTitle>
             </div>
-            <Button variant="ghost" size="icon" onClick={onCancel} disabled={isSubmitting}>
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={onCancel} disabled={isSubmitting}>
               <X className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
       )}
-      <CardContent className={cn('space-y-6', variant === 'card' ? 'pt-6' : 'p-0')}>
+      <CardContent className={cn('space-y-5 sm:space-y-6', variant === 'card' ? 'px-4 pt-5 sm:px-6 sm:pt-6' : 'p-0')}>
         {shouldShowEmbeddedTitle && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Music className="h-4 w-4 text-primary" />
               </div>
-              <h4 className="text-lg font-semibold">{displayTitle}</h4>
+              <h4 className="type-card-title min-w-0 break-words">{displayTitle}</h4>
             </div>
           </div>
         )}
         {/* Basic Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor={`${fieldId}-title`} className="text-primary font-semibold">곡 제목 *</Label>
@@ -241,7 +241,7 @@ export function SongDirectEditCard({
                   setSongTitle(e.target.value)
                   emitChange({ title: e.target.value })
                 }}
-                className="font-bold text-lg"
+                className="type-body sm:type-emphasis font-semibold"
                 readOnly={identityLocked}
                 autoFocus
               />
@@ -260,8 +260,8 @@ export function SongDirectEditCard({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="min-w-0 space-y-2">
               <Label>Key (조)</Label>
               <Select
                 value={key}
@@ -280,7 +280,7 @@ export function SongDirectEditCard({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-bpm`}>BPM (템포)</Label>
               <Input
                 id={`${fieldId}-bpm`}
@@ -296,7 +296,7 @@ export function SongDirectEditCard({
             </div>
             {showResourceFields && (
               <>
-                <div className="space-y-2">
+                <div className="col-span-2 min-w-0 space-y-2 sm:col-span-1">
                   <Label htmlFor={`${fieldId}-youtube`}>YouTube 링크</Label>
                   <Input
                     id={`${fieldId}-youtube`}
@@ -309,7 +309,7 @@ export function SongDirectEditCard({
                   />
                 </div>
                 {!showSheetMusicUpload && (
-                  <div className="space-y-2">
+                  <div className="col-span-2 min-w-0 space-y-2 sm:col-span-1">
                     <Label htmlFor={`${fieldId}-sheetMusic`}>악보 링크</Label>
                     <Input
                       id={`${fieldId}-sheetMusic`}
@@ -330,31 +330,32 @@ export function SongDirectEditCard({
         {showSheetMusicUpload && (
           <div className="space-y-2">
             <Label>악보 파일</Label>
-            <div className="rounded-lg border border-dashed p-4">
+            <div className="rounded-lg border border-dashed p-3 sm:p-4">
               {selectedSheetMusicFile ? (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-2">
                     <FileText className="h-4 w-4 shrink-0 text-red-500" />
-                    <span className="truncate text-sm font-medium">{selectedSheetMusicFile.name}</span>
-                    <span className="shrink-0 text-xs text-muted-foreground">
+                    <span className="type-body-sm truncate font-medium">{selectedSheetMusicFile.name}</span>
+                    <span className="type-badge shrink-0 text-muted-foreground">
                       {(selectedSheetMusicFile.size / 1024 / 1024).toFixed(1)}MB
                     </span>
                   </div>
-                  <Button type="button" variant="ghost" size="sm" onClick={clearSelectedSheetMusicFile}>
+                  <Button type="button" variant="ghost" size="sm" className="w-full sm:w-auto" onClick={clearSelectedSheetMusicFile}>
                     선택 취소
                   </Button>
                 </div>
               ) : existingSheetMusicFile && !isSheetMusicMarkedForDeletion ? (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 items-center gap-2">
                     <FileText className="h-4 w-4 shrink-0 text-red-500" />
-                    <span className="truncate text-sm font-medium">{existingSheetMusicFile.fileName}</span>
+                    <span className="type-body-sm truncate font-medium">{existingSheetMusicFile.fileName}</span>
                   </div>
-                  <div className="flex shrink-0 gap-1">
+                  <div className="grid shrink-0 grid-cols-[1fr_auto] gap-1 sm:flex sm:justify-end">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
+                      className="w-full sm:w-auto"
                       onClick={() => {
                         void openSheetMusic(existingSheetMusicFile.downloadUrl).catch(() => {
                           toast.error('악보를 불러오지 못했습니다.')
@@ -386,12 +387,12 @@ export function SongDirectEditCard({
                     onClick={openSheetMusicFilePicker}
                   >
                     <Upload className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">
+                    <span className="type-body-sm font-medium">
                       {isSheetMusicMarkedForDeletion
                         ? '새 악보 파일을 선택하거나 삭제 상태로 저장하세요'
                         : '악보 파일 선택'}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="type-body-sm text-muted-foreground">
                       PDF 최대 20MB · PNG/JPG/JPEG 최대 5MB
                     </span>
                   </Button>
@@ -418,7 +419,7 @@ export function SongDirectEditCard({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="mx-auto mt-3 flex text-xs text-primary"
+                  className="mx-auto mt-3 flex text-primary"
                   onClick={openSheetMusicFilePicker}
                 >
                   <Upload className="h-3.5 w-3.5" />
@@ -433,18 +434,19 @@ export function SongDirectEditCard({
 
         {/* Song Form Editor */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div>
             <Label>곡 구성 (Song Form)</Label>
-            <Button variant="outline" size="sm" onClick={() => setFormDialogOpen(true)} className="h-7 text-xs">
-              {songForm.length > 0 ? '편집하기' : '구성 설정하기'}
-            </Button>
           </div>
 
           {songForm.length > 0 ? (
-            <div className="bg-slate-50 rounded-xl p-4 border flex items-center gap-2 overflow-x-auto">
+            <button
+              type="button"
+              className="flex w-full flex-wrap items-center gap-2 overflow-hidden rounded-xl border bg-slate-50 p-3 text-left transition-colors hover:bg-slate-100 sm:p-4"
+              onClick={() => setFormDialogOpen(true)}
+            >
               {groupedFlow.map((group, index) => (
-                <div key={index} className="flex items-center gap-2 shrink-0">
-                  <div className={cn("px-3 py-1.5 rounded-md text-sm font-bold border shadow-sm", {
+                <div key={index} className="flex items-center gap-2">
+                  <div className={cn("type-badge px-3 py-1.5 rounded-md border shadow-sm", {
                     'bg-blue-50 border-blue-200 text-blue-700': group.type === 'Verse',
                     'bg-purple-50 border-purple-200 text-purple-700': group.type === 'Chorus',
                     'bg-slate-50 border-slate-200 text-slate-700': group.type === 'Intro' || group.type === 'Outro',
@@ -454,24 +456,25 @@ export function SongDirectEditCard({
                     'bg-cyan-50 border-cyan-200 text-cyan-700': group.type === 'Interlude',
                   })}>
                     {group.abbr}
-                    {group.showBars && <span className="ml-1 text-xs opacity-70 font-normal">({group.bars})</span>}
-                    {group.count > 1 && <span className="ml-1 text-[10px] bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
+                    {group.showBars && <span className="type-badge ml-1 opacity-70 font-normal">({group.bars})</span>}
+                    {group.count > 1 && <span className="type-badge ml-1 bg-black/10 px-1 rounded opacity-70">x{group.count}</span>}
                   </div>
                   {index < groupedFlow.length - 1 && <span className="text-slate-300">→</span>}
                 </div>
               ))}
-            </div>
+            </button>
           ) : (
-            <div
-              className="bg-slate-50 border border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-100 transition-colors"
+            <button
+              type="button"
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed bg-slate-50 p-5 text-center transition-colors hover:bg-slate-100 sm:p-8"
               onClick={() => setFormDialogOpen(true)}
             >
               <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
                 <Music className="h-4 w-4 text-slate-500" />
               </div>
-              <p className="text-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
-              <p className="text-xs text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
-            </div>
+              <p className="type-body-sm text-slate-500 font-medium">아직 설정된 곡 구성이 없습니다.</p>
+              <p className="type-body-sm text-slate-400">클릭하여 곡의 흐름(Verse, Chorus 등)을 구성해보세요.</p>
+            </button>
           )}
 
           <SongFormDialog
@@ -503,9 +506,9 @@ export function SongDirectEditCard({
         </div>
 
         {/* Footer Actions */}
-        {showFooterActions && <div className="flex justify-end gap-2 pt-2">
-          {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-24" disabled={isSubmitting}>취소</Button>}
-          <Button onClick={handleSave} className="w-32 gap-2" disabled={isSubmitting}>
+        {showFooterActions && <div className="grid grid-cols-2 gap-2 pt-2 sm:flex sm:justify-end">
+          {showCancelButton && <Button variant="outline" onClick={onCancel} className="w-full sm:w-24" disabled={isSubmitting}>취소</Button>}
+          <Button onClick={handleSave} className="w-full gap-2 sm:w-32" disabled={isSubmitting}>
             <Save className="h-4 w-4" />
             {submitLabel}
           </Button>

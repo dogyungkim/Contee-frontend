@@ -49,7 +49,7 @@ export function SongLibraryList({
 }: SongLibraryListProps) {
   return (
     <Card className="overflow-hidden rounded-2xl">
-      <CardHeader className="border-b border-border pb-4">
+      <CardHeader className="border-b border-border pb-3 lg:pb-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle className="text-lg">팀 레퍼토리</CardTitle>

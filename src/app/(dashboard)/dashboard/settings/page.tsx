@@ -1,20 +1,24 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+'use client'
+
+import { AccountActionsCard } from '@/domains/auth/components/account-actions-card'
+import { ProfileCard } from '@/domains/auth/components/profile-card'
+import { useAuth } from '@/domains/auth/hooks/use-auth'
 
 export default function SettingsPage() {
+  const { user } = useAuth()
+
   return (
-    <div className="container py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>설정</CardTitle>
-          <CardDescription>프로필/팀/연동/로그아웃 등의 설정 화면이 여기에 들어갑니다.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            현재는 헤더 메뉴 진입점만 제공하며, 백엔드 준비에 맞춰 점진적으로 추가합니다.
-          </div>
-        </CardContent>
-      </Card>
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      <div>
+        <div className="text-caption-upper text-muted-foreground">Account settings</div>
+        <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em]">설정</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          프로필 정보와 계정 상태를 관리하세요.
+        </p>
+      </div>
+
+      <ProfileCard user={user} />
+      <AccountActionsCard />
     </div>
   )
 }
-

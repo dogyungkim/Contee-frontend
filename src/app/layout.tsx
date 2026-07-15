@@ -7,20 +7,19 @@ import { AuthProvider } from '@/components/auth/auth-provider'
 
 export const metadata: Metadata = {
   title: 'Contee',
-  description: '찬양팀 리더를 위한 콘티 작성 및 공유 서비스',
+  description: '찬양팀이 콘티와 곡 자료를 함께 정리하는 공간',
   manifest: '/manifest.json',
   applicationName: 'Contee',
   icons: {
     icon: [
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
-    apple: { url: '/icons/icon-192x192.png' },
+    apple: { url: '/icon.svg' },
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#18181b',
+  themeColor: '#3b4663',
 }
 
 import QueryProvider from '@/components/providers/query-provider'

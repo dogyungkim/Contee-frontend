@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface ContiEditorActionBarProps {
   isDraft: boolean
@@ -41,10 +42,10 @@ export function ContiEditorActionBar({
   const isSaveDisabled = saveDisabled ?? !hasChanges
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-4 z-40 px-6 md:px-7 lg:px-9">
-      <div className="pointer-events-auto mx-auto flex w-full max-w-[1200px] flex-col gap-3 rounded-2xl border bg-background/95 px-4 py-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
+    <div className="pointer-events-none absolute inset-x-0 bottom-2 z-40 px-3 sm:bottom-4 sm:px-5 md:px-7 lg:px-9">
+      <div className="pointer-events-auto mx-auto flex w-full max-w-[1200px] flex-col gap-3 rounded-2xl border bg-background/95 px-3 py-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+        <div className="min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
               {badgeLabel}
             </Badge>
@@ -54,10 +55,13 @@ export function ContiEditorActionBar({
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{actionDescription}</p>
+          <p className="type-body-sm text-muted-foreground">{actionDescription}</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className={cn(
+          'grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center',
+          !secondaryAction && 'grid-cols-2',
+        )}>
           <Button
             variant="outline"
             className="flex-1 sm:flex-none"
@@ -77,7 +81,7 @@ export function ContiEditorActionBar({
             </Button>
           )}
           <Button
-            className="flex-1 sm:flex-none"
+            className={cn('flex-1 sm:flex-none', secondaryAction && 'col-span-2 sm:col-span-1')}
             onClick={onSave}
             disabled={isSaving || isSaveDisabled}
           >

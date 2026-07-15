@@ -33,7 +33,7 @@ export function ContiShareDialog({
 
   return (
     <Dialog open={mode !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {mode === 'enable'

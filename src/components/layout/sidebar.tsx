@@ -14,31 +14,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { 
-  Music, 
+import {
   FileText, 
   Library, 
   Settings, 
-  LogOut,
   User,
   Users,
   Plus,
   UserPlus
 } from 'lucide-react';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
+import { useProfileImageSrc } from '@/domains/auth/hooks/use-profile-image-src';
 import { useTeam } from '@/context/team-context';
 import { JoinTeamForm } from '@/domains/team/components/join-team-form';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 const ADD_TEAM_VALUE = '__add__';
 const JOIN_TEAM_VALUE = '__join__';
 
 interface SidebarProps {
   className?: string;
+  onNavigate?: () => void;
 }
 
-const Sidebar = ({ className }: SidebarProps) => {
-  const { user, logout } = useAuth();
+const Sidebar = ({ className, onNavigate }: SidebarProps) => {
+  const { user } = useAuth();
+  const profileImageSrc = useProfileImageSrc(user?.profileImageUrl);
   const router = useRouter();
   const pathname = usePathname();
   const [isJoinTeamOpen, setIsJoinTeamOpen] = useState(false);
@@ -48,6 +50,7 @@ const Sidebar = ({ className }: SidebarProps) => {
 
   const handleTeamChange = (value: string) => {
     if (value === ADD_TEAM_VALUE) {
+      onNavigate?.();
       router.push('/dashboard/teams/create');
       return;
     }
@@ -56,11 +59,7 @@ const Sidebar = ({ className }: SidebarProps) => {
       return;
     }
     setSelectedTeamId(value);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/');
+    onNavigate?.();
   };
 
   // Helper function to determine if a navigation item is active
@@ -103,13 +102,11 @@ const Sidebar = ({ className }: SidebarProps) => {
     <div className={cn("flex h-full w-62 flex-col overflow-hidden bg-transparent", className)}>
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center px-5">
-        <Link href="/dashboard/contis" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1c1c] text-white">
-            <Music className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold tracking-[-0.03em]">Contee</div>
-            <div className="text-caption-upper text-muted-foreground">Team workspace</div>
+        <Link href="/dashboard/contis" className="flex min-w-0 items-center gap-3" onClick={onNavigate}>
+          <Image src="/logo-text.svg" alt="Logo" width={100} height={24} />
+          <div className="min-w-0">
+            <div className="text-caption-upper text-muted-foreground">Team</div>
+            <div className="text-caption-upper text-muted-foreground">workspace</div>
           </div>
         </Link>
       </div>
@@ -146,7 +143,10 @@ const Sidebar = ({ className }: SidebarProps) => {
           <div className="space-y-2">
             <Button 
               className="w-full" 
-              onClick={() => router.push('/dashboard/teams/create')}
+              onClick={() => {
+                onNavigate?.();
+                router.push('/dashboard/teams/create');
+              }}
             >
               <Plus className="h-4 w-4" />
               팀 만들기
@@ -168,20 +168,20 @@ const Sidebar = ({ className }: SidebarProps) => {
         <div className="rounded-xl border border-[#dcdee0] bg-white/60 p-4">
           <div className="text-caption-upper text-muted-foreground">Signed in</div>
           <div className="mt-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              {user?.profileImageUrl ? (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground">
+              {profileImageSrc ? (
                 <img
-                  src={user.profileImageUrl}
-                  alt={user.name}
-                  className="h-10 w-10 rounded-full"
+                  src={profileImageSrc}
+                  alt={user?.name || '사용자'}
+                  className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
                 <User className="h-4 w-4" />
               )}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">{user?.name || '사용자'}</p>
-              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+              <p className="type-body-sm truncate font-medium">{user?.name || '사용자'}</p>
+              <p className="type-label truncate text-muted-foreground">{user?.email}</p>
             </div>
           </div>
         </div>
@@ -200,13 +200,14 @@ const Sidebar = ({ className }: SidebarProps) => {
                 key={item.href}
                 href={isDisabled ? '#' : item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'type-control flex items-center gap-3 rounded-md px-3 py-2 transition-colors',
                   isDisabled && 'pointer-events-none opacity-50',
                   isActive
                     ? 'bg-white/80 text-foreground'
                     : 'text-muted-foreground hover:bg-white/55 hover:text-foreground'
                 )}
                 aria-disabled={isDisabled}
+                onClick={isDisabled ? undefined : onNavigate}
               >
                 <item.icon className="h-4 w-4" />
                 {item.title}
@@ -215,21 +216,10 @@ const Sidebar = ({ className }: SidebarProps) => {
           })}
       </nav>
 
-      {/* Logout Button */}
-      <div className="p-4 pt-2">
-        <Button
-          variant="ghost"
-          className="w-full justify-start rounded-lg"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          로그아웃
-        </Button>
-      </div>
     </div>
     <Dialog open={isJoinTeamOpen} onOpenChange={setIsJoinTeamOpen}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-md p-4 sm:p-6">
+        <DialogHeader className="pr-8 sm:pr-10">
           <DialogTitle>팀 합류하기</DialogTitle>
           <DialogDescription>
             팀 관리자에게 받은 초대 코드를 입력하세요.

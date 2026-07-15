@@ -1,4 +1,5 @@
 import { toast as hotToast } from 'react-hot-toast'
+import type { ToastOptions } from 'react-hot-toast'
 
 export const toast = {
   success: (message: string) => {
@@ -7,7 +8,7 @@ export const toast = {
   error: (message: string) => {
     hotToast.error(message)
   },
-  info: (message: string) => {
-    hotToast(message)
+  info: (message: string, options?: ToastOptions) => {
+    hotToast(message, options)
   },
 }

@@ -81,7 +81,7 @@ export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>초대 코드</FormLabel>
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_120px]">
                 <FormControl>
                   <Input
                     placeholder="예: WSHIP001"
@@ -93,7 +93,7 @@ export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
                 </FormControl>
                 <Button
                   type="submit"
-                  className="sm:w-[120px]"
+                  className="w-full"
                   disabled={joinTeamMutation.isPending}
                 >
                   <LogIn className="h-4 w-4" />

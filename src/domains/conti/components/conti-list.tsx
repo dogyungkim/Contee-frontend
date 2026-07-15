@@ -147,12 +147,12 @@ export function ContiList() {
   if (isLoading) {
     return (
       <div className="surface-card overflow-hidden rounded-2xl">
-        <div className="border-b border-border px-6 py-4">
+        <div className="border-b border-border px-4 py-4 sm:px-6">
           <Skeleton className="h-5 w-32" />
         </div>
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="grid gap-3 px-6 py-4 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
+            <div key={i} className="grid gap-3 px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-28" />
@@ -167,7 +167,7 @@ export function ContiList() {
 
   if (isError) {
     return (
-      <div className="surface-card flex h-40 items-center justify-center rounded-2xl text-sm text-muted-foreground">
+      <div className="surface-card type-body-sm flex h-40 items-center justify-center rounded-2xl text-muted-foreground">
         콘티 목록을 불러오는 중 오류가 발생했습니다.
       </div>
     )
@@ -203,12 +203,12 @@ export function ContiList() {
             <span className="truncate">{dateRangeLabel}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto" align="start">
           <CalendarComponent
             mode="range"
             selected={pendingDateRange}
             onSelect={handleDateRangeChange}
-            numberOfMonths={2}
+            numberOfMonths={1}
             autoFocus
           />
           <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-3">
@@ -263,12 +263,12 @@ export function ContiList() {
 
   if (contis.length === 0 && !hasAppliedFilters && !isFetching) {
     return (
-      <div className="surface-card flex flex-col items-center justify-center rounded-2xl py-16 text-center">
+      <div className="surface-card flex flex-col items-center justify-center rounded-2xl px-4 py-14 text-center sm:py-16">
         <div className="flex h-12 w-12 items-center justify-center rounded-md bg-accent">
           <Music className="h-6 w-6 text-muted-foreground" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold">생성된 콘티가 없습니다</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h3 className="type-card-title mt-4">생성된 콘티가 없습니다</h3>
+        <p className="type-page-description mt-2">
           첫 번째 예배 콘티를 작성해보세요.
         </p>
         <Button asChild className="mt-6">
@@ -283,10 +283,10 @@ export function ContiList() {
 
   return (
     <Card className="gap-0 overflow-hidden rounded-2xl py-1">
-      <CardHeader className="border-b border-border px-6 py-4">
+      <CardHeader className="border-b border-border px-4 py-3 sm:px-5 lg:px-6 lg:py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-lg">예배 콘티</CardTitle>
+            <CardTitle className="type-card-title">예배 콘티</CardTitle>
             <CardDescription className="mt-1">
               총 {totalElements}개의 콘티가 등록되어 있습니다.
             </CardDescription>
@@ -298,8 +298,8 @@ export function ContiList() {
         {filterControls}
         {contis.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 px-6 text-center">
-            <p className="text-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
-            <p className="text-xs text-muted-foreground">검색어 또는 예배일 범위를 조정해보세요.</p>
+            <p className="type-body-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
+            <p className="type-body-sm text-muted-foreground">검색어 또는 예배일 범위를 조정해보세요.</p>
           </div>
         ) : (
           <>
@@ -324,7 +324,7 @@ export function ContiList() {
 
             {totalPages > 1 && (
               <div className="flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <p className="text-sm text-muted-foreground">
+                <p className="type-body-sm text-muted-foreground">
                   {currentPage + 1} / {totalPages} 페이지
                 </p>
                 <div className="flex items-center gap-2">
