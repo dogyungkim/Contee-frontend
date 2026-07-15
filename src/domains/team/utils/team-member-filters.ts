@@ -28,10 +28,10 @@ export function filterTeamMembers(
   })
 }
 
-export function canManageTeamMember(member: TeamMember, currentUserId?: string) {
-  return Boolean(currentUserId) && member.userId !== currentUserId && member.role !== 'OWNER'
+export function canManageTeamMember(member: TeamMember, currentUserId?: string | number) {
+  return Boolean(currentUserId) && String(member.userId) !== String(currentUserId) && member.role !== 'OWNER'
 }
 
-export function hasManageableTeamMembers(members: TeamMember[], currentUserId?: string) {
+export function hasManageableTeamMembers(members: TeamMember[], currentUserId?: string | number) {
   return members.some((member) => canManageTeamMember(member, currentUserId))
 }

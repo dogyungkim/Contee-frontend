@@ -235,7 +235,7 @@ function MemberRow({
   onChangeRole,
   onRemoveMember,
 }: MemberRowProps) {
-  const isCurrentUser = member.userId === currentUserId
+  const isCurrentUser = String(member.userId) === String(currentUserId)
   const canManageMember = canManageMembers && canManageTeamMember(member, currentUserId)
 
   return (

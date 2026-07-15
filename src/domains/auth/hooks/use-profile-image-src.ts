@@ -24,6 +24,7 @@ export function useProfileImageSrc(profileImageUrl: string | null | undefined) {
       return
     }
 
+    let active = true
     const controller = new AbortController()
     let nextObjectUrl: string | undefined
 
@@ -33,17 +34,19 @@ export function useProfileImageSrc(profileImageUrl: string | null | undefined) {
         signal: controller.signal,
       })
       .then((response) => {
+        if (!active) return
         nextObjectUrl = URL.createObjectURL(response.data)
         setObjectUrl(nextObjectUrl)
       })
       .catch((error: unknown) => {
-        if (!controller.signal.aborted) {
+        if (active && !controller.signal.aborted) {
           console.error('Profile image load failed:', error)
           setObjectUrl(undefined)
         }
       })
 
     return () => {
+      active = false
       controller.abort()
       if (nextObjectUrl) {
         URL.revokeObjectURL(nextObjectUrl)

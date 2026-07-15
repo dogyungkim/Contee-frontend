@@ -1,12 +1,16 @@
 {
   "name": "Contee - 찬양팀 콘티 관리",
   "short_name": "Contee",
-  "description": "찬양팀 리더를 위한 콘티 작성 및 공유 서비스",
+  "description": "찬양팀을 위한 콘티 작성 및 공유 서비스",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b4663",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
   ]
 }
