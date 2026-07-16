@@ -1,18 +1,1 @@
-// Shared API envelope and transport-level types.
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
-export interface PageDto<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  number?: number;
-  size?: number;
-  numberOfElements?: number;
-  first?: boolean;
-  last?: boolean;
-}
+export type { ApiResponse, PageDto } from '@contee/domain/api'

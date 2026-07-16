@@ -1,4 +1,5 @@
-export type { Song, TeamSong, SongFormPart } from '@/domains/song/models/song';
+export type { Song, TeamSong, SongFormPart } from '@contee/domain/song/model'
+
 export type {
   CreateTeamSongRequestDto as CreateTeamSongRequest,
   UpdateTeamSongRequestDto as UpdateTeamSongRequest,
@@ -8,4 +9,4 @@ export type {
   SongFormResponseDto as SongFormResponse,
   SongFormPartRequestDto as SongFormPartRequest,
   SongFormUpdateRequestDto as SongFormUpdateRequest,
-} from '@/domains/song/api/song.dto';
+} from '@contee/domain/song/dto'

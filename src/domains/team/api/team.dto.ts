@@ -1,38 +1,10 @@
-import type { TeamMember, TeamRole, TeamSummary } from '../models/team';
-
-export type TeamSummaryResponseDto = TeamSummary;
-
-export interface TeamResponseDto {
-  id: string;
-  name: string;
-  shortCode: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-  memberCount: number;
-}
-
-export type TeamMemberResponseDto = TeamMember;
-
-export interface CreateTeamRequestDto {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateTeamRequestDto {
-  name?: string;
-  description?: string;
-}
-
-export interface JoinTeamRequestDto {
-  shortCode: string;
-}
-
-export interface AddTeamMemberRequestDto {
-  userId: string;
-  role: TeamRole;
-}
-
-export interface UpdateTeamMemberRoleRequestDto {
-  role: TeamRole;
-}
+export type {
+  TeamSummaryResponseDto,
+  TeamResponseDto,
+  TeamMemberResponseDto,
+  CreateTeamRequestDto,
+  UpdateTeamRequestDto,
+  JoinTeamRequestDto,
+  AddTeamMemberRequestDto,
+  UpdateTeamMemberRoleRequestDto,
+} from '@contee/domain/team/dto'

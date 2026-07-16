@@ -7,10 +7,11 @@ export type {
   ContiSongFormPart,
   ContiSongPartType,
   SheetMusicFile,
-} from '@/domains/conti/models/conti';
+} from '@contee/domain/conti/model'
+
 export type {
   ContiSongRequestItemDto as ContiSongRequestItem,
   CreateContiRequestDto as CreateContiRequest,
   UpdateContiRequestDto as UpdateContiRequest,
   ContiSearchParamsDto as ContiSearchParams,
-} from '@/domains/conti/api/conti.dto';
+} from '@contee/domain/conti/dto'

@@ -1,0 +1,109 @@
+{
+  "name": "@contee/domain",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./api": {
+      "types": "./src/api.ts",
+      "default": "./src/api.ts"
+    },
+    "./auth": {
+      "types": "./src/auth/index.ts",
+      "default": "./src/auth/index.ts"
+    },
+    "./auth/model": {
+      "types": "./src/auth/model.ts",
+      "default": "./src/auth/model.ts"
+    },
+    "./auth/dto": {
+      "types": "./src/auth/dto.ts",
+      "default": "./src/auth/dto.ts"
+    },
+    "./auth/mapper": {
+      "types": "./src/auth/mapper.ts",
+      "default": "./src/auth/mapper.ts"
+    },
+    "./team": {
+      "types": "./src/team/index.ts",
+      "default": "./src/team/index.ts"
+    },
+    "./team/model": {
+      "types": "./src/team/model.ts",
+      "default": "./src/team/model.ts"
+    },
+    "./team/dto": {
+      "types": "./src/team/dto.ts",
+      "default": "./src/team/dto.ts"
+    },
+    "./team/mapper": {
+      "types": "./src/team/mapper.ts",
+      "default": "./src/team/mapper.ts"
+    },
+    "./song": {
+      "types": "./src/song/index.ts",
+      "default": "./src/song/index.ts"
+    },
+    "./song/model": {
+      "types": "./src/song/model.ts",
+      "default": "./src/song/model.ts"
+    },
+    "./song/dto": {
+      "types": "./src/song/dto.ts",
+      "default": "./src/song/dto.ts"
+    },
+    "./song/mapper": {
+      "types": "./src/song/mapper.ts",
+      "default": "./src/song/mapper.ts"
+    },
+    "./conti": {
+      "types": "./src/conti/index.ts",
+      "default": "./src/conti/index.ts"
+    },
+    "./conti/model": {
+      "types": "./src/conti/model.ts",
+      "default": "./src/conti/model.ts"
+    },
+    "./conti/dto": {
+      "types": "./src/conti/dto.ts",
+      "default": "./src/conti/dto.ts"
+    },
+    "./conti/mapper": {
+      "types": "./src/conti/mapper.ts",
+      "default": "./src/conti/mapper.ts"
+    },
+    "./conti/worship-time": {
+      "types": "./src/conti/worship-time.ts",
+      "default": "./src/conti/worship-time.ts"
+    },
+    "./dashboard": {
+      "types": "./src/dashboard/index.ts",
+      "default": "./src/dashboard/index.ts"
+    },
+    "./dashboard/model": {
+      "types": "./src/dashboard/model.ts",
+      "default": "./src/dashboard/model.ts"
+    },
+    "./dashboard/dto": {
+      "types": "./src/dashboard/dto.ts",
+      "default": "./src/dashboard/dto.ts"
+    },
+    "./dashboard/mapper": {
+      "types": "./src/dashboard/mapper.ts",
+      "default": "./src/dashboard/mapper.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

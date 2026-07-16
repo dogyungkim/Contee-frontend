@@ -1,4 +1,5 @@
-import type { ApiResponse } from '@/types/api';
+import type { ApiResponse } from '@contee/domain/api'
+import type { AuthResponse } from '@contee/domain/auth/model'
 
 export type {
   User,
@@ -6,6 +7,6 @@ export type {
   UserResponse,
   AuthState,
   LoginCredentials,
-} from '@/domains/auth/models/auth';
+} from '@contee/domain/auth/model'
 
-export type RefreshTokenResponse = ApiResponse<import('@/domains/auth/models/auth').AuthResponse | null>;
+export type RefreshTokenResponse = ApiResponse<AuthResponse | null>

@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@contee/domain": [
+        "./packages/domain/src/index.ts"
+      ],
+      "@contee/domain/*": [
+        "./packages/domain/src/*"
       ]
     }
   },
