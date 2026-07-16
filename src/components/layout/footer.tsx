@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Music } from 'lucide-react';
+import Image from 'next/image';
 
 const Footer = () => {
   return (
@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:flex-row lg:px-8">
         <div className="flex flex-col items-center gap-4 lg:flex-row lg:gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-white">
-            <Music className="h-4 w-4" />
+            <Image src="/icon.svg" alt="Contee" width={24} height={24} />
           </div>
           <p className="text-center text-sm leading-loose text-muted-foreground lg:text-left">
             © {new Date().getFullYear()} Contee. All rights reserved.
