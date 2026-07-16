@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsc -p tsconfig.test.json && node --test /private/tmp/contee-mobile-test/tests/secure-session-core.test.js"
+    "test": "tsc -p tsconfig.test.json && node --test /private/tmp/contee-mobile-test/tests/*.test.js"
   },
   "dependencies": {
     "@contee/api-client": "*",

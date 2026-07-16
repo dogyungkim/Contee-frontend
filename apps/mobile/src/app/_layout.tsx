@@ -2,6 +2,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 
+import { AuthSessionProvider } from '@/lib/auth-session'
 import { QueryProvider } from '@/lib/query-client'
 import { colors, spacing, typography } from '@/theme'
 
@@ -34,13 +35,15 @@ export default function RootLayout() {
 
   return (
     <QueryProvider>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor },
-        }}
-      />
+      <AuthSessionProvider>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor },
+          }}
+        />
+      </AuthSessionProvider>
     </QueryProvider>
   )
 }

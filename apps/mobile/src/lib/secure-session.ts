@@ -11,6 +11,7 @@ import {
   type SecureSessionAdapterOptions,
   type SecureSessionStorage,
 } from './secure-session-core'
+import { getPublicEnv, getPublicEnvFlag } from './public-env'
 
 const secureStoreOptions: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
@@ -24,15 +25,8 @@ const secureStoreStorage: SecureSessionStorage = {
     SecureStore.deleteItemAsync(key, secureStoreOptions),
 }
 
-const getPublicEnv = (key: string) =>
-  (
-    globalThis as typeof globalThis & {
-      process?: { env?: Record<string, string | undefined> }
-    }
-  ).process?.env?.[key]
-
 const getDevSessionOptions = (): DevSessionOptions => ({
-  devAuthBypass: getPublicEnv('EXPO_PUBLIC_DEV_AUTH_BYPASS') === 'true',
+  devAuthBypass: getPublicEnvFlag('EXPO_PUBLIC_DEV_AUTH_BYPASS'),
   devAccessToken: getPublicEnv('EXPO_PUBLIC_DEV_ACCESS_TOKEN'),
   devRefreshToken: getPublicEnv('EXPO_PUBLIC_DEV_REFRESH_TOKEN'),
 })

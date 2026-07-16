@@ -1,16 +1,10 @@
 import { createApiClient } from '@contee/api-client'
 
 import { createSecureSessionAdapter } from './secure-session'
-
-const getPublicEnv = (key: string) =>
-  (
-    globalThis as typeof globalThis & {
-      process?: { env?: Record<string, string | undefined> }
-    }
-  ).process?.env?.[key]
+import { getPublicEnv, getPublicEnvFlag } from './public-env'
 
 export const API_BASE_URL = getPublicEnv('EXPO_PUBLIC_API_BASE_URL') ?? ''
-export const API_LOG_ENABLED = getPublicEnv('EXPO_PUBLIC_API_LOG') === 'true'
+export const API_LOG_ENABLED = getPublicEnvFlag('EXPO_PUBLIC_API_LOG')
 
 export const mobileSession = createSecureSessionAdapter()
 
