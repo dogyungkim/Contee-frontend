@@ -5,8 +5,15 @@ import axios from 'axios';
 import { useState } from 'react';
 
 const MAX_QUERY_RETRIES = 2;
+const QUERY_STALE_TIME_MS = 5 * 60 * 1000;
+const QUERY_GC_TIME_MS = 24 * 60 * 60 * 1000;
+
+const isBrowserOffline = () =>
+  typeof navigator !== 'undefined' && navigator.onLine === false;
 
 const shouldRetryQuery = (failureCount: number, error: unknown) => {
+  if (isBrowserOffline()) return false;
+
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
     if (status === 401 || status === 403) return false;
@@ -22,8 +29,9 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
         defaultOptions: {
           queries: {
             retry: shouldRetryQuery,
-            staleTime: 60 * 1000,
-            gcTime: 5 * 60 * 1000,
+            staleTime: QUERY_STALE_TIME_MS,
+            gcTime: QUERY_GC_TIME_MS,
+            refetchOnReconnect: true,
           },
         },
       })

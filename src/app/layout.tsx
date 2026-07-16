@@ -6,6 +6,7 @@ import { ConditionalFooter } from '@/components/layout/conditional-footer'
 import { AuthProvider } from '@/components/auth/auth-provider'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 import QueryProvider from '@/components/providers/query-provider'
+import { OfflineStatus } from '@/components/pwa/offline-status'
 
 export const metadata: Metadata = {
   title: 'Contee',
@@ -14,13 +15,30 @@ export const metadata: Metadata = {
   applicationName: 'Contee',
   icons: {
     icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
-    apple: { url: '/icon.svg' },
+    apple: { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'Contee',
+    statusBarStyle: 'default',
+  },
+  formatDetection: {
+    telephone: false,
+    date: false,
+    address: false,
+    email: false,
+    url: false,
   },
 }
 
 export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
   themeColor: '#3b4663',
 }
 
@@ -53,6 +71,7 @@ export default function RootLayout({
             },
           }}
         />
+        <OfflineStatus />
         <GoogleAnalytics measurementId={gaMeasurementId} />
         <script
           dangerouslySetInnerHTML={{
