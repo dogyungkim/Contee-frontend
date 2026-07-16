@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { contiKeys } from '@contee/query'
 import { useQueryClient } from '@tanstack/react-query'
 
 import type { TeamSong } from '@/types/song'
 import type { Conti, ContiSong } from '@/types/conti'
-import { contiKeys, useUpdateConti } from '@/domains/conti/hooks/use-conti'
+import { useUpdateConti } from '@/domains/conti/hooks/use-conti'
 import {
   deleteContiSongSheetMusic,
   uploadContiSongSheetMusic,
@@ -47,7 +48,8 @@ export function ContiEditContainer({
     reset,
     createUpdateRequest,
   } = useContiEditor(conti)
-  const hasChanges = hasContiChanges || Object.keys(sheetMusicChanges).length > 0
+  const hasChanges =
+    hasContiChanges || Object.keys(sheetMusicChanges).length > 0
 
   useUnsavedChangesGuard({
     enabled: hasChanges && !isSaving,
@@ -113,7 +115,7 @@ export function ContiEditContainer({
     setters.setSongs((current) =>
       current
         .filter((song) => song.id !== songId)
-        .map((song, index) => ({ ...song, orderIndex: index })),
+        .map((song, index) => ({ ...song, orderIndex: index }))
     )
     setSheetMusicChanges((current) => {
       if (!(songId in current)) return current
@@ -125,7 +127,7 @@ export function ContiEditContainer({
 
   const changeSong = (changedSong: ContiSong) => {
     setters.setSongs((current) =>
-      current.map((song) => (song.id === changedSong.id ? changedSong : song)),
+      current.map((song) => (song.id === changedSong.id ? changedSong : song))
     )
   }
 
@@ -155,39 +157,53 @@ export function ContiEditContainer({
       const updatedConti = await updateConti({ contiId: conti.id, request })
       const sheetMusicOperations = Object.entries(sheetMusicChanges).map(
         async ([draftSongId, change]) => {
-          const draftIndex = draft.songs.findIndex((song) => song.id === draftSongId)
+          const draftIndex = draft.songs.findIndex(
+            (song) => song.id === draftSongId
+          )
           const savedSong = draftSongId.startsWith('draft-song-')
-            ? updatedConti.contiSongs?.find((song) => song.orderIndex === draftIndex)
+            ? updatedConti.contiSongs?.find(
+                (song) => song.orderIndex === draftIndex
+              )
             : updatedConti.contiSongs?.find((song) => song.id === draftSongId)
 
           if (!savedSong) {
             throw new Error(`Saved conti song not found for ${draftSongId}`)
           }
           if (change.file) {
-            return uploadContiSongSheetMusic(conti.id, savedSong.id, change.file)
+            return uploadContiSongSheetMusic(
+              conti.id,
+              savedSong.id,
+              change.file
+            )
           }
           if (change.deleteExisting) {
             return deleteContiSongSheetMusic(conti.id, savedSong.id)
           }
           return Promise.resolve()
-        },
+        }
       )
 
       const sheetMusicResults = await Promise.allSettled(sheetMusicOperations)
-      await queryClient.invalidateQueries({ queryKey: contiKeys.detail(conti.id) })
+      await queryClient.invalidateQueries({
+        queryKey: contiKeys.detail(conti.id),
+      })
 
       if (sheetMusicResults.every((result) => result.status === 'fulfilled')) {
         toast.success('콘티 정보를 저장했습니다.')
       } else {
         console.error(
           'Failed to update sheet music:',
-          sheetMusicResults.filter((result) => result.status === 'rejected'),
+          sheetMusicResults.filter((result) => result.status === 'rejected')
         )
-        toast.error('콘티 정보는 저장됐지만 일부 악보 변경을 반영하지 못했습니다.')
+        toast.error(
+          '콘티 정보는 저장됐지만 일부 악보 변경을 반영하지 못했습니다.'
+        )
       }
       onClose()
     } catch (error) {
-      toast.error(getContiApiErrorMessage(error, '콘티 정보 저장에 실패했습니다.'))
+      toast.error(
+        getContiApiErrorMessage(error, '콘티 정보 저장에 실패했습니다.')
+      )
       setIsSaving(false)
     }
   }
@@ -275,9 +291,9 @@ export function ContiEditContainer({
           addExistingSong(song)
           setSearchOpen(false)
         }}
-        existingSongIds={draft.songs
-          .map((song) => song.teamSongId)
-          .filter(Boolean) as string[]}
+        existingSongIds={
+          draft.songs.map((song) => song.teamSongId).filter(Boolean) as string[]
+        }
       />
 
       <ContiEditorActionBar
@@ -289,7 +305,6 @@ export function ContiEditContainer({
           void save()
         }}
       />
-
     </div>
   )
 }

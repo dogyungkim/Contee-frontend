@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@contee/domain', '@contee/api-client'],
+  transpilePackages: ['@contee/domain', '@contee/api-client', '@contee/query'],
   // CSS 최적화 설정
   compiler: {
     // CSS 압축 시 Safari 호환성 고려

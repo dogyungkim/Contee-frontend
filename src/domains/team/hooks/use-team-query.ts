@@ -1,88 +1,91 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMyTeams, getTeam, getTeamMembers, removeTeamMember, updateTeamMemberRole, createTeam, joinTeam } from '@/domains/team/api/team.api';
-import { UpdateTeamMemberRoleRequest } from '@/types/team';
+import { teamKeys } from '@contee/query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  getMyTeams,
+  getTeam,
+  getTeamMembers,
+  removeTeamMember,
+  updateTeamMemberRole,
+  createTeam,
+  joinTeam,
+} from '@/domains/team/api/team.api'
+import { UpdateTeamMemberRoleRequest } from '@/types/team'
 
-export const teamKeys = {
-    all: ['teams'] as const,
-    lists: () => [...teamKeys.all, 'list'] as const,
-    details: () => [...teamKeys.all, 'detail'] as const,
-    detail: (id: string) => [...teamKeys.details(), id] as const,
-    members: (id: string) => [...teamKeys.detail(id), 'members'] as const,
-};
+export { teamKeys }
 
 export const useMyTeamsQuery = (enabled = true) => {
-    return useQuery({
-        queryKey: teamKeys.lists(),
-        queryFn: getMyTeams,
-        enabled,
-    });
-};
+  return useQuery({
+    queryKey: teamKeys.lists(),
+    queryFn: getMyTeams,
+    enabled,
+  })
+}
 
 export const useTeamQuery = (id: string) => {
-    return useQuery({
-        queryKey: teamKeys.detail(id),
-        queryFn: () => getTeam(id),
-        enabled: !!id,
-    });
-};
+  return useQuery({
+    queryKey: teamKeys.detail(id),
+    queryFn: () => getTeam(id),
+    enabled: !!id,
+  })
+}
 
 export const useTeamMembersQuery = (teamId: string) => {
-    return useQuery({
-        queryKey: teamKeys.members(teamId),
-        queryFn: () => getTeamMembers(teamId),
-        enabled: !!teamId,
-    });
-};
+  return useQuery({
+    queryKey: teamKeys.members(teamId),
+    queryFn: () => getTeamMembers(teamId),
+    enabled: !!teamId,
+  })
+}
 
 export const useRemoveTeamMemberMutation = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-    return useMutation({
-        mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) =>
-            removeTeamMember(teamId, userId),
-        onSuccess: (_, { teamId }) => {
-            queryClient.invalidateQueries({ queryKey: teamKeys.members(teamId) });
-        },
-    });
-};
+  return useMutation({
+    mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) =>
+      removeTeamMember(teamId, userId),
+    onSuccess: (_, { teamId }) => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.members(teamId) })
+    },
+  })
+}
 
 export const useUpdateTeamMemberRoleMutation = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-    return useMutation({
-        mutationFn: ({
-            teamId,
-            userId,
-            role
-        }: {
-            teamId: string;
-            userId: string;
-            role: UpdateTeamMemberRoleRequest
-        }) => updateTeamMemberRole(teamId, userId, role),
-        onSuccess: (_, { teamId }) => {
-            queryClient.invalidateQueries({ queryKey: teamKeys.members(teamId) });
-        },
-    });
-};
+  return useMutation({
+    mutationFn: ({
+      teamId,
+      userId,
+      role,
+    }: {
+      teamId: string
+      userId: string
+      role: UpdateTeamMemberRoleRequest
+    }) => updateTeamMemberRole(teamId, userId, role),
+    onSuccess: (_, { teamId }) => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.members(teamId) })
+    },
+  })
+}
 
 export const useCreateTeamMutation = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-    return useMutation({
-        mutationFn: createTeam,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
-        },
-    });
-};
+  return useMutation({
+    mutationFn: createTeam,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: teamKeys.lists() })
+    },
+  })
+}
 
 export const useJoinTeamMutation = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-    return useMutation({
-        mutationFn: joinTeam,
-        onSuccess: () => {
-            return queryClient.invalidateQueries({ queryKey: teamKeys.lists() });
-        },
-    });
-};
+  return useMutation({
+    mutationFn: joinTeam,
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: teamKeys.lists() })
+    },
+  })
+}

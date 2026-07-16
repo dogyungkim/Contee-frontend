@@ -1,0 +1,41 @@
+{
+  "name": "@contee/query",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.ts",
+      "default": "./dist/auth.js"
+    },
+    "./team": {
+      "types": "./dist/team.d.ts",
+      "default": "./dist/team.js"
+    },
+    "./song": {
+      "types": "./dist/song.d.ts",
+      "default": "./dist/song.js"
+    },
+    "./conti": {
+      "types": "./dist/conti.d.ts",
+      "default": "./dist/conti.js"
+    },
+    "./dashboard": {
+      "types": "./dist/dashboard.d.ts",
+      "default": "./dist/dashboard.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

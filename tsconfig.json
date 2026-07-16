@@ -23,7 +23,9 @@
       "@contee/domain": ["./packages/domain/src/index.ts"],
       "@contee/domain/*": ["./packages/domain/src/*"],
       "@contee/api-client": ["./packages/api-client/src/index.ts"],
-      "@contee/api-client/*": ["./packages/api-client/src/*"]
+      "@contee/api-client/*": ["./packages/api-client/src/*"],
+      "@contee/query": ["./packages/query/src/index.ts"],
+      "@contee/query/*": ["./packages/query/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

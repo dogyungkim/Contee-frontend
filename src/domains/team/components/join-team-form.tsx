@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { LogIn } from 'lucide-react'
+import { teamKeys } from '@contee/query'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useTeam } from '@/context/team-context'
-import { teamKeys, useJoinTeamMutation } from '@/domains/team/hooks/use-team-query'
+import { useJoinTeamMutation } from '@/domains/team/hooks/use-team-query'
 import { toast } from '@/lib/toast'
 import type { TeamSummary } from '@/types/team'
 
@@ -51,7 +52,8 @@ export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
     try {
       await joinTeamMutation.mutateAsync(shortCode)
 
-      const updatedTeams = queryClient.getQueryData<TeamSummary[]>(teamKeys.lists()) || []
+      const updatedTeams =
+        queryClient.getQueryData<TeamSummary[]>(teamKeys.lists()) || []
       const joinedTeam =
         updatedTeams.find((team) => !currentTeamIds.includes(team.id)) ||
         updatedTeams.find((team) => team.shortCode?.toUpperCase() === shortCode)
@@ -65,8 +67,8 @@ export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
       onJoined?.()
     } catch (error: unknown) {
       const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        '팀 합류에 실패했습니다. 초대 코드를 확인해주세요.'
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message || '팀 합류에 실패했습니다. 초대 코드를 확인해주세요.'
       toast.error(errorMessage)
       console.error('Join team error:', error)
     }
@@ -88,7 +90,9 @@ export function JoinTeamForm({ onJoined }: JoinTeamFormProps) {
                     autoComplete="off"
                     className="font-mono uppercase"
                     {...field}
-                    onChange={(event) => field.onChange(event.target.value.toUpperCase())}
+                    onChange={(event) =>
+                      field.onChange(event.target.value.toUpperCase())
+                    }
                   />
                 </FormControl>
                 <Button
