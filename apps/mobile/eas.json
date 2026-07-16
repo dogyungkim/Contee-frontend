@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DEV_AUTH_BYPASS": "true",
+        "EXPO_PUBLIC_API_LOG": "false"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DEV_AUTH_BYPASS": "false",
+        "EXPO_PUBLIC_API_LOG": "false"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_DEV_AUTH_BYPASS": "false",
+        "EXPO_PUBLIC_API_LOG": "false"
+      }
+    }
+  }
+}
