@@ -1,0 +1,1059 @@
+<nextjs_frontend_architecture>
+  <metadata>
+    <name>Next.js Frontend Architecture Guidelines</name>
+    <framework>Next.js App Router</framework>
+    <language>TypeScript</language>
+    <project_scale>medium-to-large</project_scale>
+    <architecture>domain-based hybrid architecture</architecture>
+  </metadata>
+
+  <objective>
+    <description>
+      Maintain a scalable, predictable, and domain-oriented frontend architecture.
+      Keep route definitions thin, group business logic by domain, and enforce clear dependency boundaries.
+    </description>
+  </objective>
+
+  <core_principles>
+    <principle id="1">
+      The app directory is responsible for routing, layouts, metadata, loading states,
+      error boundaries, and page composition.
+    </principle>
+
+    <principle id="2">
+      Business logic must be organized by business domain under the domains directory.
+    </principle>
+
+    <principle id="3">
+      Shared components must contain only domain-independent and reusable UI elements.
+    </principle>
+
+    <principle id="4">
+      Route-specific code should remain colocated near the route when it is not reused elsewhere.
+    </principle>
+
+    <principle id="5">
+      Server Components are the default.
+      Client Components must be introduced only when browser APIs, React state,
+      effects, event handlers, or client-side libraries are required.
+    </principle>
+
+    <principle id="6">
+      Shared infrastructure code belongs in lib.
+      Domain-specific API functions and business rules belong in the corresponding domain.
+    </principle>
+
+    <principle id="7">
+      Avoid premature abstraction.
+      Create new layers or folders only when responsibilities become clearly separated.
+    </principle>
+  </core_principles>
+
+  <directory_structure>
+    <tree>
+      <![CDATA[
+src/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── callback/
+│   │   │   ├── auth-callback-client.tsx
+│   │   │   └── page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── (dashboard)/
+│   │   ├── dashboard/
+│   │   │   ├── contis/
+│   │   │   │   ├── [id]/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── songs/
+│   │   │   │   └── page.tsx
+│   │   │   ├── teams/
+│   │   │   │   ├── create/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── settings/
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── share/
+│   │   └── contis/
+│   │       └── [token]/
+│   │           └── page.tsx
+│   │
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+│
+├── domains/
+│   ├── auth/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── models/
+│   │   └── index.ts
+│   │
+│   ├── dashboard/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── models/
+│   │   └── index.ts
+│   │
+│   ├── team/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── models/
+│   │   ├── utils/
+│   │   └── index.ts
+│   │
+│   ├── song/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── models/
+│   │   └── utils/
+│   │
+│   └── conti/
+│       ├── api/
+│       ├── components/
+│       ├── hooks/
+│       ├── models/
+│       └── utils/
+│
+├── components/
+│   ├── ui/
+│   ├── auth/
+│   ├── analytics/
+│   ├── providers/
+│   ├── sections/
+│   └── layout/
+│
+├── lib/
+│   ├── api/
+│   ├── mock/
+│   ├── api.ts
+│   ├── analytics.js
+│   ├── safe-url.ts
+│   ├── toast.ts
+│   └── utils.ts
+│
+├── context/
+├── hooks/
+├── stores/
+├── types/
+├── constants/
+└── middleware.ts
+      ]]>
+    </tree>
+  </directory_structure>
+
+  <directory_rules>
+    <directory name="app">
+      <responsibilities>
+        <item>Route definitions</item>
+        <item>Page and layout composition</item>
+        <item>Loading UI</item>
+        <item>Error boundaries</item>
+        <item>Not-found handling</item>
+        <item>Metadata configuration</item>
+        <item>Next.js route handlers</item>
+      </responsibilities>
+
+      <rules>
+        <rule>
+          Keep page.tsx and layout.tsx thin.
+        </rule>
+
+        <rule>
+          Do not place complex business logic directly inside page.tsx.
+        </rule>
+
+        <rule>
+          Do not place reusable domain components directly under app.
+        </rule>
+
+        <rule>
+          Use route groups such as (auth), (dashboard), or (admin)
+          when routes require different layouts or conceptual grouping.
+        </rule>
+
+        <rule>
+          Use private folders such as _components, _hooks, or _lib
+          for route-specific code that is not reused outside the route.
+        </rule>
+      </rules>
+    </directory>
+
+    <directory name="domains">
+      <responsibilities>
+        <item>Domain-specific components</item>
+        <item>Domain-specific API functions</item>
+        <item>Domain-specific hooks</item>
+        <item>Validation schemas</item>
+        <item>Domain models and DTOs</item>
+        <item>Mapping and transformation logic</item>
+        <item>Business rules</item>
+      </responsibilities>
+
+      <rules>
+        <rule>
+          Organize code by business capability, not only by technical type.
+        </rule>
+
+        <rule>
+          Each domain must own its internal implementation.
+        </rule>
+
+        <rule>
+          External modules should import from the domain public API when possible.
+        </rule>
+
+        <rule>
+          Avoid importing internal files from another domain.
+        </rule>
+
+        <rule>
+          Do not move a component to the global components directory
+          unless it is genuinely domain-independent.
+        </rule>
+      </rules>
+
+      <recommended_internal_structure>
+        <folder name="api">
+          API request functions, DTO definitions, and response mappers.
+        </folder>
+
+        <folder name="components">
+          UI components used only within the domain.
+        </folder>
+
+        <folder name="hooks">
+          Domain-specific React hooks and query hooks.
+        </folder>
+
+        <folder name="models">
+          Frontend domain models and view models.
+        </folder>
+
+        <folder name="schemas">
+          Optional Zod, Valibot, or other runtime validation schemas.
+        </folder>
+
+        <folder name="types">
+          Optional domain-local TypeScript types when models are not the right name.
+        </folder>
+
+        <folder name="utils">
+          Domain-specific helper functions and transformation logic.
+        </folder>
+
+        <file name="index.ts">
+          Public API of the domain.
+          Export only stable modules intended for use outside the domain.
+          Existing large domains may add this gradually instead of creating broad barrels.
+        </file>
+      </recommended_internal_structure>
+    </directory>
+
+    <directory name="components">
+      <responsibilities>
+        <item>Globally reusable UI primitives</item>
+        <item>Shared layout components</item>
+        <item>Domain-independent presentational components</item>
+      </responsibilities>
+
+      <subdirectories>
+        <directory name="ui">
+          <examples>
+            <item>Button</item>
+            <item>Input</item>
+            <item>Dialog</item>
+            <item>Modal</item>
+            <item>Checkbox</item>
+            <item>Tabs</item>
+            <item>Table</item>
+            <item>Spinner</item>
+          </examples>
+        </directory>
+
+        <directory name="layout">
+          <examples>
+            <item>Header</item>
+            <item>Sidebar</item>
+            <item>Footer</item>
+            <item>Navigation</item>
+            <item>PageContainer</item>
+          </examples>
+        </directory>
+      </subdirectories>
+
+      <rules>
+        <rule>
+          Shared UI primitives under components/ui must not depend on a specific business domain.
+        </rule>
+
+        <rule>
+          App-shell components under components/layout, components/auth, components/providers,
+          or components/analytics may depend on domains when they compose application-wide behavior.
+        </rule>
+
+        <rule>
+          Domain-aware reusable UI belongs in domains/{domain}/components, not components/ui.
+        </rule>
+
+        <rule>
+          Prefer composition through props instead of hard-coded business rules.
+        </rule>
+      </rules>
+    </directory>
+
+    <directory name="lib">
+      <responsibilities>
+        <item>HTTP client configuration</item>
+        <item>Authentication infrastructure</item>
+        <item>Environment variable validation</item>
+        <item>Logging</item>
+        <item>Query client configuration</item>
+        <item>External SDK initialization</item>
+        <item>Generic utilities</item>
+      </responsibilities>
+
+      <rules>
+        <rule>
+          lib contains infrastructure and cross-cutting concerns.
+        </rule>
+
+        <rule>
+          Do not place domain-specific business logic in lib.
+        </rule>
+
+        <rule>
+          API client configuration belongs in src/lib/api.ts or src/lib/api.
+        </rule>
+
+        <rule>
+          Concrete domain API calls belong in domains/{domain}/api.
+        </rule>
+
+        <rule>
+          Existing src/lib/api/{domain}.ts files are compatibility re-exports only.
+          Do not add new business logic there.
+        </rule>
+      </rules>
+    </directory>
+
+    <directory name="hooks">
+      <responsibilities>
+        <item>Globally reusable hooks</item>
+        <item>Hooks independent of a specific business domain</item>
+      </responsibilities>
+
+      <examples>
+        <item>useDebounce</item>
+        <item>useMediaQuery</item>
+        <item>useMounted</item>
+      </examples>
+
+      <rules>
+        <rule>
+          A hook used only by one domain must remain inside that domain.
+        </rule>
+      </rules>
+    </directory>
+
+    <directory name="stores">
+      <responsibilities>
+        <item>Cross-domain client-side state</item>
+        <item>Application-wide Zustand, Redux, or equivalent stores</item>
+      </responsibilities>
+
+      <rules>
+        <rule>
+          Prefer server state tools for server-owned data.
+        </rule>
+
+        <rule>
+          Do not place all remote API data into a global client store.
+        </rule>
+
+        <rule>
+          Domain-local client state should remain inside the domain
+          unless multiple independent domains require it.
+        </rule>
+      </rules>
+    </directory>
+
+    <directory name="types">
+      <responsibilities>
+        <item>Globally shared TypeScript types</item>
+        <item>Types used across multiple domains</item>
+      </responsibilities>
+
+      <rules>
+        <rule>
+          Domain-specific types should remain inside the domain.
+        </rule>
+
+        <rule>
+          Existing src/types/{domain}.ts files may act as compatibility aliases
+          for older imports, but new domain models and DTOs should be defined
+          under domains/{domain}.
+        </rule>
+
+        <rule>
+          Do not turn the global types directory into a dumping ground.
+        </rule>
+      </rules>
+    </directory>
+
+    <directory name="constants">
+      <responsibilities>
+        <item>Global route names</item>
+        <item>Application-wide constants</item>
+        <item>Shared immutable configuration values</item>
+      </responsibilities>
+    </directory>
+
+    <directory name="config">
+      <responsibilities>
+        <item>Optional application configuration objects</item>
+        <item>Optional navigation configuration</item>
+        <item>Optional feature flags</item>
+        <item>Optional runtime-independent settings</item>
+      </responsibilities>
+    </directory>
+  </directory_rules>
+
+  <placement_decision_rules>
+    <rule priority="1">
+      If code is used only by one route, place it under that route using a private folder.
+    </rule>
+
+    <rule priority="2">
+      If code is reused across multiple routes within one domain,
+      place it inside domains/{domain}.
+    </rule>
+
+    <rule priority="3">
+      If code is reusable across multiple unrelated domains and has no business meaning,
+      place it under components, hooks, lib, types, or constants as appropriate.
+    </rule>
+
+    <rule priority="4">
+      If code represents a business concept, keep it inside the owning domain
+      even when more than one page uses it.
+    </rule>
+
+    <rule priority="5">
+      Do not promote code to a global directory solely because it is used twice.
+      Promote it only when the abstraction is stable and domain-independent.
+    </rule>
+  </placement_decision_rules>
+
+  <dependency_rules>
+    <allowed_direction>
+      <![CDATA[
+app
+ ├──> domains
+ ├──> components
+ ├──> context
+ ├──> hooks
+ ├──> stores
+ └──> lib
+
+domains
+ ├──> components
+ ├──> lib
+ ├──> hooks
+ ├──> constants
+ ├──> context
+ └──> shared types
+
+components
+ ├──> lib
+ ├──> hooks
+ ├──> constants
+ └──> shared types
+
+lib
+ ├──> stores
+ ├──> constants
+ └──> shared types
+      ]]>
+    </allowed_direction>
+
+    <forbidden_dependencies>
+      <dependency>
+        shared UI primitives in components/ui must not import from domains.
+      </dependency>
+
+      <dependency>
+        lib must not import from app.
+      </dependency>
+
+      <dependency>
+        lib must not contain dependencies on a specific business domain,
+        except temporary src/lib/api/{domain}.ts compatibility re-exports.
+      </dependency>
+
+      <dependency>
+        one domain must not import another domain's private internal modules.
+      </dependency>
+
+      <dependency>
+        lower-level shared modules must not depend on higher-level route modules.
+      </dependency>
+    </forbidden_dependencies>
+
+    <domain_interaction>
+      <rule>
+        When one domain needs another domain, prefer importing from the target domain's public API.
+      </rule>
+
+      <rule>
+        When a target domain has no public API yet, direct imports are allowed temporarily
+        if the dependency is explicit, narrow, and not duplicated elsewhere.
+      </rule>
+
+      <rule>
+        If two domains depend heavily on each other, reconsider their domain boundaries.
+      </rule>
+
+      <rule>
+        Shared business concepts may be extracted into a separate domain or shared domain module
+        only when ownership is clear.
+      </rule>
+    </domain_interaction>
+  </dependency_rules>
+
+  <server_client_component_rules>
+    <default>
+      All components are Server Components unless client behavior is explicitly required.
+    </default>
+
+    <use_server_component_when>
+      <condition>Fetching data on the server</condition>
+      <condition>Reading cookies or headers</condition>
+      <condition>Accessing server-only environment variables</condition>
+      <condition>Rendering static or request-time content</condition>
+      <condition>Keeping sensitive logic out of the browser bundle</condition>
+    </use_server_component_when>
+
+    <use_client_component_when>
+      <condition>Using useState, useReducer, useEffect, or browser event handlers</condition>
+      <condition>Using browser APIs such as localStorage or window</condition>
+      <condition>Using client-only third-party libraries</condition>
+      <condition>Implementing interactive forms or dialogs</condition>
+      <condition>Using client-side state stores</condition>
+    </use_client_component_when>
+
+    <rules>
+      <rule>
+        Place "use client" at the lowest practical component boundary.
+      </rule>
+
+      <rule>
+        Do not mark an entire page or layout as a Client Component
+        when only a small child component requires interactivity.
+      </rule>
+
+      <rule>
+        Server-only modules should import server-only when appropriate.
+      </rule>
+
+      <rule>
+        Do not import server-only modules into Client Components.
+      </rule>
+    </rules>
+  </server_client_component_rules>
+
+  <page_rules>
+    <page_file name="page.tsx">
+      <responsibilities>
+        <item>Read route params and search params</item>
+        <item>Fetch page-level server data</item>
+        <item>Compose domain components</item>
+        <item>Define page-level metadata when necessary</item>
+      </responsibilities>
+
+      <restrictions>
+        <item>No large business logic blocks</item>
+        <item>No complex form implementation</item>
+        <item>No direct global state orchestration unless necessary</item>
+        <item>No unrelated utility definitions</item>
+      </restrictions>
+
+      <migration_note>
+        Existing large client pages such as dashboard/songs and dashboard/contis/new
+        may be refactored gradually. New work should move reusable form sections,
+        mutation orchestration, and domain workflows into domains/{domain}/components
+        or domains/{domain}/hooks instead of growing page.tsx further.
+      </migration_note>
+    </page_file>
+
+    <layout_file name="layout.tsx">
+      <responsibilities>
+        <item>Shared route layout</item>
+        <item>Shared navigation structure</item>
+        <item>Provider placement at the narrowest valid boundary</item>
+      </responsibilities>
+    </layout_file>
+  </page_rules>
+
+  <api_layer_rules>
+    <shared_api_client>
+      <path>src/lib/api.ts</path>
+      <responsibilities>
+        <item>Base URL</item>
+        <item>Default headers</item>
+        <item>Cookie configuration</item>
+        <item>Token attachment</item>
+        <item>Response normalization</item>
+        <item>Generic error conversion</item>
+      </responsibilities>
+    </shared_api_client>
+
+    <domain_api>
+      <path>src/domains/{domain}/api</path>
+      <responsibilities>
+        <item>Concrete endpoint functions</item>
+        <item>Request DTOs</item>
+        <item>Response DTOs</item>
+        <item>Response-to-domain mapping</item>
+        <item>Domain-specific API error handling</item>
+      </responsibilities>
+    </domain_api>
+
+    <compatibility_exports>
+      <path>src/lib/api/{domain}.ts</path>
+      <responsibilities>
+        <item>Temporary re-export compatibility for older imports</item>
+      </responsibilities>
+      <rule>
+        Do not add new endpoint implementation or business logic to compatibility exports.
+      </rule>
+    </compatibility_exports>
+
+    <rules>
+      <rule>
+        Do not call raw fetch or axios repeatedly across UI components.
+      </rule>
+
+      <rule>
+        UI components should call domain-level functions or hooks.
+      </rule>
+
+      <rule>
+        Keep transport DTOs separate from frontend domain models when their shapes differ.
+      </rule>
+
+      <rule>
+        Convert snake_case backend fields into frontend conventions at the API boundary.
+      </rule>
+    </rules>
+  </api_layer_rules>
+
+  <type_rules>
+    <categories>
+      <category name="request_dto">
+        Data sent to an external API.
+      </category>
+
+      <category name="response_dto">
+        Raw data returned by an external API.
+      </category>
+
+      <category name="domain_model">
+        Frontend representation of a business concept.
+      </category>
+
+      <category name="view_model">
+        Data shaped specifically for a UI component or page.
+      </category>
+    </categories>
+
+    <rules>
+      <rule>
+        Do not automatically use raw response DTOs directly in UI components.
+      </rule>
+
+      <rule>
+        Create mapping functions when backend and frontend representations differ.
+      </rule>
+
+      <rule>
+        Keep domain-specific request, response, domain, and view-model types
+        inside the owning domain.
+      </rule>
+    </rules>
+  </type_rules>
+
+  <state_management_rules>
+    <server_state>
+      <recommended_tools>
+        <item>Server Components</item>
+        <item>Next.js fetch cache</item>
+        <item>React Query</item>
+        <item>SWR</item>
+      </recommended_tools>
+
+      <rule>
+        Server-owned data should not be duplicated into a global client store without necessity.
+      </rule>
+    </server_state>
+
+    <client_state>
+      <examples>
+        <item>Modal visibility</item>
+        <item>Temporary form state</item>
+        <item>Sidebar state</item>
+        <item>Multi-step UI progress</item>
+      </examples>
+
+      <rule>
+        Keep state local until multiple distant components require shared ownership.
+      </rule>
+    </client_state>
+
+    <global_state>
+      <rule>
+        Use global stores only for genuinely cross-cutting client state.
+      </rule>
+
+      <rule>
+        Separate stores by responsibility rather than creating one monolithic store.
+      </rule>
+    </global_state>
+  </state_management_rules>
+
+  <naming_conventions>
+    <directories>
+      <rule>Use lowercase kebab-case for route segments.</rule>
+      <rule>Use lowercase singular or domain-consistent names for domain directories.</rule>
+    </directories>
+
+    <components>
+      <rule>Use kebab-case filenames for components and PascalCase exported component names.</rule>
+      <examples>
+        <item>login-form.tsx exporting LoginForm</item>
+        <item>song-detail-dialog.tsx exporting SongDetailDialog</item>
+      </examples>
+    </components>
+
+    <hooks>
+      <rule>Prefix custom hooks with use.</rule>
+      <examples>
+        <item>use-auth.ts</item>
+        <item>use-dashboard.ts</item>
+      </examples>
+    </hooks>
+
+    <api_files>
+      <rule>Use domain-scoped API module names for grouped endpoint modules.</rule>
+      <examples>
+        <item>song.api.ts</item>
+        <item>song.dto.ts</item>
+        <item>song.mapper.ts</item>
+      </examples>
+    </api_files>
+
+    <schemas>
+      <rule>Use the .schema.ts suffix.</rule>
+      <examples>
+        <item>auth.schema.ts</item>
+        <item>song.schema.ts</item>
+      </examples>
+    </schemas>
+
+    <stores>
+      <rule>Use a clear store suffix such as -store.ts.</rule>
+      <examples>
+        <item>auth-store.ts</item>
+        <item>sidebar-store.ts</item>
+      </examples>
+    </stores>
+
+    <server_files>
+      <rule>
+        Use the .server.ts suffix when distinguishing server-only modules improves clarity.
+      </rule>
+    </server_files>
+  </naming_conventions>
+
+  <public_api_rules>
+    <rules>
+      <rule>
+        Use index.ts only at meaningful module boundaries.
+      </rule>
+
+      <rule>
+        Do not create barrel files in every directory.
+      </rule>
+
+      <rule>
+        Export only modules intended for external consumption.
+      </rule>
+
+      <rule>
+        Keep internal implementation files private to the domain.
+      </rule>
+
+      <rule>
+        Avoid circular dependencies caused by broad barrel exports.
+      </rule>
+    </rules>
+  </public_api_rules>
+
+  <testing_structure>
+    <preferred_strategy>focused tests with gradual colocation</preferred_strategy>
+
+    <examples>
+      <![CDATA[
+tests/
+├── conti-editor.test.mjs
+├── song-library.test.mjs
+└── team-permissions.test.mjs
+
+src/domains/
+└── song/
+    ├── components/
+    │   ├── song-detail-dialog.tsx
+    │   └── song-detail-dialog.test.tsx
+    ├── api/
+    │   ├── song.mapper.ts
+    │   └── song.mapper.test.ts
+    └── utils/
+        ├── song-library.js
+        └── song-library.test.mjs
+      ]]>
+    </examples>
+
+    <rules>
+      <rule>
+        Existing top-level tests may remain under tests while they cover stable behavior.
+      </rule>
+
+      <rule>
+        New TypeScript unit tests may be colocated near the implementation when the test tooling supports it.
+      </rule>
+
+      <rule>
+        End-to-end tests may live in a top-level e2e directory.
+      </rule>
+
+      <rule>
+        Test domain behavior rather than internal implementation details.
+      </rule>
+    </rules>
+  </testing_structure>
+
+  <prohibited_patterns>
+    <pattern>
+      Putting all components from every domain into one global components directory.
+    </pattern>
+
+    <pattern>
+      Putting all API calls into one large api.ts file.
+    </pattern>
+
+    <pattern>
+      Putting all TypeScript types into one global types.ts file.
+    </pattern>
+
+    <pattern>
+      Writing complex business logic directly in page.tsx.
+    </pattern>
+
+    <pattern>
+      Marking large route trees as client components without necessity.
+    </pattern>
+
+    <pattern>
+      Importing another domain's internal component, hook, or utility directly
+      when a public API exists.
+    </pattern>
+
+    <pattern>
+      Using a global state store for all server-fetched data.
+    </pattern>
+
+    <pattern>
+      Moving code to shared directories before the abstraction is stable.
+    </pattern>
+
+    <pattern>
+      Creating generic utility modules that contain unrelated functions.
+    </pattern>
+
+    <pattern>
+      Mixing transport DTOs, domain models, and UI-specific models without distinction.
+    </pattern>
+  </prohibited_patterns>
+
+  <agent_decision_process>
+    <step order="1">
+      Identify whether the code belongs to routing, a business domain,
+      shared UI, infrastructure, or application-wide configuration.
+    </step>
+
+    <step order="2">
+      Determine the narrowest scope in which the code is used:
+      one route, one domain, multiple domains, or the whole application.
+    </step>
+
+    <step order="3">
+      Place the code in the narrowest appropriate directory.
+    </step>
+
+    <step order="4">
+      Verify that the proposed dependency direction follows the architecture rules.
+    </step>
+
+    <step order="5">
+      Prefer a Server Component unless client behavior is required.
+    </step>
+
+    <step order="6">
+      Separate API transport types from domain and view models when necessary.
+    </step>
+
+    <step order="7">
+      Avoid creating new abstractions unless they remove duplication
+      without hiding business meaning.
+    </step>
+
+    <step order="8">
+      Check that shared modules do not depend on domain-specific code.
+    </step>
+  </agent_decision_process>
+
+  <agent_output_requirements>
+    <requirement>
+      When creating a new file, state the selected path and why it belongs there.
+    </requirement>
+
+    <requirement>
+      When moving a file, verify all affected imports and dependency boundaries.
+    </requirement>
+
+    <requirement>
+      When introducing a Client Component, explain which client-only capability requires it.
+    </requirement>
+
+    <requirement>
+      When creating a shared abstraction, confirm that it is used across unrelated domains
+      and contains no domain-specific business rules.
+    </requirement>
+
+    <requirement>
+      When adding a domain, follow the existing internal structure
+      instead of creating a new global technical folder.
+    </requirement>
+
+    <requirement>
+      Do not modify the architecture convention without explicitly documenting the reason.
+    </requirement>
+  </agent_output_requirements>
+
+  <reference_examples>
+    <example name="thin_page">
+      <path>src/app/(dashboard)/dashboard/page.tsx</path>
+      <code>
+        <![CDATA[
+import { redirect } from 'next/navigation'
+
+export default function DashboardPage() {
+  redirect('/dashboard/contis')
+}
+        ]]>
+      </code>
+    </example>
+
+    <example name="shared_api_client">
+      <path>src/lib/api.ts</path>
+      <code>
+        <![CDATA[
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: true,
+});
+
+export default apiClient;
+        ]]>
+      </code>
+    </example>
+
+    <example name="domain_api">
+      <path>src/domains/auth/api/auth.api.ts</path>
+      <code>
+        <![CDATA[
+import apiClient from '@/lib/api';
+import type { ApiResponse } from '@/types/api';
+import type { User } from '@/domains/auth/models/auth';
+import type { UserDto } from '@/domains/auth/api/auth.dto';
+import { toUserModel } from '@/domains/auth/api/auth.mapper';
+
+export const getMe = async (accessToken?: string | null): Promise<User | null> => {
+  if (!accessToken) return null;
+
+  const response = await apiClient.get<ApiResponse<UserDto | null>>('/api/v1/users/me', {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  return response.data.data ? toUserModel(response.data.data) : null;
+};
+        ]]>
+      </code>
+    </example>
+
+    <example name="domain_public_api">
+      <path>src/domains/auth/index.ts</path>
+      <code>
+        <![CDATA[
+export { RequireAuth } from './components/require-auth';
+export { useAuth, useInitialAuth } from './hooks/use-auth';
+export { useUserQuery, useLogoutMutation, authKeys } from './hooks/use-auth-query';
+        ]]>
+      </code>
+    </example>
+
+    <example name="route_specific_component">
+      <path>src/app/(auth)/callback/auth-callback-client.tsx</path>
+      <reason>
+        This component is specific to the callback route and does not need to be
+        part of the reusable auth domain API unless another route starts using it.
+      </reason>
+    </example>
+
+    <example name="domain_component">
+      <path>src/domains/team/components/team-members-card.tsx</path>
+      <reason>
+        This component represents team-domain behavior and should remain inside
+        the team domain unless it becomes domain-independent.
+      </reason>
+    </example>
+
+    <example name="shared_ui_component">
+      <path>src/components/ui/button.tsx</path>
+      <reason>
+        This component has no business-domain knowledge and can be reused
+        across unrelated domains.
+      </reason>
+    </example>
+  </reference_examples>
+
+  <final_rule>
+    Prefer explicit ownership, narrow scope, and one-way dependency flow
+    over convenience-driven file placement.
+  </final_rule>
+</nextjs_frontend_architecture>
