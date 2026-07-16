@@ -6,96 +6,96 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./api": {
-      "types": "./src/api.ts",
-      "default": "./src/api.ts"
+      "types": "./dist/api.d.ts",
+      "default": "./dist/api.js"
     },
     "./auth": {
-      "types": "./src/auth/index.ts",
-      "default": "./src/auth/index.ts"
+      "types": "./dist/auth/index.d.ts",
+      "default": "./dist/auth/index.js"
     },
     "./auth/model": {
-      "types": "./src/auth/model.ts",
-      "default": "./src/auth/model.ts"
+      "types": "./dist/auth/model.d.ts",
+      "default": "./dist/auth/model.js"
     },
     "./auth/dto": {
-      "types": "./src/auth/dto.ts",
-      "default": "./src/auth/dto.ts"
+      "types": "./dist/auth/dto.d.ts",
+      "default": "./dist/auth/dto.js"
     },
     "./auth/mapper": {
-      "types": "./src/auth/mapper.ts",
-      "default": "./src/auth/mapper.ts"
+      "types": "./dist/auth/mapper.d.ts",
+      "default": "./dist/auth/mapper.js"
     },
     "./team": {
-      "types": "./src/team/index.ts",
-      "default": "./src/team/index.ts"
+      "types": "./dist/team/index.d.ts",
+      "default": "./dist/team/index.js"
     },
     "./team/model": {
-      "types": "./src/team/model.ts",
-      "default": "./src/team/model.ts"
+      "types": "./dist/team/model.d.ts",
+      "default": "./dist/team/model.js"
     },
     "./team/dto": {
-      "types": "./src/team/dto.ts",
-      "default": "./src/team/dto.ts"
+      "types": "./dist/team/dto.d.ts",
+      "default": "./dist/team/dto.js"
     },
     "./team/mapper": {
-      "types": "./src/team/mapper.ts",
-      "default": "./src/team/mapper.ts"
+      "types": "./dist/team/mapper.d.ts",
+      "default": "./dist/team/mapper.js"
     },
     "./song": {
-      "types": "./src/song/index.ts",
-      "default": "./src/song/index.ts"
+      "types": "./dist/song/index.d.ts",
+      "default": "./dist/song/index.js"
     },
     "./song/model": {
-      "types": "./src/song/model.ts",
-      "default": "./src/song/model.ts"
+      "types": "./dist/song/model.d.ts",
+      "default": "./dist/song/model.js"
     },
     "./song/dto": {
-      "types": "./src/song/dto.ts",
-      "default": "./src/song/dto.ts"
+      "types": "./dist/song/dto.d.ts",
+      "default": "./dist/song/dto.js"
     },
     "./song/mapper": {
-      "types": "./src/song/mapper.ts",
-      "default": "./src/song/mapper.ts"
+      "types": "./dist/song/mapper.d.ts",
+      "default": "./dist/song/mapper.js"
     },
     "./conti": {
-      "types": "./src/conti/index.ts",
-      "default": "./src/conti/index.ts"
+      "types": "./dist/conti/index.d.ts",
+      "default": "./dist/conti/index.js"
     },
     "./conti/model": {
-      "types": "./src/conti/model.ts",
-      "default": "./src/conti/model.ts"
+      "types": "./dist/conti/model.d.ts",
+      "default": "./dist/conti/model.js"
     },
     "./conti/dto": {
-      "types": "./src/conti/dto.ts",
-      "default": "./src/conti/dto.ts"
+      "types": "./dist/conti/dto.d.ts",
+      "default": "./dist/conti/dto.js"
     },
     "./conti/mapper": {
-      "types": "./src/conti/mapper.ts",
-      "default": "./src/conti/mapper.ts"
+      "types": "./dist/conti/mapper.d.ts",
+      "default": "./dist/conti/mapper.js"
     },
     "./conti/worship-time": {
-      "types": "./src/conti/worship-time.ts",
-      "default": "./src/conti/worship-time.ts"
+      "types": "./dist/conti/worship-time.d.ts",
+      "default": "./dist/conti/worship-time.js"
     },
     "./dashboard": {
-      "types": "./src/dashboard/index.ts",
-      "default": "./src/dashboard/index.ts"
+      "types": "./dist/dashboard/index.d.ts",
+      "default": "./dist/dashboard/index.js"
     },
     "./dashboard/model": {
-      "types": "./src/dashboard/model.ts",
-      "default": "./src/dashboard/model.ts"
+      "types": "./dist/dashboard/model.d.ts",
+      "default": "./dist/dashboard/model.js"
     },
     "./dashboard/dto": {
-      "types": "./src/dashboard/dto.ts",
-      "default": "./src/dashboard/dto.ts"
+      "types": "./dist/dashboard/dto.d.ts",
+      "default": "./dist/dashboard/dto.js"
     },
     "./dashboard/mapper": {
-      "types": "./src/dashboard/mapper.ts",
-      "default": "./src/dashboard/mapper.ts"
+      "types": "./dist/dashboard/mapper.d.ts",
+      "default": "./dist/dashboard/mapper.js"
     }
   },
   "scripts": {

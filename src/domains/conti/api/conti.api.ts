@@ -1,3 +1,4 @@
+import { createContiReadRepository } from '@contee/api-client';
 import apiClient from '@/lib/api';
 import { isSafeApiUrl } from '@/lib/safe-url';
 import type { ApiResponse, PageDto } from '@/types/api';
@@ -6,30 +7,23 @@ import type {
   ContiResponseDto,
   CreateContiRequestDto,
   ExternalShareResponseDto,
-  SharedContiResponseDto,
   UpdateContiRequestDto,
   ContiSearchParamsDto,
   SheetMusicFileResponseDto,
 } from '@/domains/conti/api/conti.dto';
-import { toContiModel, toSharedContiModel } from '@/domains/conti/api/conti.mapper';
+import { toContiModel } from '@/domains/conti/api/conti.mapper';
+
+const contiReadRepository = createContiReadRepository(apiClient);
 
 export async function getTeamContis(
   teamId: string,
   params: ContiSearchParamsDto = {},
 ): Promise<PageDto<Conti>> {
-  const { data } = await apiClient.get<ApiResponse<PageDto<ContiResponseDto>>>(
-    `/api/v1/teams/${teamId}/contis`,
-    { params },
-  );
-  return {
-    ...data.data,
-    content: data.data.content.map(toContiModel),
-  };
+  return contiReadRepository.listByTeam(teamId, params);
 }
 
 export async function getConti(contiId: string): Promise<Conti> {
-  const { data } = await apiClient.get<ApiResponse<ContiResponseDto>>(`/api/v1/contis/${contiId}`);
-  return toContiModel(data.data);
+  return contiReadRepository.get(contiId);
 }
 
 export async function createConti(request: CreateContiRequestDto): Promise<Conti> {
@@ -105,8 +99,5 @@ export async function disableExternalShare(contiId: string): Promise<void> {
 }
 
 export async function getSharedConti(token: string): Promise<SharedConti> {
-  const { data } = await apiClient.get<ApiResponse<SharedContiResponseDto>>(
-    `/api/v1/share/contis/${token}`,
-  );
-  return toSharedContiModel(data.data);
+  return contiReadRepository.getShared(token);
 }
