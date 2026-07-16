@@ -22,6 +22,7 @@
     "test:domain": "npm run test --workspace @contee/domain",
     "test:api-client": "npm run test --workspace @contee/api-client",
     "test:query": "npm run test --workspace @contee/query",
+    "test:mobile": "npm run test --workspace @contee/mobile",
     "prepare": "husky"
   },
   "dependencies": {

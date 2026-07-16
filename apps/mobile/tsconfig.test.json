@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": false,
+    "outDir": "/private/tmp/contee-mobile-test",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["src/lib/secure-session-core.ts", "tests/**/*.ts"],
+  "exclude": []
+}
