@@ -60,13 +60,20 @@ self.addEventListener('fetch', (event) => {
 
   if (!shouldHandleRequest(request, requestUrl)) return
 
-  if (isStaticAsset(request, requestUrl)) {
-    event.respondWith(staleWhileRevalidate(event, request, STATIC_CACHE, STATIC_CACHE_LIMIT))
+  if (isDocumentRequest(request)) {
+    event.respondWith(networkFirst(request, DOCUMENT_CACHE, DOCUMENT_CACHE_LIMIT, true))
     return
   }
 
-  if (isDocumentRequest(request)) {
-    event.respondWith(networkFirst(request, DOCUMENT_CACHE, DOCUMENT_CACHE_LIMIT, true))
+  if (isStaticAsset(request, requestUrl)) {
+    const { response, cacheUpdate } = staleWhileRevalidate(
+      request,
+      STATIC_CACHE,
+      STATIC_CACHE_LIMIT
+    )
+
+    event.respondWith(response)
+    event.waitUntil(cacheUpdate)
     return
   }
 
@@ -114,31 +121,33 @@ const putInCache = async (cacheName, request, response, maxEntries) => {
   await trimCache(cache, maxEntries)
 }
 
-const staleWhileRevalidate = async (event, request, cacheName, maxEntries) => {
-  const cache = await caches.open(cacheName)
-  const cachedResponse = await cache.match(request)
-  const networkResponsePromise = fetch(request).then((response) => {
-    if (isCacheableResponse(response)) {
-      event.waitUntil(
-        putInCache(cacheName, request, response.clone(), maxEntries).catch(() => undefined)
-      )
-    }
+const staleWhileRevalidate = (request, cacheName, maxEntries) => {
+  const cachedResponsePromise = caches
+    .open(cacheName)
+    .then((cache) => cache.match(request))
+    .catch(() => undefined)
+  const networkResponsePromise = fetch(request)
+  const cacheUpdate = networkResponsePromise
+    .then((response) => {
+      if (!isCacheableResponse(response)) return undefined
 
-    return response
+      return putInCache(cacheName, request, response.clone(), maxEntries)
+    })
+    .catch(() => undefined)
+
+  const response = cachedResponsePromise.then(async (cachedResponse) => {
+    if (cachedResponse) return cachedResponse
+
+    try {
+      return await networkResponsePromise
+    } catch (error) {
+      const precachedResponse = await caches.match(request)
+      if (precachedResponse) return precachedResponse
+      throw error
+    }
   })
 
-  if (cachedResponse) {
-    event.waitUntil(networkResponsePromise.catch(() => undefined))
-    return cachedResponse
-  }
-
-  try {
-    return await networkResponsePromise
-  } catch (error) {
-    const precachedResponse = await caches.match(request)
-    if (precachedResponse) return precachedResponse
-    throw error
-  }
+  return { response, cacheUpdate }
 }
 
 const networkFirst = async (request, cacheName, maxEntries, useOfflineFallback = false) => {
