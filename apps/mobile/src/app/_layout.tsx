@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 
 import { AuthSessionProvider } from '@/lib/auth-session'
 import { QueryProvider } from '@/lib/query-client'
+import { TeamSelectionProvider } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
 
 export function ErrorBoundary({
@@ -36,13 +37,15 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <AuthSessionProvider>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor },
-          }}
-        />
+        <TeamSelectionProvider>
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor },
+            }}
+          />
+        </TeamSelectionProvider>
       </AuthSessionProvider>
     </QueryProvider>
   )
