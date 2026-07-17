@@ -4,6 +4,7 @@ import test from 'node:test'
 import {
   bootstrapAuthSession,
   getAuthStatusForAccessToken,
+  signOutAuthSession,
 } from '../src/lib/auth-session-core'
 
 test('auth status treats only non-empty tokens as authenticated', () => {
@@ -50,4 +51,63 @@ test('auth bootstrap remains unauthenticated when cleanup also fails', async () 
   })
 
   assert.deepEqual(result, { status: 'unauthenticated' })
+})
+
+test('auth sign out clears session and query cache', async () => {
+  let clearCount = 0
+  let queryClearCount = 0
+
+  const result = await signOutAuthSession({
+    session: {
+      clear: () => {
+        clearCount += 1
+      },
+    },
+    clearQueryCache: () => {
+      queryClearCount += 1
+    },
+  })
+
+  assert.deepEqual(result, { status: 'unauthenticated' })
+  assert.equal(clearCount, 1)
+  assert.equal(queryClearCount, 1)
+})
+
+test('auth sign out clears query cache when session cleanup fails', async () => {
+  let queryClearCount = 0
+  const originalConsoleError = console.error
+  const originalConsoleWarn = console.warn
+  const originalConsoleLog = console.log
+  let consoleCallCount = 0
+
+  console.error = () => {
+    consoleCallCount += 1
+  }
+  console.warn = () => {
+    consoleCallCount += 1
+  }
+  console.log = () => {
+    consoleCallCount += 1
+  }
+
+  try {
+    const result = await signOutAuthSession({
+      session: {
+        clear: () => {
+          throw new Error('refresh_token=should-not-leak')
+        },
+      },
+      clearQueryCache: () => {
+        queryClearCount += 1
+      },
+    })
+
+    assert.deepEqual(result, { status: 'unauthenticated' })
+    assert.equal(queryClearCount, 1)
+    assert.equal(consoleCallCount, 0)
+  } finally {
+    console.error = originalConsoleError
+    console.warn = originalConsoleWarn
+    console.log = originalConsoleLog
+  }
 })

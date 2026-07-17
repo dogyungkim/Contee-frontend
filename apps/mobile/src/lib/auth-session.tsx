@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import {
   bootstrapAuthSession,
+  signOutAuthSession,
   type MobileAuthStatus,
 } from './auth-session-core'
 import { createSecureSessionAdapter } from './secure-session'
@@ -53,11 +54,16 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signOut = useCallback(async () => {
+    let nextStatus: MobileAuthStatus = 'unauthenticated'
+
     try {
-      await authSession.clear()
+      const result = await signOutAuthSession({
+        session: authSession,
+        clearQueryCache: () => queryClient.clear(),
+      })
+      nextStatus = result.status
     } finally {
-      queryClient.clear()
-      setStatus('unauthenticated')
+      setStatus(nextStatus)
     }
   }, [queryClient])
 

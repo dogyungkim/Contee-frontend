@@ -6,6 +6,15 @@ export interface AuthBootstrapResult {
   status: Exclude<MobileAuthStatus, 'loading'>
 }
 
+export interface AuthSignOutOptions {
+  session: Pick<AuthSessionAdapter, 'clear'>
+  clearQueryCache?: () => Promise<void> | void
+}
+
+export interface AuthSignOutResult {
+  status: 'unauthenticated'
+}
+
 export const getAuthStatusForAccessToken = (
   accessToken: string | null | undefined
 ): AuthBootstrapResult['status'] =>
@@ -26,4 +35,19 @@ export const bootstrapAuthSession = async (
 
     return { status: 'unauthenticated' }
   }
+}
+
+export const signOutAuthSession = async ({
+  session,
+  clearQueryCache,
+}: AuthSignOutOptions): Promise<AuthSignOutResult> => {
+  try {
+    await session.clear()
+  } catch {
+    // Secure storage failures should not leave app data or auth state behind.
+  } finally {
+    await clearQueryCache?.()
+  }
+
+  return { status: 'unauthenticated' }
 }
