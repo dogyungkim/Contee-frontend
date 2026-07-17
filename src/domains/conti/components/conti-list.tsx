@@ -5,26 +5,43 @@ import Link from 'next/link'
 import { format, isSameDay, parseISO } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import type { DateRange } from 'react-day-picker'
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Music, Search, X } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Music,
+  Search,
+  X,
+} from 'lucide-react'
 
 import { useContis } from '../hooks/use-conti'
 import { useContiActions } from '../hooks/use-conti-actions'
 import { ContiListItem } from './conti-list-item'
 import { useTeam } from '@/context/team-context'
-import { useAuth } from '@/domains/auth/hooks/use-auth'
-import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
-import { canEditTeamContent } from '@/domains/team/utils/team-permissions'
+import { useTeamPermissions } from '@/domains/team/hooks/use-team-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 
 const CONTI_PAGE_SIZE = 20
 
 const formatDateParam = (date: Date) => format(date, 'yyyy-MM-dd')
-const formatDateLabel = (date: string) => format(parseISO(date), 'yyyy. MM. dd', { locale: ko })
+const formatDateLabel = (date: string) =>
+  format(parseISO(date), 'yyyy. MM. dd', { locale: ko })
 const parseDateRange = (from: string, to: string): DateRange | undefined =>
   from
     ? {
@@ -35,8 +52,11 @@ const parseDateRange = (from: string, to: string): DateRange | undefined =>
 
 export function ContiList() {
   const { selectedTeamId } = useTeam()
-  const { user } = useAuth()
-  const { data: teamMembers = [] } = useTeamMembersQuery(selectedTeamId || '')
+  const {
+    canCreateConti: canCreate,
+    canEditTeamContent: canEdit,
+    isLoading: isPermissionsLoading,
+  } = useTeamPermissions()
   const [query, setQuery] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
   const [selectedFrom, setSelectedFrom] = useState('')
@@ -45,7 +65,9 @@ export function ContiList() {
   const [appliedTo, setAppliedTo] = useState('')
   const [page, setPage] = useState(0)
   const [dateRangeOpen, setDateRangeOpen] = useState(false)
-  const [pendingDateRange, setPendingDateRange] = useState<DateRange | undefined>()
+  const [pendingDateRange, setPendingDateRange] = useState<
+    DateRange | undefined
+  >()
   const searchParams = useMemo(
     () => ({
       page,
@@ -56,7 +78,10 @@ export function ContiList() {
     }),
     [page, appliedQuery, appliedFrom, appliedTo]
   )
-  const { data, isLoading, isFetching, isError } = useContis(selectedTeamId, searchParams)
+  const { data, isLoading, isFetching, isError } = useContis(
+    selectedTeamId,
+    searchParams
+  )
   const contis = data?.content ?? []
   const totalElements = data?.totalElements ?? contis.length
   const totalPages = data?.totalPages ?? 1
@@ -65,8 +90,14 @@ export function ContiList() {
   const isLastPage = data?.last ?? currentPage >= totalPages - 1
   const { handleDeleteConti } = useContiActions()
   const hasAnyFilterInput =
-    !!query.trim() || !!appliedQuery.trim() || !!selectedFrom || !!selectedTo || !!appliedFrom || !!appliedTo
-  const hasAppliedFilters = !!appliedQuery.trim() || !!appliedFrom || !!appliedTo
+    !!query.trim() ||
+    !!appliedQuery.trim() ||
+    !!selectedFrom ||
+    !!selectedTo ||
+    !!appliedFrom ||
+    !!appliedTo
+  const hasAppliedFilters =
+    !!appliedQuery.trim() || !!appliedFrom || !!appliedTo
   const hasUnappliedFilters =
     query.trim() !== appliedQuery.trim() ||
     selectedFrom !== appliedFrom ||
@@ -76,9 +107,6 @@ export function ContiList() {
       ? `${formatDateLabel(selectedFrom)} - ${formatDateLabel(selectedTo)}`
       : formatDateLabel(selectedFrom)
     : '예배일 범위'
-  const currentMember = teamMembers.find((member) => member.userId === String(user?.id))
-  const canEdit = canEditTeamContent(currentMember?.role)
-
   const applySearchFilters = () => {
     setAppliedQuery(query.trim())
     setAppliedFrom(selectedFrom)
@@ -131,7 +159,9 @@ export function ContiList() {
     }
 
     const nextFrom = formatDateParam(pendingDateRange.from)
-    const nextTo = pendingDateRange.to ? formatDateParam(pendingDateRange.to) : nextFrom
+    const nextTo = pendingDateRange.to
+      ? formatDateParam(pendingDateRange.to)
+      : nextFrom
 
     setSelectedFrom(nextFrom)
     setSelectedTo(nextTo)
@@ -144,7 +174,7 @@ export function ContiList() {
     setSelectedTo('')
   }
 
-  if (isLoading) {
+  if (isPermissionsLoading || isLoading) {
     return (
       <div className="surface-card overflow-hidden rounded-2xl">
         <div className="border-b border-border px-4 py-4 sm:px-6">
@@ -152,7 +182,10 @@ export function ContiList() {
         </div>
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="grid gap-3 px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center">
+            <div
+              key={i}
+              className="grid gap-3 px-4 py-4 sm:px-6 md:grid-cols-[minmax(0,1.8fr)_136px_150px_64px_48px] md:items-center"
+            >
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-5 w-20" />
               <Skeleton className="h-5 w-28" />
@@ -203,7 +236,10 @@ export function ContiList() {
             <span className="truncate">{dateRangeLabel}</span>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto" align="start">
+        <PopoverContent
+          className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto"
+          align="start"
+        >
           <CalendarComponent
             mode="range"
             selected={pendingDateRange}
@@ -269,14 +305,17 @@ export function ContiList() {
         </div>
         <h3 className="type-card-title mt-4">생성된 콘티가 없습니다</h3>
         <p className="type-page-description mt-2">
-          첫 번째 예배 콘티를 작성해보세요.
+          {canCreate
+            ? '첫 번째 예배 콘티를 작성해보세요.'
+            : '아직 등록된 예배 콘티가 없습니다.'}
         </p>
-        <Button asChild className="mt-6">
-          <Link href="/dashboard/contis/new">
-            <Plus className="mr-2 h-4 w-4" />
-            새 콘티 만들기
-          </Link>
-        </Button>
+        {canCreate && (
+          <Button asChild className="mt-6">
+            <Link href="/dashboard/contis/new">
+              <Plus className="mr-2 h-4 w-4" />새 콘티 만들기
+            </Link>
+          </Button>
+        )}
       </div>
     )
   }
@@ -298,8 +337,12 @@ export function ContiList() {
         {filterControls}
         {contis.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-2 px-6 text-center">
-            <p className="type-body-sm font-medium text-foreground">조건에 맞는 콘티가 없습니다.</p>
-            <p className="type-body-sm text-muted-foreground">검색어 또는 예배일 범위를 조정해보세요.</p>
+            <p className="type-body-sm font-medium text-foreground">
+              조건에 맞는 콘티가 없습니다.
+            </p>
+            <p className="type-body-sm text-muted-foreground">
+              검색어 또는 예배일 범위를 조정해보세요.
+            </p>
           </div>
         ) : (
           <>
