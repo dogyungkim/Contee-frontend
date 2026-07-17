@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { AppState, type AppStateStatus } from 'react-native'
 import NetInfo from '@react-native-community/netinfo'
 import {
@@ -9,8 +9,18 @@ import {
   onlineManager,
 } from '@tanstack/react-query'
 
+import {
+  getNetworkStatus,
+  type NetworkStatus,
+} from '@/lib/network-status-core'
+
 const FIVE_MINUTES_MS = 5 * 60 * 1000
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
+const initialNetworkStatus = getNetworkStatus(undefined)
+
+const NetworkStatusContext =
+  createContext<NetworkStatus>(initialNetworkStatus)
 
 function shouldRetry(failureCount: number, error: unknown) {
   const status =
@@ -46,6 +56,8 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         },
       })
   )
+  const [networkStatus, setNetworkStatus] =
+    useState<NetworkStatus>(initialNetworkStatus)
 
   useEffect(() => {
     const appStateSubscription = AppState.addEventListener(
@@ -53,7 +65,10 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       syncFocusState
     )
     const netInfoUnsubscribe = NetInfo.addEventListener((state) => {
-      onlineManager.setOnline(Boolean(state.isConnected))
+      const nextNetworkStatus = getNetworkStatus(state)
+
+      setNetworkStatus(nextNetworkStatus)
+      onlineManager.setOnline(nextNetworkStatus.isNetworkAvailable)
     })
 
     return () => {
@@ -62,7 +77,15 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const networkContextValue = useMemo(() => networkStatus, [networkStatus])
+
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <NetworkStatusContext.Provider value={networkContextValue}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </NetworkStatusContext.Provider>
   )
+}
+
+export function useNetworkStatus() {
+  return useContext(NetworkStatusContext)
 }

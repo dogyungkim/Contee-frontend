@@ -2,6 +2,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 
+import { NetworkStatusBanner } from '@/components/network-status-banner'
 import { AuthSessionProvider } from '@/lib/auth-session'
 import { QueryProvider } from '@/lib/query-client'
 import { TeamSelectionProvider } from '@/lib/team-selection'
@@ -38,13 +39,16 @@ export default function RootLayout() {
     <QueryProvider>
       <AuthSessionProvider>
         <TeamSelectionProvider>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor },
-            }}
-          />
+          <View style={styles.root}>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor },
+              }}
+            />
+            <NetworkStatusBanner />
+          </View>
         </TeamSelectionProvider>
       </AuthSessionProvider>
     </QueryProvider>
@@ -52,6 +56,9 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
