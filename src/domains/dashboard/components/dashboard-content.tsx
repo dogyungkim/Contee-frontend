@@ -10,10 +10,7 @@ import { useDashboard } from '@/domains/dashboard/hooks/use-dashboard'
 import { DashboardHeader } from './dashboard-header'
 import { TeamEmptyState } from './team-empty-state'
 import { DashboardSkeleton } from './dashboard-skeleton'
-import { useTeam } from '@/context/team-context'
-import { useAuth } from '@/domains/auth/hooks/use-auth'
-import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
-import { canCreateConti } from '@/domains/team/utils/team-permissions'
+import { useTeamPermissions } from '@/domains/team/hooks/use-team-permissions'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -26,9 +23,8 @@ import { Input } from '@/components/ui/input'
 
 export function DashboardContent() {
   const [query, setQuery] = useState('')
-  const { selectedTeamId } = useTeam()
-  const { user } = useAuth()
-  const { data: teamMembers = [] } = useTeamMembersQuery(selectedTeamId || '')
+  const { canCreateConti: canCreate, isLoading: isPermissionsLoading } =
+    useTeamPermissions()
   const {
     hasTeam,
     summary,
@@ -38,10 +34,6 @@ export function DashboardContent() {
     isLoading,
     isError,
   } = useDashboard()
-  const currentMember = user?.id
-    ? teamMembers.find((member) => String(member.userId) === String(user.id))
-    : undefined
-  const canCreate = canCreateConti(currentMember?.role)
 
   const filteredSongs = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -51,12 +43,12 @@ export function DashboardContent() {
       .slice(0, 8)
   }, [query, songs])
 
-  if (!hasTeam) {
-    return <TeamEmptyState />
+  if (isPermissionsLoading || isLoading) {
+    return <DashboardSkeleton />
   }
 
-  if (isLoading) {
-    return <DashboardSkeleton />
+  if (!hasTeam) {
+    return <TeamEmptyState />
   }
 
   if (isError) {

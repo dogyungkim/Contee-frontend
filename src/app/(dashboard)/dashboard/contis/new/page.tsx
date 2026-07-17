@@ -15,10 +15,8 @@ import {
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
-import { useAuth } from '@/domains/auth/hooks/use-auth'
 import { useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
-import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
-import { canCreateConti } from '@/domains/team/utils/team-permissions'
+import { useTeamPermissions } from '@/domains/team/hooks/use-team-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,10 +45,9 @@ import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 
 export default function NewContiPage() {
   const router = useRouter()
-  const { selectedTeamId, selectedTeam, isLoading: isTeamLoading } = useTeam()
-  const { user } = useAuth()
-  const { data: teamMembers = [], isLoading: isMembersLoading } =
-    useTeamMembersQuery(selectedTeamId || '')
+  const { selectedTeamId, selectedTeam } = useTeam()
+  const { canCreateConti: canCreate, isLoading: isPermissionsLoading } =
+    useTeamPermissions()
 
   // Use the custom hook for all business logic
   const {
@@ -93,11 +90,6 @@ export default function NewContiPage() {
     !!bibleVerseContent.trim() ||
     !!sharingInfo.trim() ||
     tempSongs.length > 0
-  const currentMember = user?.id
-    ? teamMembers.find((member) => String(member.userId) === String(user.id))
-    : undefined
-  const canCreate = canCreateConti(currentMember?.role)
-
   useUnsavedChangesGuard({
     enabled: hasChanges && !isSaving,
   })
@@ -114,7 +106,7 @@ export default function NewContiPage() {
     router.push('/dashboard/contis')
   }
 
-  if (isTeamLoading || (selectedTeamId && isMembersLoading)) {
+  if (isPermissionsLoading) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
         <p className="type-body-sm text-muted-foreground">

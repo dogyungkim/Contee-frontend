@@ -19,12 +19,7 @@ import { useContis } from '../hooks/use-conti'
 import { useContiActions } from '../hooks/use-conti-actions'
 import { ContiListItem } from './conti-list-item'
 import { useTeam } from '@/context/team-context'
-import { useAuth } from '@/domains/auth/hooks/use-auth'
-import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
-import {
-  canCreateConti,
-  canEditTeamContent,
-} from '@/domains/team/utils/team-permissions'
+import { useTeamPermissions } from '@/domains/team/hooks/use-team-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
@@ -57,8 +52,11 @@ const parseDateRange = (from: string, to: string): DateRange | undefined =>
 
 export function ContiList() {
   const { selectedTeamId } = useTeam()
-  const { user } = useAuth()
-  const { data: teamMembers = [] } = useTeamMembersQuery(selectedTeamId || '')
+  const {
+    canCreateConti: canCreate,
+    canEditTeamContent: canEdit,
+    isLoading: isPermissionsLoading,
+  } = useTeamPermissions()
   const [query, setQuery] = useState('')
   const [appliedQuery, setAppliedQuery] = useState('')
   const [selectedFrom, setSelectedFrom] = useState('')
@@ -109,12 +107,6 @@ export function ContiList() {
       ? `${formatDateLabel(selectedFrom)} - ${formatDateLabel(selectedTo)}`
       : formatDateLabel(selectedFrom)
     : '예배일 범위'
-  const currentMember = user?.id
-    ? teamMembers.find((member) => String(member.userId) === String(user.id))
-    : undefined
-  const canEdit = canEditTeamContent(currentMember?.role)
-  const canCreate = canCreateConti(currentMember?.role)
-
   const applySearchFilters = () => {
     setAppliedQuery(query.trim())
     setAppliedFrom(selectedFrom)
@@ -182,7 +174,7 @@ export function ContiList() {
     setSelectedTo('')
   }
 
-  if (isLoading) {
+  if (isPermissionsLoading || isLoading) {
     return (
       <div className="surface-card overflow-hidden rounded-2xl">
         <div className="border-b border-border px-4 py-4 sm:px-6">

@@ -5,22 +5,15 @@ import { Plus } from 'lucide-react'
 
 import { useTeam } from '@/context/team-context'
 import { ContiList } from '@/domains/conti/components/conti-list'
-import { useAuth } from '@/domains/auth/hooks/use-auth'
-import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
-import { canCreateConti } from '@/domains/team/utils/team-permissions'
+import { useTeamPermissions } from '@/domains/team/hooks/use-team-permissions'
 import { Button } from '@/components/ui/button'
 
 export default function ContisPage() {
-  const { selectedTeamId, selectedTeam, isLoading } = useTeam()
-  const { user } = useAuth()
-  const { data: teamMembers = [], isLoading: isMembersLoading } =
-    useTeamMembersQuery(selectedTeamId || '')
-  const currentMember = user?.id
-    ? teamMembers.find((member) => String(member.userId) === String(user.id))
-    : undefined
-  const canCreate = canCreateConti(currentMember?.role)
+  const { selectedTeamId, selectedTeam } = useTeam()
+  const { canCreateConti: canCreate, isLoading: isPermissionsLoading } =
+    useTeamPermissions()
 
-  if (isLoading || (selectedTeamId && isMembersLoading)) {
+  if (isPermissionsLoading) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
         <p className="type-body-sm text-muted-foreground">
