@@ -3,8 +3,11 @@ import test from 'node:test'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
-const { createContiReadRepository, createTeamRepository } =
-  require('../dist/index.js')
+const {
+  createContiReadRepository,
+  createSongReadRepository,
+  createTeamRepository,
+} = require('../dist/index.js')
 
 const createRecordingClient = (responses = []) => {
   const calls = []
@@ -210,6 +213,77 @@ test('conti read repository maps list content and preserves pagination metadata'
       method: 'get',
       url: '/api/v1/share/contis/share-token',
       config: undefined,
+    },
+  ])
+})
+
+test('song read repository maps list content and preserves pagination metadata', async () => {
+  const songDto = {
+    id: 'team-song-1',
+    teamId: 'team-1',
+    songId: 'song-1',
+    title: 'Amazing Grace',
+    artist: 'Traditional',
+    keySignature: 'G',
+    bpm: 72,
+    note: 'Acoustic arrangement',
+    isFavorite: true,
+    createdAt: '2026-07-01T00:00:00Z',
+    updatedAt: '2026-07-02T00:00:00Z',
+  }
+  const { client, calls } = createRecordingClient([
+    {
+      data: {
+        data: {
+          content: [songDto],
+          totalPages: 2,
+          totalElements: 6,
+          number: 1,
+          size: 3,
+          numberOfElements: 1,
+          first: false,
+          last: false,
+        },
+      },
+    },
+  ])
+  const repository = createSongReadRepository(client)
+
+  const page = await repository.listByTeam('team-1', {
+    q: 'Grace',
+    key: 'G',
+    isFavorite: true,
+    page: 1,
+    size: 3,
+  })
+
+  assert.equal(page.totalPages, 2)
+  assert.equal(page.totalElements, 6)
+  assert.equal(page.number, 1)
+  assert.equal(page.size, 3)
+  assert.equal(page.numberOfElements, 1)
+  assert.equal(page.first, false)
+  assert.equal(page.last, false)
+  assert.equal(page.content[0].title, 'Amazing Grace')
+  assert.equal(page.content[0].artist, 'Traditional')
+  assert.equal(page.content[0].keySignature, 'G')
+  assert.equal(page.content[0].bpm, 72)
+  assert.equal(page.content[0].note, 'Acoustic arrangement')
+  assert.equal(page.content[0].isFavorite, true)
+
+  assert.deepEqual(calls, [
+    {
+      method: 'get',
+      url: '/api/v1/teams/team-1/songs',
+      config: {
+        params: {
+          q: 'Grace',
+          key: 'G',
+          isFavorite: true,
+          page: 1,
+          size: 3,
+        },
+      },
     },
   ])
 })

@@ -1,22 +1,205 @@
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import type { TeamSong } from '@contee/domain'
+
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
 import { TeamSelectionPanel } from '@/components/team-selection-panel'
+import { useMobileSongs } from '@/lib/song-read'
 import { useTeamSelection } from '@/lib/team-selection'
+import { colors, spacing, typography } from '@/theme'
 
 export default function SongsScreen() {
-  const { isLoading, selectedTeam } = useTeamSelection()
+  const {
+    isLoading: isTeamLoading,
+    selectedTeam,
+    selectedTeamId,
+  } = useTeamSelection()
+  const songsQuery = useMobileSongs(selectedTeamId)
+
+  if (!selectedTeamId) {
+    return (
+      <ScreenPlaceholder
+        eyebrow="Read-only MVP"
+        title="곡"
+        description={
+          isTeamLoading
+            ? '팀 정보를 불러온 뒤 곡 라이브러리를 연결합니다.'
+            : '팀을 선택하거나 참여한 뒤 곡 라이브러리를 볼 수 있습니다.'
+        }
+        action={<TeamSelectionPanel />}
+      />
+    )
+  }
+
+  const songs = songsQuery.data?.content ?? []
 
   return (
-    <ScreenPlaceholder
-      eyebrow="Read-only MVP"
-      title="곡"
-      description={
-        isLoading
-          ? '팀 정보를 불러온 뒤 곡 라이브러리를 연결합니다.'
-          : selectedTeam
-            ? `${selectedTeam.name} 팀의 곡 라이브러리 read-only 화면을 연결할 자리입니다.`
-            : '팀을 선택하거나 참여한 뒤 곡 라이브러리를 볼 수 있습니다.'
-      }
-      action={<TeamSelectionPanel />}
-    />
+    <ScrollView
+      contentContainerStyle={styles.container}
+      style={styles.safeArea}
+    >
+      <Text style={styles.eyebrow}>Read-only MVP</Text>
+      <Text accessibilityRole="header" style={styles.title}>
+        곡
+      </Text>
+      <Text style={styles.description}>
+        {selectedTeam?.name ?? '선택된 팀'} 팀의 read-only 곡 라이브러리입니다.
+      </Text>
+      <TeamSelectionPanel />
+
+      {songsQuery.isPending ? (
+        <Text style={styles.stateText}>곡 목록을 불러오는 중입니다.</Text>
+      ) : songsQuery.isError ? (
+        <View style={styles.stateBlock}>
+          <Text style={styles.errorText}>곡 목록을 불러오지 못했습니다.</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void songsQuery.refetch()}
+            style={styles.retryButton}
+          >
+            <Text style={styles.retryButtonText}>
+              {songsQuery.isFetching ? '다시 시도 중...' : '다시 시도'}
+            </Text>
+          </Pressable>
+        </View>
+      ) : songs.length === 0 ? (
+        <Text style={styles.stateText}>아직 등록된 곡이 없습니다.</Text>
+      ) : (
+        <View style={styles.list}>
+          {songs.map((song) => (
+            <SongReadCard key={song.id} song={song} />
+          ))}
+        </View>
+      )}
+    </ScrollView>
   )
 }
+
+function SongReadCard({ song }: { song: TeamSong }) {
+  const details = [
+    song.keySignature ? `Key ${song.keySignature}` : null,
+    typeof song.bpm === 'number' ? `${song.bpm} BPM` : null,
+  ].filter(Boolean)
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTextBlock}>
+          <Text style={styles.cardTitle}>{song.title}</Text>
+          {song.artist ? (
+            <Text style={styles.cardSubtitle}>{song.artist}</Text>
+          ) : null}
+        </View>
+        {song.isFavorite ? <Text style={styles.badge}>즐겨찾기</Text> : null}
+      </View>
+
+      {details.length > 0 ? (
+        <Text style={styles.metaText}>{details.join(' · ')}</Text>
+      ) : null}
+
+      {song.note ? (
+        <Text numberOfLines={2} style={styles.noteText}>
+          메모 있음 · {song.note}
+        </Text>
+      ) : (
+        <Text style={styles.mutedMetaText}>메모 없음</Text>
+      )}
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.neutral50,
+  },
+  container: {
+    gap: spacing.md,
+    padding: spacing.xl,
+  },
+  eyebrow: {
+    ...typography.eyebrow,
+    color: colors.neutral500,
+  },
+  title: {
+    ...typography.title,
+    color: colors.neutral950,
+  },
+  description: {
+    ...typography.body,
+    color: colors.neutral600,
+  },
+  list: {
+    gap: spacing.sm,
+  },
+  card: {
+    gap: spacing.sm,
+    borderRadius: 14,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+    backgroundColor: colors.white,
+    padding: spacing.lg,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  cardTextBlock: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  cardTitle: {
+    ...typography.label,
+    color: colors.neutral950,
+  },
+  cardSubtitle: {
+    ...typography.body,
+    color: colors.neutral600,
+  },
+  badge: {
+    ...typography.tabLabel,
+    borderRadius: 999,
+    backgroundColor: colors.neutral100,
+    color: colors.neutral800,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  metaText: {
+    ...typography.tabLabel,
+    color: colors.neutral500,
+  },
+  mutedMetaText: {
+    ...typography.tabLabel,
+    color: colors.neutral500,
+  },
+  noteText: {
+    ...typography.body,
+    color: colors.neutral600,
+  },
+  stateBlock: {
+    gap: spacing.sm,
+  },
+  stateText: {
+    ...typography.body,
+    color: colors.neutral600,
+  },
+  errorText: {
+    ...typography.body,
+    color: '#b91c1c',
+  },
+  retryButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+  },
+  retryButtonText: {
+    ...typography.label,
+    color: colors.neutral950,
+  },
+})
