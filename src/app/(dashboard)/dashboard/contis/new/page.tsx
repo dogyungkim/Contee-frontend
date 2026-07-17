@@ -2,18 +2,40 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Calendar, Plus, Music, ChevronLeft, BookOpen, X, ArrowUp, ArrowDown } from 'lucide-react'
+import {
+  Calendar,
+  Plus,
+  Music,
+  ChevronLeft,
+  BookOpen,
+  X,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useTeam } from '@/context/team-context'
+import { useAuth } from '@/domains/auth/hooks/use-auth'
 import { useNewContiForm } from '@/domains/conti/hooks/use-new-conti-form'
+import { useTeamMembersQuery } from '@/domains/team/hooks/use-team-query'
+import { canCreateConti } from '@/domains/team/utils/team-permissions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { SongSearchDialog } from '@/domains/conti/components/song-search-dialog'
 import { SongDirectEditCard } from '@/domains/conti/components/song-direct-edit-card'
 import { mapRequestSongFormToUi } from '@/domains/song/utils/song-form'
@@ -26,7 +48,10 @@ import { useUnsavedChangesGuard } from '@/hooks/use-unsaved-changes-guard'
 export default function NewContiPage() {
   const router = useRouter()
   const { selectedTeamId, selectedTeam, isLoading: isTeamLoading } = useTeam()
-  
+  const { user } = useAuth()
+  const { data: teamMembers = [], isLoading: isMembersLoading } =
+    useTeamMembersQuery(selectedTeamId || '')
+
   // Use the custom hook for all business logic
   const {
     date,
@@ -58,7 +83,7 @@ export default function NewContiPage() {
     isSaving,
     savingIntent,
   } = useNewContiForm(selectedTeamId)
-  
+
   // UI State (kept in component as it's purely UI-related)
   const [searchOpen, setSearchOpen] = useState(false)
   const hasChanges =
@@ -68,22 +93,33 @@ export default function NewContiPage() {
     !!bibleVerseContent.trim() ||
     !!sharingInfo.trim() ||
     tempSongs.length > 0
+  const currentMember = teamMembers.find(
+    (member) => String(member.userId) === String(user?.id)
+  )
+  const canCreate = canCreateConti(currentMember?.role)
 
   useUnsavedChangesGuard({
     enabled: hasChanges && !isSaving,
   })
 
   const handleCancel = () => {
-    if (hasChanges && !window.confirm('저장하지 않은 콘티 작성 내용이 있습니다. 페이지를 떠나시겠습니까?')) {
+    if (
+      hasChanges &&
+      !window.confirm(
+        '저장하지 않은 콘티 작성 내용이 있습니다. 페이지를 떠나시겠습니까?'
+      )
+    ) {
       return
     }
     router.push('/dashboard/contis')
   }
 
-  if (isTeamLoading) {
+  if (isTeamLoading || isMembersLoading) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
-        <p className="type-body-sm text-muted-foreground">팀 정보를 불러오는 중...</p>
+        <p className="type-body-sm text-muted-foreground">
+          팀 정보를 불러오는 중...
+        </p>
       </div>
     )
   }
@@ -92,7 +128,23 @@ export default function NewContiPage() {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-4 rounded-lg border border-dashed text-center">
         <p className="text-muted-foreground">선택된 팀이 없습니다.</p>
-        <p className="type-body-sm text-muted-foreground">먼저 팀을 선택하거나 생성해주세요.</p>
+        <p className="type-body-sm text-muted-foreground">
+          먼저 팀을 선택하거나 생성해주세요.
+        </p>
+      </div>
+    )
+  }
+
+  if (!canCreate) {
+    return (
+      <div className="flex h-[400px] flex-col items-center justify-center space-y-4 rounded-lg border border-dashed px-4 text-center">
+        <p className="text-foreground">콘티를 만들 권한이 없습니다.</p>
+        <p className="type-body-sm text-muted-foreground">
+          팀 관리자에게 권한을 요청하거나 콘티 목록으로 돌아가세요.
+        </p>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/contis">콘티 목록으로 돌아가기</Link>
+        </Button>
       </div>
     )
   }
@@ -123,7 +175,7 @@ export default function NewContiPage() {
         {/* Worship Info Card */}
         <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4 sm:p-6">
           <h3 className="type-card-title">예배 정보</h3>
-          
+
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Date Picker */}
             <div className="space-y-2">
@@ -135,15 +187,20 @@ export default function NewContiPage() {
                     id="new-conti-date"
                     aria-label="예배 날짜 선택"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
+                      'w-full justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
                     )}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {date ? format(date, 'yyyy년 M월 d일 (EEE)', { locale: ko }) : "날짜 선택"}
+                    {date
+                      ? format(date, 'yyyy년 M월 d일 (EEE)', { locale: ko })
+                      : '날짜 선택'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto" align="start">
+                <PopoverContent
+                  className="w-[calc(100vw-2rem)] overflow-x-auto p-0 sm:w-auto"
+                  align="start"
+                >
                   <CalendarComponent
                     mode="single"
                     selected={date}
@@ -162,19 +219,23 @@ export default function NewContiPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {PERIODS.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    {PERIODS.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={hour} onValueChange={setHour}>
                   <SelectTrigger className="flex-1" aria-label="예배 시간 시">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {HOURS.map(h => (
-                      <SelectItem key={h} value={h}>{h}시</SelectItem>
+                    {HOURS.map((h) => (
+                      <SelectItem key={h} value={h}>
+                        {h}시
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -184,8 +245,10 @@ export default function NewContiPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {MINUTES.map(m => (
-                      <SelectItem key={m} value={m}>{m}분</SelectItem>
+                    {MINUTES.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}분
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -268,14 +331,19 @@ export default function NewContiPage() {
             <div className="flex items-center gap-2">
               <Music className="h-4 w-4 text-neutral-500" />
               <h3 className="font-semibold text-neutral-900">곡 목록</h3>
-              <span className="type-body-sm text-muted-foreground">({tempSongs.length}곡)</span>
+              <span className="type-body-sm text-muted-foreground">
+                ({tempSongs.length}곡)
+              </span>
             </div>
           </div>
 
           {/* Render Added Songs */}
           <div className="space-y-2">
             {tempSongs.map((song, index) => (
-              <div key={song.tempId} className="rounded-xl border border-neutral-200 bg-white p-3 sm:p-4">
+              <div
+                key={song.tempId}
+                className="rounded-xl border border-neutral-200 bg-white p-3 sm:p-4"
+              >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="type-label flex h-7 w-7 items-center justify-center rounded-md bg-neutral-100 text-neutral-600">
@@ -326,9 +394,15 @@ export default function NewContiPage() {
                   showResourceFields={song.isNewSong}
                   showSheetMusicUpload
                   sheetMusicFile={song.sheetMusicFile}
-                  onSheetMusicFileChange={(file) => updateSheetMusicFile(song.tempId, file)}
+                  onSheetMusicFileChange={(file) =>
+                    updateSheetMusicFile(song.tempId, file)
+                  }
                   noteLabel={song.isNewSong ? '팀 곡 메모' : '콘티 메모'}
-                  notePlaceholder={song.isNewSong ? '곡 라이브러리에 저장할 메모를 입력하세요.' : '이 콘티에서만 사용할 메모를 입력하세요.'}
+                  notePlaceholder={
+                    song.isNewSong
+                      ? '곡 라이브러리에 저장할 메모를 입력하세요.'
+                      : '이 콘티에서만 사용할 메모를 입력하세요.'
+                  }
                   showCancelButton={false}
                   showFooterActions={false}
                   initialValue={{
@@ -337,7 +411,8 @@ export default function NewContiPage() {
                     keySignature: song.keySignature,
                     bpm: song.bpm,
                     youtubeUrl: song.youtubeUrl || song.teamSong?.youtubeUrl,
-                    sheetMusicUrl: song.sheetMusicUrl || song.teamSong?.sheetMusicUrl,
+                    sheetMusicUrl:
+                      song.sheetMusicUrl || song.teamSong?.sheetMusicUrl,
                     note: song.isNewSong ? song.note : song.contiNote || '',
                   }}
                   initialSongForm={mapRequestSongFormToUi(song.songForm)}
@@ -361,8 +436,12 @@ export default function NewContiPage() {
                   <Plus className="h-5 w-5 text-neutral-700" />
                 </div>
                 <div className="text-center text-wrap">
-                  <p className="type-body-sm font-bold text-neutral-900">새로운 찬양 등록</p>
-                  <p className="type-badge mt-0.5 text-muted-foreground">라이브러리에 없는 곡 추가</p>
+                  <p className="type-body-sm font-bold text-neutral-900">
+                    새로운 찬양 등록
+                  </p>
+                  <p className="type-badge mt-0.5 text-muted-foreground">
+                    라이브러리에 없는 곡 추가
+                  </p>
                 </div>
               </div>
             </Button>
@@ -379,8 +458,12 @@ export default function NewContiPage() {
                   <Music className="h-5 w-5 text-neutral-700" />
                 </div>
                 <div className="text-center text-wrap">
-                  <p className="type-body-sm font-bold text-neutral-900">기존 찬양 불러오기</p>
-                  <p className="type-badge mt-0.5 text-muted-foreground">팀 라이브러리에서 선택</p>
+                  <p className="type-body-sm font-bold text-neutral-900">
+                    기존 찬양 불러오기
+                  </p>
+                  <p className="type-badge mt-0.5 text-muted-foreground">
+                    팀 라이브러리에서 선택
+                  </p>
                 </div>
               </div>
             </Button>
@@ -388,12 +471,15 @@ export default function NewContiPage() {
 
           {/* Empty State when no songs and not adding */}
           {tempSongs.length === 0 && (
-             <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed text-center bg-muted/5 mt-4">
-               <p className="type-body-sm text-muted-foreground/60 italic font-medium">추가된 곡이 없습니다.</p>
-               <p className="type-body-sm mt-1 text-muted-foreground/40">예배 순서에 맞춰 곡을 추가해보세요.</p>
-             </div>
+            <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-dashed text-center bg-muted/5 mt-4">
+              <p className="type-body-sm text-muted-foreground/60 italic font-medium">
+                추가된 곡이 없습니다.
+              </p>
+              <p className="type-body-sm mt-1 text-muted-foreground/40">
+                예배 순서에 맞춰 곡을 추가해보세요.
+              </p>
+            </div>
           )}
-
         </div>
       </div>
 
@@ -405,7 +491,9 @@ export default function NewContiPage() {
           addExistingSong(song)
           setSearchOpen(false)
         }}
-        existingSongIds={tempSongs.map(s => s.teamSongId).filter(Boolean) as string[]}
+        existingSongIds={
+          tempSongs.map((s) => s.teamSongId).filter(Boolean) as string[]
+        }
       />
 
       <ContiEditorActionBar
@@ -414,7 +502,9 @@ export default function NewContiPage() {
         isSaving={isSaving}
         badgeLabel="작성 중"
         description="임시 저장한 콘티는 팀에 공개하기 전까지 작성자에게만 보입니다."
-        saveLabel={savingIntent === 'publish' ? '공개 중...' : '저장하고 팀에 공개'}
+        saveLabel={
+          savingIntent === 'publish' ? '공개 중...' : '저장하고 팀에 공개'
+        }
         savingLabel={savingIntent === 'draft' ? '저장 중...' : '공개 중...'}
         saveDisabled={!title.trim()}
         onCancel={handleCancel}

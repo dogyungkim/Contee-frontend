@@ -1,11 +1,15 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+
+interface DashboardHeaderProps {
+  canCreateConti: boolean
+}
 
 /**
  * Dashboard Header Component
  * Displays page title, description, and action buttons
  */
-export function DashboardHeader() {
+export function DashboardHeader({ canCreateConti }: DashboardHeaderProps) {
   return (
     <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
@@ -16,13 +20,15 @@ export function DashboardHeader() {
         </p>
       </div>
       <div className="grid gap-2 sm:flex sm:shrink-0">
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/dashboard/contis/new">새 콘티 만들기</Link>
-        </Button>
+        {canCreateConti && (
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/dashboard/contis/new">새 콘티 만들기</Link>
+          </Button>
+        )}
         <Button asChild variant="outline" className="w-full sm:w-auto">
           <Link href="/dashboard/songs">곡 추가/검색</Link>
         </Button>
       </div>
     </div>
-  );
+  )
 }
