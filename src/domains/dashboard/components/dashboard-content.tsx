@@ -38,9 +38,9 @@ export function DashboardContent() {
     isLoading,
     isError,
   } = useDashboard()
-  const currentMember = teamMembers.find(
-    (member) => String(member.userId) === String(user?.id)
-  )
+  const currentMember = user?.id
+    ? teamMembers.find((member) => String(member.userId) === String(user.id))
+    : undefined
   const canCreate = canCreateConti(currentMember?.role)
 
   const filteredSongs = useMemo(() => {

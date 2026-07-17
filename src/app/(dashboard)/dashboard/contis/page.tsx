@@ -13,13 +13,14 @@ import { Button } from '@/components/ui/button'
 export default function ContisPage() {
   const { selectedTeamId, selectedTeam, isLoading } = useTeam()
   const { user } = useAuth()
-  const { data: teamMembers = [] } = useTeamMembersQuery(selectedTeamId || '')
-  const currentMember = teamMembers.find(
-    (member) => String(member.userId) === String(user?.id)
-  )
+  const { data: teamMembers = [], isLoading: isMembersLoading } =
+    useTeamMembersQuery(selectedTeamId || '')
+  const currentMember = user?.id
+    ? teamMembers.find((member) => String(member.userId) === String(user.id))
+    : undefined
   const canCreate = canCreateConti(currentMember?.role)
 
-  if (isLoading) {
+  if (isLoading || (selectedTeamId && isMembersLoading)) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
         <p className="type-body-sm text-muted-foreground">

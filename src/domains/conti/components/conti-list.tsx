@@ -109,9 +109,9 @@ export function ContiList() {
       ? `${formatDateLabel(selectedFrom)} - ${formatDateLabel(selectedTo)}`
       : formatDateLabel(selectedFrom)
     : '예배일 범위'
-  const currentMember = teamMembers.find(
-    (member) => member.userId === String(user?.id)
-  )
+  const currentMember = user?.id
+    ? teamMembers.find((member) => String(member.userId) === String(user.id))
+    : undefined
   const canEdit = canEditTeamContent(currentMember?.role)
   const canCreate = canCreateConti(currentMember?.role)
 

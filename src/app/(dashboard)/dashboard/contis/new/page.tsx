@@ -93,9 +93,9 @@ export default function NewContiPage() {
     !!bibleVerseContent.trim() ||
     !!sharingInfo.trim() ||
     tempSongs.length > 0
-  const currentMember = teamMembers.find(
-    (member) => String(member.userId) === String(user?.id)
-  )
+  const currentMember = user?.id
+    ? teamMembers.find((member) => String(member.userId) === String(user.id))
+    : undefined
   const canCreate = canCreateConti(currentMember?.role)
 
   useUnsavedChangesGuard({
@@ -114,7 +114,7 @@ export default function NewContiPage() {
     router.push('/dashboard/contis')
   }
 
-  if (isTeamLoading || isMembersLoading) {
+  if (isTeamLoading || (selectedTeamId && isMembersLoading)) {
     return (
       <div className="flex h-[400px] flex-col items-center justify-center space-y-3 rounded-lg border border-dashed text-center">
         <p className="type-body-sm text-muted-foreground">
