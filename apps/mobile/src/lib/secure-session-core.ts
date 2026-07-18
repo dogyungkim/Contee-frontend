@@ -17,6 +17,8 @@ export interface DevSessionOptions {
 export interface SecureSessionAdapterOptions extends DevSessionOptions {
   storage: SecureSessionStorage
   storageKey?: string
+  refreshSession?: (refreshToken: string) => Promise<SessionTokens | null>
+  logoutSession?: (refreshToken: string) => Promise<void>
 }
 
 const getStorageKey = (storageKey?: string) =>
@@ -108,6 +110,8 @@ export const createSecureSessionAdapter = ({
   devAuthBypass,
   devAccessToken,
   devRefreshToken,
+  refreshSession,
+  logoutSession,
 }: SecureSessionAdapterOptions): AuthSessionAdapter => {
   const sessionOptions = { storage, storageKey }
   const getDevSession = () =>
@@ -126,10 +130,35 @@ export const createSecureSessionAdapter = ({
       return storedTokens?.accessToken ?? null
     },
     refresh: async () => {
-      return getDevSession()
+      const devSession = getDevSession()
+      if (devSession?.accessToken) return devSession
+
+      if (!refreshSession) return null
+
+      const storedTokens = await readStoredSessionTokens(sessionOptions)
+      if (!storedTokens?.refreshToken) return null
+
+      const refreshedTokens = await refreshSession(storedTokens.refreshToken)
+      if (!refreshedTokens?.accessToken) {
+        await clearStoredSessionTokens(sessionOptions)
+        return null
+      }
+
+      await writeStoredSessionTokens(sessionOptions, refreshedTokens)
+      return refreshedTokens
     },
     clear: async () => {
-      await clearStoredSessionTokens(sessionOptions)
+      const storedTokens = await readStoredSessionTokens(sessionOptions).catch(
+        () => null
+      )
+
+      try {
+        if (storedTokens?.refreshToken) {
+          await logoutSession?.(storedTokens.refreshToken)
+        }
+      } finally {
+        await clearStoredSessionTokens(sessionOptions)
+      }
     },
   }
 }

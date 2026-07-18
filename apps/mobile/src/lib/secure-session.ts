@@ -43,9 +43,13 @@ const getSessionOptions = ({
   devAuthBypass,
   devAccessToken,
   devRefreshToken,
+  refreshSession,
+  logoutSession,
 }: ExpoSecureSessionAdapterOptions = {}): SecureSessionAdapterOptions => ({
   storage,
   storageKey,
+  refreshSession,
+  logoutSession,
   ...getDevSessionOptions(),
   ...(devAuthBypass === undefined ? undefined : { devAuthBypass }),
   ...(devAccessToken === undefined ? undefined : { devAccessToken }),

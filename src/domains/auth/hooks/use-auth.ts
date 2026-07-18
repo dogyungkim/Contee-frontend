@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { useAuthStore } from '@/stores/auth-store';
-import { useLogoutMutation, useSessionRecoveryQuery } from './use-auth-query';
-import { getGoogleLoginUrl } from '@/domains/auth/api/auth.api';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth-store'
+import { useLogoutMutation, useSessionRecoveryQuery } from './use-auth-query'
+import { getGoogleLoginUrl } from '@/domains/auth/api/auth.api'
 import {
   DEV_AUTH_BYPASS_ENABLED,
   DEV_AUTH_BYPASS_TOKEN,
   DEV_AUTH_BYPASS_USER,
-} from '@/domains/auth/dev-auth';
+} from '@/domains/auth/dev-auth'
 
 /**
  * [D] Logic Layer (Custom Hooks)
@@ -29,52 +29,53 @@ export function useInitialAuth() {
     setHasCheckedSession,
     setLoading,
     setUnavailable,
-  } = useAuthStore();
-  const shouldRecoverSession = !hasCheckedSession && !accessToken;
-  const sessionRecoveryQuery = useSessionRecoveryQuery(shouldRecoverSession);
+  } = useAuthStore()
+  const shouldRecoverSession = !hasCheckedSession && !accessToken
+  const sessionRecoveryQuery = useSessionRecoveryQuery(shouldRecoverSession)
 
   useEffect(() => {
     if (DEV_AUTH_BYPASS_ENABLED) {
       if (!accessToken) {
-        setAccessToken(DEV_AUTH_BYPASS_TOKEN);
+        setAccessToken(DEV_AUTH_BYPASS_TOKEN)
       }
-      setUser(DEV_AUTH_BYPASS_USER);
+      setUser(DEV_AUTH_BYPASS_USER)
       if (!hasCheckedSession) {
-        setHasCheckedSession(true);
+        setHasCheckedSession(true)
       }
-      setLoading(false);
-      return;
+      setLoading(false)
+      return
     }
 
-    if (hasCheckedSession) return;
+    if (hasCheckedSession) return
 
     if (accessToken) {
-      setHasCheckedSession(true);
-      return;
+      setHasCheckedSession(true)
+      return
     }
 
-    if (sessionRecoveryQuery.isPending) return;
+    if (sessionRecoveryQuery.isPending) return
 
     if (sessionRecoveryQuery.data?.accessToken) {
-      setAccessToken(sessionRecoveryQuery.data.accessToken);
-      setHasCheckedSession(true);
-      return;
+      setAccessToken(sessionRecoveryQuery.data.accessToken)
+      setUser(sessionRecoveryQuery.data.user)
+      setHasCheckedSession(true)
+      return
     }
 
     if (sessionRecoveryQuery.isError) {
       if (axios.isAxiosError(sessionRecoveryQuery.error)) {
-        const status = sessionRecoveryQuery.error.response?.status;
+        const status = sessionRecoveryQuery.error.response?.status
         if (!status || status >= 500) {
-          setUnavailable('서버에 연결할 수 없습니다.');
-          return;
+          setUnavailable('서버에 연결할 수 없습니다.')
+          return
         }
       }
 
-      reset();
-      return;
+      reset()
+      return
     }
 
-    reset();
+    reset()
   }, [
     accessToken,
     hasCheckedSession,
@@ -88,20 +89,25 @@ export function useInitialAuth() {
     sessionRecoveryQuery.error,
     sessionRecoveryQuery.isError,
     sessionRecoveryQuery.isPending,
-  ]);
+  ])
 
-  return { hasChecked: hasCheckedSession };
+  return { hasChecked: hasCheckedSession }
 }
 
 export function useAuth(redirectTo?: string) {
-  const { authStatus, isAuthenticated, isLoading, user, error, clearError } = useAuthStore();
-  const logoutMutation = useLogoutMutation();
-  const router = useRouter();
+  const { authStatus, isAuthenticated, isLoading, user, error, clearError } =
+    useAuthStore()
+  const logoutMutation = useLogoutMutation()
+  const router = useRouter()
 
-  const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED ? true : isAuthenticated;
-  const bypassedUser = DEV_AUTH_BYPASS_ENABLED ? DEV_AUTH_BYPASS_USER : user;
-  const bypassedIsLoading = DEV_AUTH_BYPASS_ENABLED ? false : isLoading;
-  const bypassedAuthStatus = DEV_AUTH_BYPASS_ENABLED ? 'authenticated' : authStatus;
+  const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED
+    ? true
+    : isAuthenticated
+  const bypassedUser = DEV_AUTH_BYPASS_ENABLED ? DEV_AUTH_BYPASS_USER : user
+  const bypassedIsLoading = DEV_AUTH_BYPASS_ENABLED ? false : isLoading
+  const bypassedAuthStatus = DEV_AUTH_BYPASS_ENABLED
+    ? 'authenticated'
+    : authStatus
 
   useEffect(() => {
     // Only redirect if we are sure about the auth state (not loading)
@@ -111,14 +117,20 @@ export function useAuth(redirectTo?: string) {
       !bypassedIsAuthenticated &&
       redirectTo
     ) {
-      router.push(redirectTo);
+      router.push(redirectTo)
     }
-  }, [bypassedAuthStatus, bypassedIsAuthenticated, bypassedIsLoading, redirectTo, router]);
+  }, [
+    bypassedAuthStatus,
+    bypassedIsAuthenticated,
+    bypassedIsLoading,
+    redirectTo,
+    router,
+  ])
 
   const login = () => {
-    if (DEV_AUTH_BYPASS_ENABLED) return;
-    window.location.href = getGoogleLoginUrl();
-  };
+    if (DEV_AUTH_BYPASS_ENABLED) return
+    window.location.href = getGoogleLoginUrl()
+  }
 
   return {
     authStatus: bypassedAuthStatus,
@@ -130,30 +142,46 @@ export function useAuth(redirectTo?: string) {
     login,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
-  };
+  }
 }
 
 export function useRequireAuth(redirectTo: string = '/login') {
-  return useAuth(redirectTo);
+  return useAuth(redirectTo)
 }
 
-export function useRedirectIfAuthenticated(redirectTo: string = '/dashboard/contis') {
-  const { authStatus, isAuthenticated, isLoading } = useAuthStore();
-  const router = useRouter();
+export function useRedirectIfAuthenticated(
+  redirectTo: string = '/dashboard/contis'
+) {
+  const { authStatus, isAuthenticated, isLoading } = useAuthStore()
+  const router = useRouter()
 
-  const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED ? true : isAuthenticated;
-  const bypassedIsLoading = DEV_AUTH_BYPASS_ENABLED ? false : isLoading;
-  const bypassedAuthStatus = DEV_AUTH_BYPASS_ENABLED ? 'authenticated' : authStatus;
+  const bypassedIsAuthenticated = DEV_AUTH_BYPASS_ENABLED
+    ? true
+    : isAuthenticated
+  const bypassedIsLoading = DEV_AUTH_BYPASS_ENABLED ? false : isLoading
+  const bypassedAuthStatus = DEV_AUTH_BYPASS_ENABLED
+    ? 'authenticated'
+    : authStatus
 
   useEffect(() => {
-    if (!bypassedIsLoading && bypassedAuthStatus === 'authenticated' && bypassedIsAuthenticated) {
-      router.push(redirectTo);
+    if (
+      !bypassedIsLoading &&
+      bypassedAuthStatus === 'authenticated' &&
+      bypassedIsAuthenticated
+    ) {
+      router.push(redirectTo)
     }
-  }, [bypassedAuthStatus, bypassedIsAuthenticated, bypassedIsLoading, redirectTo, router]);
+  }, [
+    bypassedAuthStatus,
+    bypassedIsAuthenticated,
+    bypassedIsLoading,
+    redirectTo,
+    router,
+  ])
 
   return {
     authStatus: bypassedAuthStatus,
     isAuthenticated: bypassedIsAuthenticated,
     isLoading: bypassedIsLoading,
-  };
+  }
 }

@@ -29,6 +29,7 @@ export const useSessionRecoveryQuery = (enabled: boolean) => {
 
 export const useUserQuery = (enabled = true) => {
   const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
   const hasCheckedSession = useAuthStore((state) => state.hasCheckedSession)
   const sessionVersion = useAuthStore((state) => state.sessionVersion)
 
@@ -42,7 +43,8 @@ export const useUserQuery = (enabled = true) => {
     },
     enabled:
       enabled &&
-      (DEV_AUTH_BYPASS_ENABLED || (hasCheckedSession && !!accessToken)),
+      (DEV_AUTH_BYPASS_ENABLED ||
+        (hasCheckedSession && !!accessToken && !user)),
     staleTime: STALE_TIME.FIVE_MINUTES,
     retry: false,
     refetchOnMount: false,

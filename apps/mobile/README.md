@@ -2,9 +2,9 @@
 
 Expo Router shell for the native Contee app.
 
-This workspace is intentionally scaffold-only at this stage. Production OAuth,
-bundle identifiers, EAS project metadata, and native file flows are not configured
-until the backend/native contracts are confirmed.
+This workspace contains the native Contee shell with mobile OAuth wired through
+the backend PKCE flow. Bundle identifiers, EAS project metadata, and native file
+flows are still not finalized.
 
 ## Commands
 
@@ -29,7 +29,8 @@ npm run test
 
 ## Environment
 
-- `EXPO_PUBLIC_API_BASE_URL`: API origin used by the native API client.
+- `EXPO_PUBLIC_API_BASE_URL`: API origin used by the native API client and
+  mobile OAuth endpoints.
 - `EXPO_PUBLIC_API_LOG=true`: enables redacted API request/response logging.
 - `EXPO_PUBLIC_DEV_AUTH_BYPASS=true`: enables development-only token bypass.
 - `EXPO_PUBLIC_DEV_ACCESS_TOKEN`: required when development auth bypass is

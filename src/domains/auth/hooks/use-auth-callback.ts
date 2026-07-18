@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { authKeys } from '@contee/query'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { refreshToken } from '@/domains/auth/api/auth.api'
 import { useAuthStore } from '@/stores/auth-store'
@@ -10,8 +10,9 @@ type AuthCallbackStatus = 'loading' | 'success' | 'error'
 
 export function useAuthCallback() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const searchParams = useSearchParams()
-  const { setAccessToken } = useAuthStore()
+  const { setAccessToken, setUser } = useAuthStore()
 
   const success = searchParams.get('success')
   const error = searchParams.get('error')
@@ -31,12 +32,17 @@ export function useAuthCallback() {
     if (!refreshQuery.data?.accessToken) return
 
     setAccessToken(refreshQuery.data.accessToken)
+    setUser(refreshQuery.data.user)
+    queryClient.setQueriesData(
+      { queryKey: authKeys.currentUser() },
+      refreshQuery.data.user
+    )
     const timer = setTimeout(() => {
       router.push('/dashboard/contis')
     }, UI_DELAY_MS.AUTH_CALLBACK_REDIRECT)
 
     return () => clearTimeout(timer)
-  }, [refreshQuery.data, router, setAccessToken])
+  }, [queryClient, refreshQuery.data, router, setAccessToken, setUser])
 
   let status: AuthCallbackStatus = 'loading'
   let message = '인증 처리 중...'

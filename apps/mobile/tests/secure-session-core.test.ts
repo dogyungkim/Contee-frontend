@@ -96,3 +96,75 @@ test('development bypass token takes precedence over persisted tokens', async ()
 
   assert.equal(await adapter.getAccessToken(), 'dev-token')
 })
+
+test('secure session refresh rotates persisted mobile tokens', async () => {
+  const { storage } = createMemoryStorage()
+  const adapter = createSecureSessionAdapter({
+    storage,
+    refreshSession: async (refreshToken) => {
+      assert.equal(refreshToken, 'old-refresh-token')
+
+      return {
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+      }
+    },
+  })
+
+  await writeStoredSessionTokens(
+    { storage },
+    {
+      accessToken: 'old-access-token',
+      refreshToken: 'old-refresh-token',
+    }
+  )
+
+  assert.deepEqual(await adapter.refresh(), {
+    accessToken: 'new-access-token',
+    refreshToken: 'new-refresh-token',
+  })
+  assert.equal(await adapter.getAccessToken(), 'new-access-token')
+})
+
+test('secure session refresh clears invalid mobile refresh tokens', async () => {
+  const { storage, values } = createMemoryStorage()
+  const adapter = createSecureSessionAdapter({
+    storage,
+    refreshSession: async () => null,
+  })
+
+  await writeStoredSessionTokens(
+    { storage },
+    {
+      accessToken: 'old-access-token',
+      refreshToken: 'invalid-refresh-token',
+    }
+  )
+
+  assert.equal(await adapter.refresh(), null)
+  assert.equal(values.size, 0)
+})
+
+test('secure session clear revokes mobile refresh tokens before local cleanup', async () => {
+  const { storage, values } = createMemoryStorage()
+  const revokedTokens: string[] = []
+  const adapter = createSecureSessionAdapter({
+    storage,
+    logoutSession: async (refreshToken) => {
+      revokedTokens.push(refreshToken)
+    },
+  })
+
+  await writeStoredSessionTokens(
+    { storage },
+    {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    }
+  )
+
+  await adapter.clear()
+
+  assert.deepEqual(revokedTokens, ['refresh-token'])
+  assert.equal(values.size, 0)
+})

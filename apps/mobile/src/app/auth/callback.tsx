@@ -19,7 +19,7 @@ export default function AuthCallbackScreen() {
       description={
         isLoading
           ? '저장된 모바일 세션을 확인하고 있습니다.'
-          : 'PKCE 기반 모바일 토큰 교환 endpoint가 준비되기 전까지 production 콜백 처리는 차단됩니다.'
+          : '인증이 완료되지 않았습니다. 로그인 화면으로 돌아가 다시 시도해주세요.'
       }
       action={
         <Pressable

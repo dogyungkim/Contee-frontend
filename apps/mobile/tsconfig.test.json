@@ -11,6 +11,7 @@
   "include": [
     "src/lib/api-availability-core.ts",
     "src/lib/auth-session-core.ts",
+    "src/lib/mobile-auth-core.ts",
     "src/lib/network-status-core.ts",
     "src/lib/secure-session-core.ts",
     "src/lib/team-selection-core.ts",
