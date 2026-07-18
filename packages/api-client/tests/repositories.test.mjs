@@ -205,7 +205,7 @@ test('conti read repository maps list content and preserves pagination metadata'
   assert.deepEqual(calls, [
     {
       method: 'get',
-      url: '/api/v1/teams/team-1/contis',
+      url: '/api/v1/contis/team/team-1',
       config: { params: { q: 'Sunday', page: 1 } },
     },
     { method: 'get', url: '/api/v1/contis/conti-1', config: undefined },

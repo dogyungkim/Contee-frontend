@@ -17,7 +17,7 @@ export function createContiReadRepository(client: AxiosInstance) {
       params: ContiSearchParamsDto = {}
     ): Promise<PageDto<Conti>> => {
       const { data } = await client.get<ApiResponse<PageDto<ContiResponseDto>>>(
-        `/api/v1/teams/${teamId}/contis`,
+        `/api/v1/contis/team/${teamId}`,
         { params }
       )
 
