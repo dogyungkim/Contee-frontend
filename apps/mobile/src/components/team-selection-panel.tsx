@@ -12,7 +12,6 @@ export function TeamSelectionPanel({
   emptyActionLabel = '팀 만들기 / 초대 코드로 참여',
 }: TeamSelectionPanelProps) {
   const {
-    error,
     isError,
     isLoading,
     isRefreshing,
@@ -30,8 +29,7 @@ export function TeamSelectionPanel({
     return (
       <View style={styles.panel}>
         <Text style={styles.errorText}>
-          팀 목록을 불러오지 못했습니다.
-          {error?.message ? ` ${error.message}` : ''}
+          팀 목록을 불러오지 못했습니다. 다시 시도해 주세요.
         </Text>
         <Pressable
           accessibilityRole="button"

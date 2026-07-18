@@ -65,6 +65,10 @@ export function TeamSelectionProvider({ children }: { children: ReactNode }) {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
   const [isPersistedSelectionLoading, setIsPersistedSelectionLoading] =
     useState(true)
+  const [lastTeamQueryError, setLastTeamQueryError] = useState<Error | null>(
+    null
+  )
+  const [isRetrying, setIsRetrying] = useState(false)
 
   const teamsQuery = useQuery({
     queryKey: teamKeys.lists(),
@@ -73,6 +77,17 @@ export function TeamSelectionProvider({ children }: { children: ReactNode }) {
   })
 
   const teams = useMemo(() => teamsQuery.data ?? [], [teamsQuery.data])
+
+  useEffect(() => {
+    if (teamsQuery.error) {
+      setLastTeamQueryError(teamsQuery.error)
+      return
+    }
+
+    if (teamsQuery.isSuccess) {
+      setLastTeamQueryError(null)
+    }
+  }, [teamsQuery.error, teamsQuery.isSuccess])
 
   useEffect(() => {
     let isMounted = true
@@ -148,7 +163,12 @@ export function TeamSelectionProvider({ children }: { children: ReactNode }) {
   )
 
   const refreshTeams = useCallback(async () => {
-    await teamsQuery.refetch()
+    setIsRetrying(true)
+    try {
+      await teamsQuery.refetch()
+    } finally {
+      setIsRetrying(false)
+    }
   }, [teamsQuery])
 
   const selectedTeam = useMemo(
@@ -163,16 +183,20 @@ export function TeamSelectionProvider({ children }: { children: ReactNode }) {
       teams,
       isLoading:
         isAuthenticated &&
-        (isPersistedSelectionLoading || teamsQuery.isPending),
-      isRefreshing: teamsQuery.isRefetching,
-      isError: teamsQuery.isError,
-      error: teamsQuery.error,
+        (isPersistedSelectionLoading ||
+          (teamsQuery.isPending && !teamsQuery.isFetched)),
+      isRefreshing: teamsQuery.isRefetching || isRetrying,
+      isError:
+        teamsQuery.isError || (isRetrying && lastTeamQueryError !== null),
+      error: teamsQuery.error ?? lastTeamQueryError,
       selectTeam,
       refreshTeams,
     }),
     [
       isAuthenticated,
       isPersistedSelectionLoading,
+      isRetrying,
+      lastTeamQueryError,
       refreshTeams,
       selectTeam,
       selectedTeam,
@@ -180,6 +204,7 @@ export function TeamSelectionProvider({ children }: { children: ReactNode }) {
       teams,
       teamsQuery.error,
       teamsQuery.isError,
+      teamsQuery.isFetched,
       teamsQuery.isPending,
       teamsQuery.isRefetching,
     ]
