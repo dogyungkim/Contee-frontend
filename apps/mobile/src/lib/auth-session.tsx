@@ -19,6 +19,10 @@ import {
   getMobileAuthErrorMessage,
   signInWithGoogleMobileOAuth,
 } from './mobile-auth'
+import {
+  MobileAuthApiError,
+  validateMobileSession,
+} from './mobile-auth-api'
 
 interface AuthSessionContextValue {
   status: MobileAuthStatus
@@ -33,23 +37,46 @@ interface AuthSessionContextValue {
 
 const AuthSessionContext = createContext<AuthSessionContextValue | null>(null)
 
+const isTerminalAuthError = (error: unknown) => {
+  if (error instanceof MobileAuthApiError) {
+    return (
+      error.status === 400 || error.status === 401 || error.status === 403
+    )
+  }
+
+  const status = (error as { response?: { status?: unknown } })?.response
+    ?.status
+
+  return status === 400 || status === 401 || status === 403
+}
+
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
-  const [status, setStatus] = useState<MobileAuthStatus>('loading')
+  const [status, setStatus] = useState<MobileAuthStatus>('bootstrapping')
   const [authError, setAuthError] = useState<string | null>(null)
 
   const bootstrap = useCallback(async () => {
-    setStatus('loading')
+    setStatus('bootstrapping')
     setAuthError(null)
-    const result = await bootstrapAuthSession(mobileSession)
+    const result = await bootstrapAuthSession({
+      session: mobileSession,
+      validateSession: (tokens) =>
+        validateMobileSession(API_BASE_URL, tokens.accessToken),
+      isTerminalAuthError,
+    })
     setStatus(result.status)
   }, [])
 
   useEffect(() => {
     let isMounted = true
 
-    setStatus('loading')
-    void bootstrapAuthSession(mobileSession).then((result) => {
+    setStatus('bootstrapping')
+    void bootstrapAuthSession({
+      session: mobileSession,
+      validateSession: (tokens) =>
+        validateMobileSession(API_BASE_URL, tokens.accessToken),
+      isTerminalAuthError,
+    }).then((result) => {
       if (isMounted) {
         setStatus(result.status)
       }
@@ -61,11 +88,14 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signInWithGoogle = useCallback(async () => {
-    setStatus('loading')
+    setStatus('bootstrapping')
     setAuthError(null)
 
     try {
-      await signInWithGoogleMobileOAuth({ apiBaseUrl: API_BASE_URL })
+      const response = await signInWithGoogleMobileOAuth({
+        apiBaseUrl: API_BASE_URL,
+      })
+      await validateMobileSession(API_BASE_URL, response.tokens.accessToken)
       queryClient.clear()
       setStatus('authenticated')
     } catch (error) {
@@ -91,7 +121,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       status,
-      isLoading: status === 'loading',
+      isLoading: status === 'bootstrapping',
       isAuthenticated: status === 'authenticated',
       authError,
       bootstrap,

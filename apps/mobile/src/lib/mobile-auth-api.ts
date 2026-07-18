@@ -170,3 +170,30 @@ export const logoutMobileSession = async (
     throw error
   })
 }
+
+export const validateMobileSession = async (
+  apiBaseUrl: string,
+  accessToken: string
+) => {
+  const trimmedAccessToken = accessToken.trim()
+  if (!trimmedAccessToken) {
+    throw new MobileAuthApiError('Mobile access token is empty.', 401)
+  }
+
+  const response = await fetch(buildApiUrl(apiBaseUrl, '/api/v1/users/me'), {
+    headers: {
+      Authorization: `Bearer ${trimmedAccessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    const payload = (await response
+      .json()
+      .catch(() => null)) as ApiResponse<null> | null
+
+    throw new MobileAuthApiError(
+      payload?.message || 'Mobile session validation failed.',
+      response.status
+    )
+  }
+}

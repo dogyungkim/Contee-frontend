@@ -13,8 +13,12 @@ const getSessionStatusLabel = (
     return '인증됨'
   }
 
-  if (status === 'loading') {
+  if (status === 'bootstrapping') {
     return '확인 중'
+  }
+
+  if (status === 'unavailable') {
+    return '연결 불가'
   }
 
   return '인증되지 않음'

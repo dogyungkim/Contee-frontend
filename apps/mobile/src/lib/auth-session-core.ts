@@ -1,9 +1,19 @@
-import type { AuthSessionAdapter } from '@contee/api-client'
+import type { AuthSessionAdapter, SessionTokens } from '@contee/api-client'
 
-export type MobileAuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
+export type MobileAuthStatus =
+  | 'bootstrapping'
+  | 'authenticated'
+  | 'unauthenticated'
+  | 'unavailable'
 
 export interface AuthBootstrapResult {
-  status: Exclude<MobileAuthStatus, 'loading'>
+  status: Exclude<MobileAuthStatus, 'bootstrapping'>
+}
+
+export interface AuthBootstrapOptions {
+  session: Pick<AuthSessionAdapter, 'refresh' | 'clear'>
+  validateSession?: (tokens: SessionTokens) => Promise<unknown> | unknown
+  isTerminalAuthError?: (error: unknown) => boolean
 }
 
 export interface AuthSignOutOptions {
@@ -15,25 +25,37 @@ export interface AuthSignOutResult {
   status: 'unauthenticated'
 }
 
-export const getAuthStatusForAccessToken = (
-  accessToken: string | null | undefined
-): AuthBootstrapResult['status'] =>
-  accessToken?.trim() ? 'authenticated' : 'unauthenticated'
-
-export const bootstrapAuthSession = async (
-  session: Pick<AuthSessionAdapter, 'getAccessToken' | 'clear'>
-): Promise<AuthBootstrapResult> => {
+const clearSessionSilently = async (
+  session: Pick<AuthSessionAdapter, 'clear'>
+) => {
   try {
-    const accessToken = await session.getAccessToken()
-    return { status: getAuthStatusForAccessToken(accessToken) }
+    await session.clear()
   } catch {
-    try {
-      await session.clear()
-    } catch {
-      // Keep auth bootstrap deterministic even when secure storage cleanup fails.
+    // Keep auth state deterministic without exposing storage/auth details.
+  }
+}
+
+export const bootstrapAuthSession = async ({
+  session,
+  validateSession,
+  isTerminalAuthError,
+}: AuthBootstrapOptions): Promise<AuthBootstrapResult> => {
+  try {
+    const refreshedTokens = await session.refresh()
+
+    if (!refreshedTokens?.accessToken) {
+      return { status: 'unauthenticated' }
     }
 
-    return { status: 'unauthenticated' }
+    await validateSession?.(refreshedTokens)
+    return { status: 'authenticated' }
+  } catch (error) {
+    if (isTerminalAuthError?.(error)) {
+      await clearSessionSilently(session)
+      return { status: 'unauthenticated' }
+    }
+
+    return { status: 'unavailable' }
   }
 }
 
@@ -42,9 +64,7 @@ export const signOutAuthSession = async ({
   clearQueryCache,
 }: AuthSignOutOptions): Promise<AuthSignOutResult> => {
   try {
-    await session.clear()
-  } catch {
-    // Secure storage failures should not leave app data or auth state behind.
+    await clearSessionSilently(session)
   } finally {
     await clearQueryCache?.()
   }
