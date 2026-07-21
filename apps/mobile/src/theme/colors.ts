@@ -7,4 +7,6 @@ export const colors = {
   neutral600: '#475569',
   neutral800: '#1e293b',
   neutral950: '#020617',
+  overlay: 'rgba(148, 163, 184, 0.58)',
+  error: '#b91c1c',
 } as const

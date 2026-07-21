@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router'
 import { ListMusic, Music2, Settings, Users } from 'lucide-react-native'
 
+import { TeamSelectionTrigger } from '@/components/team-selection-modal'
 import { colors, spacing, typography } from '@/theme'
 
 export default function TabsLayout() {
@@ -16,6 +17,8 @@ export default function TabsLayout() {
           paddingBottom: spacing.sm,
           paddingTop: spacing.xs,
         },
+        headerRight: () => <TeamSelectionTrigger />,
+        headerRightContainerStyle: { paddingRight: spacing.md },
       }}
     >
       <Tabs.Screen
@@ -44,6 +47,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings/index"
         options={{
+          headerRight: undefined,
           title: '설정',
           tabBarIcon: ({ color, size }) => (
             <Settings color={color} size={size} />

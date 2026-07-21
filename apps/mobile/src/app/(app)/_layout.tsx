@@ -2,6 +2,10 @@ import { Redirect, Stack } from 'expo-router'
 import { Pressable, StyleSheet, Text } from 'react-native'
 
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
+import {
+  TeamSelectionOverlayHost,
+  TeamSelectionOverlayProvider,
+} from '@/components/team-selection-modal'
 import { useAuthSession } from '@/lib/auth-session'
 import { colors, spacing, typography } from '@/theme'
 
@@ -45,18 +49,21 @@ export default function ProtectedAppLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShadowVisible: false,
-      }}
-    >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="contis/[id]" options={{ title: '콘티 상세' }} />
-      <Stack.Screen
-        name="share/contis/[token]"
-        options={{ title: '공유 콘티' }}
-      />
-    </Stack>
+    <TeamSelectionOverlayProvider>
+      <Stack
+        screenOptions={{
+          headerShadowVisible: false,
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="contis/[id]" options={{ title: '콘티 상세' }} />
+        <Stack.Screen
+          name="share/contis/[token]"
+          options={{ title: '공유 콘티' }}
+        />
+      </Stack>
+      <TeamSelectionOverlayHost />
+    </TeamSelectionOverlayProvider>
   )
 }
 

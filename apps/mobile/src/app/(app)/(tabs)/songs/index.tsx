@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import type { TeamSong } from '@contee/domain'
 
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
-import { TeamSelectionPanel } from '@/components/team-selection-panel'
+import { TeamSelectionTrigger } from '@/components/team-selection-modal'
 import { useMobileSongs } from '@/lib/song-read'
 import { useTeamSelection } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
@@ -25,7 +25,7 @@ export default function SongsScreen() {
             ? '팀 정보를 불러온 뒤 곡 라이브러리를 연결합니다.'
             : '팀을 선택하거나 참여한 뒤 곡 라이브러리를 볼 수 있습니다.'
         }
-        action={<TeamSelectionPanel />}
+        action={<TeamSelectionTrigger />}
       />
     )
   }
@@ -44,8 +44,6 @@ export default function SongsScreen() {
       <Text style={styles.description}>
         {selectedTeam?.name ?? '선택된 팀'} 팀의 read-only 곡 라이브러리입니다.
       </Text>
-      <TeamSelectionPanel />
-
       {songsQuery.isPending ? (
         <Text style={styles.stateText}>곡 목록을 불러오는 중입니다.</Text>
       ) : songsQuery.isError ? (

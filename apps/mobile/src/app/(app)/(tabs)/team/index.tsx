@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import type { Team, TeamMember, TeamRole, TeamSummary } from '@contee/domain'
 
-import { TeamSelectionPanel } from '@/components/team-selection-panel'
+import { TeamSelectionTrigger } from '@/components/team-selection-modal'
 import { useMobileTeamRead } from '@/lib/team-read'
 import { useTeamSelection } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
@@ -36,7 +36,7 @@ export default function TeamScreen() {
             ? '팀 정보를 불러오고 있습니다.'
             : '팀을 선택하거나 참여한 뒤 팀 요약과 멤버 목록을 볼 수 있습니다.'}
         </Text>
-        <TeamSelectionPanel />
+        <TeamSelectionTrigger />
       </ScrollView>
     )
   }
@@ -57,8 +57,6 @@ export default function TeamScreen() {
         {selectedTeam?.name ?? '선택된 팀'}의 요약과 멤버 목록을 read-only로
         확인합니다.
       </Text>
-      <TeamSelectionPanel />
-
       <View style={styles.section}>
         <Text accessibilityRole="header" style={styles.sectionTitle}>
           팀 요약
