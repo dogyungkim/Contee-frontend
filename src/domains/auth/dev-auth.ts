@@ -2,7 +2,6 @@ import type { User } from '@/domains/auth/models/auth'
 
 export const DEV_AUTH_BYPASS_ENABLED =
   process.env.NODE_ENV === 'development' &&
-  process.env.NEXT_PUBLIC_USE_MOCK === 'true' &&
   process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === 'true'
 
 export const DEV_AUTH_BYPASS_TOKEN = 'dev-auth-bypass-token'

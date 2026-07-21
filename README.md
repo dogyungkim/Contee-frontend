@@ -26,7 +26,6 @@ npm run dev
 
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8080
-NEXT_PUBLIC_USE_MOCK=false
 NEXT_PUBLIC_DEV_AUTH_BYPASS=false
 NEXT_PUBLIC_API_LOG=false
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
@@ -35,8 +34,7 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
 | Variable | Description |
 | --- | --- |
 | `NEXT_PUBLIC_API_URL` | 백엔드 API base URL |
-| `NEXT_PUBLIC_USE_MOCK` | `true`면 Axios mock adapter 사용 |
-| `NEXT_PUBLIC_DEV_AUTH_BYPASS` | mock 개발 환경에서 인증 우회 |
+| `NEXT_PUBLIC_DEV_AUTH_BYPASS` | 개발 환경에서 인증 우회 |
 | `NEXT_PUBLIC_API_LOG` | API request/response 로그 출력 |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 measurement ID |
 
