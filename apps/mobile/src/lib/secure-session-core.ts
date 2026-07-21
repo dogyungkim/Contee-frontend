@@ -21,6 +21,8 @@ export interface SecureSessionAdapterOptions extends DevSessionOptions {
   logoutSession?: (refreshToken: string) => Promise<void>
 }
 
+type StoredSessionFields = 'accessToken' | 'refreshToken'
+
 const getStorageKey = (storageKey?: string) =>
   storageKey ?? SECURE_SESSION_STORAGE_KEY
 
@@ -31,14 +33,21 @@ const getNonEmptyString = (value: unknown) => {
   return trimmedValue.length > 0 ? trimmedValue : null
 }
 
+const readStoredSessionField = (
+  value: object,
+  field: StoredSessionFields
+) => {
+  const descriptor = Object.getOwnPropertyDescriptor(value, field)
+  return getNonEmptyString(descriptor?.value)
+}
+
 const toSessionTokens = (value: unknown): SessionTokens | null => {
   if (!value || typeof value !== 'object') return null
 
-  const candidate = value as Record<string, unknown>
-  const accessToken = getNonEmptyString(candidate.accessToken)
+  const accessToken = readStoredSessionField(value, 'accessToken')
   if (!accessToken) return null
 
-  const refreshToken = getNonEmptyString(candidate.refreshToken)
+  const refreshToken = readStoredSessionField(value, 'refreshToken')
   return refreshToken ? { accessToken, refreshToken } : { accessToken }
 }
 
@@ -148,9 +157,15 @@ export const createSecureSessionAdapter = ({
       return refreshedTokens
     },
     clear: async () => {
-      const storedTokens = await readStoredSessionTokens(sessionOptions).catch(
-        () => null
-      )
+      let storedTokens: SessionTokens | null = null
+
+      try {
+        storedTokens = await readStoredSessionTokens(sessionOptions)
+      } catch (error) {
+        if (error instanceof Error) {
+          storedTokens = null
+        }
+      }
 
       try {
         if (storedTokens?.refreshToken) {

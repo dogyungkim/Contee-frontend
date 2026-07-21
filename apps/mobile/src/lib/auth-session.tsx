@@ -37,6 +37,17 @@ interface AuthSessionContextValue {
 
 const AuthSessionContext = createContext<AuthSessionContextValue | null>(null)
 
+const readResponseStatus = (error: object) => {
+  const responseDescriptor = Object.getOwnPropertyDescriptor(error, 'response')
+  const response = responseDescriptor?.value
+  if (!response || typeof response !== 'object') return null
+
+  const statusDescriptor = Object.getOwnPropertyDescriptor(response, 'status')
+  return typeof statusDescriptor?.value === 'number'
+    ? statusDescriptor.value
+    : null
+}
+
 const isTerminalAuthError = (error: unknown) => {
   if (error instanceof MobileAuthApiError) {
     return (
@@ -44,9 +55,9 @@ const isTerminalAuthError = (error: unknown) => {
     )
   }
 
-  const status = (error as { response?: { status?: unknown } })?.response
-    ?.status
+  if (!error || typeof error !== 'object') return false
 
+  const status = readResponseStatus(error)
   return status === 400 || status === 401 || status === 403
 }
 
@@ -55,28 +66,29 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<MobileAuthStatus>('bootstrapping')
   const [authError, setAuthError] = useState<string | null>(null)
 
+  const runBootstrap = useCallback(
+    () =>
+      bootstrapAuthSession({
+        session: mobileSession,
+        validateSession: (tokens) =>
+          validateMobileSession(API_BASE_URL, tokens.accessToken),
+        isTerminalAuthError,
+      }),
+    []
+  )
+
   const bootstrap = useCallback(async () => {
     setStatus('bootstrapping')
     setAuthError(null)
-    const result = await bootstrapAuthSession({
-      session: mobileSession,
-      validateSession: (tokens) =>
-        validateMobileSession(API_BASE_URL, tokens.accessToken),
-      isTerminalAuthError,
-    })
+    const result = await runBootstrap()
     setStatus(result.status)
-  }, [])
+  }, [runBootstrap])
 
   useEffect(() => {
     let isMounted = true
 
     setStatus('bootstrapping')
-    void bootstrapAuthSession({
-      session: mobileSession,
-      validateSession: (tokens) =>
-        validateMobileSession(API_BASE_URL, tokens.accessToken),
-      isTerminalAuthError,
-    }).then((result) => {
+    void runBootstrap().then((result) => {
       if (isMounted) {
         setStatus(result.status)
       }
@@ -85,7 +97,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [runBootstrap])
 
   const signInWithGoogle = useCallback(async () => {
     setStatus('bootstrapping')

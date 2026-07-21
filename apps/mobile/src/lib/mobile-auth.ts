@@ -37,12 +37,17 @@ export const getMobileAuthRedirectUri = () =>
 
 export const getMobileAuthErrorMessage = (error: unknown) => {
   if (error instanceof MobileAuthFlowError) {
-    if (error.code === 'cancelled') return '로그인이 취소되었습니다.'
-    if (error.code === 'configuration_missing') {
-      return 'API 주소가 설정되지 않아 로그인할 수 없습니다.'
+    switch (error.code) {
+      case 'cancelled':
+        return '로그인이 취소되었습니다.'
+      case 'configuration_missing':
+        return 'API 주소가 설정되지 않아 로그인할 수 없습니다.'
+      case 'callback_invalid':
+      case 'oauth_error':
+      case 'state_mismatch':
+      case 'token_exchange_failed':
+        return '로그인에 실패했습니다. 다시 시도해주세요.'
     }
-
-    return '로그인에 실패했습니다. 다시 시도해주세요.'
   }
 
   return '로그인 처리 중 오류가 발생했습니다.'

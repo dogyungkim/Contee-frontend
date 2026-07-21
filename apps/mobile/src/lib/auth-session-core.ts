@@ -30,7 +30,8 @@ const clearSessionSilently = async (
 ) => {
   try {
     await session.clear()
-  } catch {
+  } catch (error) {
+    if (error instanceof Error) return
     // Keep auth state deterministic without exposing storage/auth details.
   }
 }
