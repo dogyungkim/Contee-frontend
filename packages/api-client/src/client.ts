@@ -7,7 +7,7 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { redactSensitive } from './redaction'
+import { redactSensitive, redactSensitiveUrl } from './redaction'
 import { getRequestUrl, isApiRequest, isAuthRefreshRequest } from './safe-url'
 
 export interface SessionTokens {
@@ -134,7 +134,7 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
         if (options.log) {
           emitLog(options.log, 'debug', '[API:REQ]', {
             method: config.method?.toUpperCase(),
-            url: getRequestUrl(config),
+            url: redactSensitiveUrl(getRequestUrl(config)),
             params: redactSensitive(config.params),
             data: redactSensitive(config.data),
           })
@@ -151,7 +151,7 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
     if (options.log) {
       emitLog(options.log, 'debug', '[API:REQ]', {
         method: config.method?.toUpperCase(),
-        url: getRequestUrl(config),
+        url: redactSensitiveUrl(getRequestUrl(config)),
         params: redactSensitive(config.params),
         data: redactSensitive(config.data),
       })
@@ -165,7 +165,7 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
       if (options.log) {
         emitLog(options.log, 'debug', '[API:RES]', {
           method: response.config.method?.toUpperCase(),
-          url: getRequestUrl(response.config),
+          url: redactSensitiveUrl(getRequestUrl(response.config)),
           status: response.status,
           data: redactSensitive(response.data),
         })
@@ -177,7 +177,7 @@ export function createApiClient(options: ApiClientOptions): AxiosInstance {
       if (options.log) {
         emitLog(options.log, 'error', '[API:ERR]', {
           method: error.config?.method?.toUpperCase(),
-          url: getRequestUrl(error.config || {}),
+          url: redactSensitiveUrl(getRequestUrl(error.config || {})),
           status: error.response?.status,
           data: redactSensitive(error.response?.data),
         })

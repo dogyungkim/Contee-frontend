@@ -10,7 +10,7 @@ export {
   isApiRequest,
   isAuthRefreshRequest,
 } from './safe-url'
-export { redactSensitive } from './redaction'
+export { redactSensitive, redactSensitiveUrl } from './redaction'
 export { createTeamRepository } from './team.repository'
 export { createContiReadRepository } from './conti-read.repository'
 export { createSongReadRepository } from './song-read.repository'

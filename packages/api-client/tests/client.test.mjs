@@ -8,6 +8,7 @@ const {
   createApiClient,
   isApiRequest,
   redactSensitive,
+  redactSensitiveUrl,
 } = require('../dist/index.js')
 
 const baseUrl = 'https://api.contee.test'
@@ -125,6 +126,58 @@ test('untrusted absolute URLs strip authorization and credentials', async () => 
 
   assert.equal(getAuthorization(seen.headers), undefined)
   assert.equal(seen.withCredentials, false)
+})
+
+test('request-level baseURL cannot turn a root-relative path into a trusted API request', async () => {
+  let seen
+  const sessionState = createSession()
+  const client = createApiClient({
+    baseUrl,
+    session: sessionState.session,
+    adapter: async (config) => {
+      seen = config
+      return ok(config)
+    },
+  })
+
+  await client.get('/api/v1/users/me', {
+    baseURL: 'https://evil.test',
+    headers: { Authorization: 'Bearer user-provided' },
+  })
+
+  assert.equal(getAuthorization(seen.headers), undefined)
+  assert.equal(seen.withCredentials, false)
+  assert.equal(
+    isApiRequest(
+      { url: '/api/v1/users/me', baseURL: 'https://evil.test' },
+      baseUrl
+    ),
+    false
+  )
+})
+
+test('share tokens are redacted from logged URLs', async () => {
+  const logs = []
+  const sessionState = createSession()
+  const client = createApiClient({
+    baseUrl,
+    session: sessionState.session,
+    log: (level, label, payload) => {
+      logs.push({ level, label, payload })
+    },
+    adapter: async (config) => ok(config),
+  })
+
+  await client.get('/api/v1/share/contis/secret-token')
+
+  assert.equal(
+    logs[0].payload.url,
+    'https://api.contee.test/api/v1/share/contis/[token]'
+  )
+  assert.equal(
+    redactSensitiveUrl('/share/contis/secret-token?from=kakao'),
+    '/share/contis/[token]?from=kakao'
+  )
 })
 
 test('concurrent 401s share one refresh call and retry both requests', async () => {

@@ -17,6 +17,12 @@ const isSensitiveKey = (key: string) =>
 const getObjectTag = (value: object) =>
   Object.prototype.toString.call(value).slice(8, -1)
 
+const SHARE_CONTI_TOKEN_PATTERN =
+  /(\/(?:api\/v1\/share\/contis|share\/contis)\/)([^/?#]+)/g
+
+export const redactSensitiveUrl = (url: string) =>
+  url.replace(SHARE_CONTI_TOKEN_PATTERN, '$1[token]')
+
 export const redactSensitive = (value: unknown, key = ''): unknown => {
   if (isSensitiveKey(key)) return '[REDACTED]'
 
