@@ -86,10 +86,12 @@ test('team repository preserves endpoint paths, payloads, and mapping', async ()
   await repository.remove('team-1')
   assert.equal((await repository.listMembers('team-1'))[0].userId, 'user-1')
   assert.equal(
-    (await repository.addMember('team-1', {
-      userId: 'user-2',
-      role: 'MEMBER',
-    })).role,
+    (
+      await repository.addMember('team-1', {
+        userId: 'user-2',
+        role: 'MEMBER',
+      })
+    ).role,
     'MEMBER'
   )
   assert.equal((await repository.join('SUN123')).id, 'member-1')
@@ -205,7 +207,7 @@ test('conti read repository maps list content and preserves pagination metadata'
   assert.deepEqual(calls, [
     {
       method: 'get',
-      url: '/api/v1/contis/team/team-1',
+      url: '/api/v1/teams/team-1/contis',
       config: { params: { q: 'Sunday', page: 1 } },
     },
     { method: 'get', url: '/api/v1/contis/conti-1', config: undefined },

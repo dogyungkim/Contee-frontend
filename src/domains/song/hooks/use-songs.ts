@@ -4,6 +4,7 @@ import {
   createTeamSong,
   deleteTeamSong,
   getTeamSongs,
+  updateTeamSongFavorite,
   updateTeamSong,
 } from '@/domains/song/api/song.api'
 import { getSongForm, updateSongForm } from '@/lib/api/song-form'
@@ -61,6 +62,25 @@ export const useUpdateTeamSong = () => {
       songId: string
       request: UpdateTeamSongRequest
     }) => updateTeamSong(teamId, songId, request),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: songKeys.list(data.teamId) })
+    },
+  })
+}
+
+export const useUpdateTeamSongFavorite = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      teamId,
+      songId,
+      isFavorite,
+    }: {
+      teamId: string
+      songId: string
+      isFavorite: boolean
+    }) => updateTeamSongFavorite(teamId, songId, isFavorite),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: songKeys.list(data.teamId) })
     },

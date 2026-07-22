@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  X,
-  GripVertical,
-  Star,
-} from 'lucide-react'
+import { X, GripVertical, Star } from 'lucide-react'
 import { useMemo } from 'react'
 import { ContiSong, ContiSongFormPart } from '@/types/conti'
 import { Button } from '@/components/ui/button'
@@ -12,14 +8,16 @@ import { Toggle } from '@/components/ui/toggle'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
-import { useUpdateTeamSong } from '@/domains/song/hooks/use-songs'
+import { useUpdateTeamSongFavorite } from '@/domains/song/hooks/use-songs'
 import { mapApiSongFormToUi } from '@/domains/song/utils/song-form'
 import { getContiSongDisplay } from '@/domains/conti/utils/conti-editor'
 import { ContiSongCard } from './conti-song-card'
 import { SongDirectEditCard } from './song-direct-edit-card'
 import type { SongFormPartRequest } from '@/types/song'
 
-const mapRequestSongFormToConti = (parts: SongFormPartRequest[] = []): ContiSongFormPart[] =>
+const mapRequestSongFormToConti = (
+  parts: SongFormPartRequest[] = []
+): ContiSongFormPart[] =>
   parts.map((part, index) => ({
     id: null,
     partOrder: index,
@@ -53,11 +51,19 @@ export function ContiSongItem({
   onSheetMusicChange,
   onSheetMusicDeleteRequest,
 }: ContiSongItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const { mutate: updateTeamSong } = useUpdateTeamSong()
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+  const { mutate: updateFavorite } = useUpdateTeamSongFavorite()
   const teamSong = contiSong.teamSong
   const display = getContiSongDisplay(contiSong)
-  const isNewDraftSong = contiSong.id.startsWith('draft-song-') && !contiSong.teamSongId
+  const isNewDraftSong =
+    contiSong.id.startsWith('draft-song-') && !contiSong.teamSongId
   const form = {
     title: display.title || '',
     artist: display.artist || '',
@@ -65,17 +71,23 @@ export function ContiSongItem({
     bpm: display.bpm || 0,
     youtubeUrl: display.youtubeUrl || '',
     sheetMusicUrl: display.sheetMusicUrl || '',
-    note: isNewDraftSong ? teamSong?.note || contiSong.note || '' : display.note || '',
+    note: isNewDraftSong
+      ? teamSong?.note || contiSong.note || ''
+      : display.note || '',
   }
-  const songFormParts = useMemo(() => mapApiSongFormToUi(contiSong.songForm), [contiSong.songForm])
-  const isKeyOverridden = !!form.keySignature && form.keySignature !== teamSong?.keySignature
+  const songFormParts = useMemo(
+    () => mapApiSongFormToUi(contiSong.songForm),
+    [contiSong.songForm]
+  )
+  const isKeyOverridden =
+    !!form.keySignature && form.keySignature !== teamSong?.keySignature
   const isBpmOverridden = !!form.bpm && form.bpm !== teamSong?.bpm
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = (isFavorite: boolean) => {
     if (!teamSong) return
-    updateTeamSong({
+    updateFavorite({
       teamId: teamSong.teamId,
       songId: teamSong.id,
-      request: { isFavorite: !teamSong.isFavorite },
+      isFavorite,
     })
   }
   const style = {
@@ -99,7 +111,9 @@ export function ContiSongItem({
         teamNote={teamSong?.note}
         songForm={songFormParts}
         youtubeUrl={display.youtubeUrl}
-        sheetMusicUrl={contiSong.sheetMusicFile?.downloadUrl ?? display.sheetMusicUrl}
+        sheetMusicUrl={
+          contiSong.sheetMusicFile?.downloadUrl ?? display.sheetMusicUrl
+        }
         isDragging={isDragging}
         highlightKey={isKeyOverridden}
         highlightBpm={isBpmOverridden}
@@ -129,10 +143,17 @@ export function ContiSongItem({
                 aria-label={`${contiSong.title} 즐겨찾기 ${teamSong?.isFavorite ? '해제' : '추가'}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                <Star className={cn('h-4 w-4', teamSong?.isFavorite && 'fill-current')} />
+                <Star
+                  className={cn(
+                    'h-4 w-4',
+                    teamSong?.isFavorite && 'fill-current'
+                  )}
+                />
               </Toggle>
             )}
-            {!isEditMode && teamSong?.isFavorite && <Star className="h-4 w-4 fill-current text-yellow-600" />}
+            {!isEditMode && teamSong?.isFavorite && (
+              <Star className="h-4 w-4 fill-current text-yellow-600" />
+            )}
             {isEditMode && (
               <Button
                 variant="ghost"
@@ -164,7 +185,9 @@ export function ContiSongItem({
             sheetMusicFile={sheetMusicChange?.file}
             existingSheetMusicFile={contiSong.sheetMusicFile}
             isSheetMusicMarkedForDeletion={sheetMusicChange?.deleteExisting}
-            onSheetMusicFileChange={(file) => onSheetMusicChange(contiSong.id, file)}
+            onSheetMusicFileChange={(file) =>
+              onSheetMusicChange(contiSong.id, file)
+            }
             onSheetMusicDeleteRequest={
               contiSong.sheetMusicFile
                 ? () => onSheetMusicDeleteRequest(contiSong.id)
@@ -190,18 +213,19 @@ export function ContiSongItem({
                 youtubeUrl: data.youtubeUrl,
                 sheetMusicUrl: data.sheetMusicUrl,
                 note: isNewDraftSong ? undefined : data.note,
-                teamSong: isNewDraftSong && contiSong.teamSong
-                  ? {
-                      ...contiSong.teamSong,
-                      title: data.title,
-                      artist: data.artist,
-                      keySignature: data.keySignature,
-                      bpm: data.bpm,
-                      youtubeUrl: data.youtubeUrl,
-                      sheetMusicUrl: data.sheetMusicUrl,
-                      note: data.note,
-                    }
-                  : contiSong.teamSong,
+                teamSong:
+                  isNewDraftSong && contiSong.teamSong
+                    ? {
+                        ...contiSong.teamSong,
+                        title: data.title,
+                        artist: data.artist,
+                        keySignature: data.keySignature,
+                        bpm: data.bpm,
+                        youtubeUrl: data.youtubeUrl,
+                        sheetMusicUrl: data.sheetMusicUrl,
+                        note: data.note,
+                      }
+                    : contiSong.teamSong,
                 songForm: mapRequestSongFormToConti(data.songForm),
               })
             }}

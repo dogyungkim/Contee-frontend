@@ -26,7 +26,6 @@ export interface UpdateTeamSongRequestDto {
   youtubeUrl?: string
   sheetMusicUrl?: string
   note?: string
-  isFavorite?: boolean
 }
 
 export interface TeamSongSearchParamsDto {
