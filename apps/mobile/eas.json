@@ -8,7 +8,7 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_DEV_AUTH_BYPASS": "true",
-        "EXPO_PUBLIC_API_LOG": "false"
+        "EXPO_PUBLIC_API_LOG": "true"
       }
     },
     "preview": {

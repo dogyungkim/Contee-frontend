@@ -11,6 +11,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     icon: './assets/expo.icon',
+    bundleIdentifier: 'ai.kr.contee.app',
   },
   android: {
     adaptiveIcon: {
@@ -20,6 +21,7 @@ const config: ExpoConfig = {
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    package: 'ai.kr.contee.app',
   },
   web: {
     output: 'static',
