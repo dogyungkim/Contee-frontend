@@ -1,0 +1,12 @@
+QA scenario S8 evidence
+
+Invocation:
+find src/domains -path '*/api/*' -type f | sort
+rg -n '@contee/domain/.*/(dto|mapper)|to[A-Z].*Model' src/domains/{auth,team,song,conti,dashboard}/api packages/api-client/src
+find ../Contee-backend/src/main/java/com/contee -path '*/controller/dto/*' -type f | sort | sed -n '1,120p'
+
+Output summary:
+Frontend has per-domain api.api.ts, api.dto.ts, and api.mapper.ts surfaces; API modules call mapper functions such as toUserModel, toTeamSongModel, toContiModel, and toDashboardDataModel before returning models. DTOs and mappers are re-exported from @contee/domain/*/dto and @contee/domain/*/mapper.
+Backend request/response DTOs live under auth/user/team/conti controller/dto roots.
+
+Finding: The repository has a real DTO/mapper boundary, but .codex/API.md does not state ownership, transport/view-model separation, or the mapper boundary at all.

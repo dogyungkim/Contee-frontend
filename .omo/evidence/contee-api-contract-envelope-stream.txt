@@ -1,0 +1,18 @@
+QA scenario S3/S7 evidence
+
+Invocation:
+nl -ba ../Contee-backend/src/main/java/com/contee/common/response/ApiResponse.java
+nl -ba ../Contee-backend/src/main/java/com/contee/common/exception/ErrorResponse.java
+nl -ba ../Contee-backend/docs/api.md | sed -n '1603,1613p;1724,1733p'
+nl -ba src/domains/conti/api/conti.api.ts | sed -n '75,88p'
+
+Output:
+ApiResponse record fields: success, message, data
+ErrorResponse record fields: success, message, data, error; ErrorDetail has code, status, timestamp, fieldErrors
+docs/api.md:1609 says PDF/PNG/JPEG file stream
+docs/api.md:1610 says stream endpoint does not use common ApiResponse JSON
+docs/api.md:1730 says shared stream response is PDF/PNG/JPEG
+docs/api.md:1731 says shared stream endpoint does not use common ApiResponse JSON
+src/domains/conti/api/conti.api.ts:83 uses responseType: 'arraybuffer'
+
+Finding: Backend docs contain the envelope and stream exceptions, but .codex/API.md contains neither guidance nor a link that resolves to the backend docs.

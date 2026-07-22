@@ -1,0 +1,16 @@
+QA scenario S5/S6 evidence
+
+Invocation:
+rg -n 'dashboard|contis/team|teams/.*/contis|teams/.*/dashboard' .codex/API.md ../Contee-backend/docs/api.md src packages
+nl -ba packages/api-client/src/conti-read.repository.ts | sed -n '13,42p'
+nl -ba src/domains/dashboard/api/dashboard.api.ts | sed -n '13,16p'
+rg -n '@GetMapping("/\\{id\\}/contis")' ../Contee-backend/src/main/java/com/contee/team/controller/TeamController.java
+
+Output:
+../Contee-backend/docs/api.md:1044:## `GET /api/v1/contis/team/{teamId}`
+../Contee-backend/docs/api.md:1805:| `GET` | `/api/v1/contis/team/{teamId}` | 팀 콘티 목록 |
+packages/api-client/src/conti-read.repository.ts:20:        `/api/v1/contis/team/${teamId}`,
+src/domains/dashboard/api/dashboard.api.ts:14:  const response = await apiClient.get<ApiResponse<DashboardDataDto>>(`/api/v1/teams/${teamId}/dashboard`);
+../Contee-backend/src/main/java/com/contee/team/controller/TeamController.java:317:    @GetMapping("/{id}/contis")
+
+Finding: The frontend conti list calls the docs-only route that is absent from backend source. The frontend dashboard calls /api/v1/teams/{teamId}/dashboard, absent from both backend docs and controller mappings.

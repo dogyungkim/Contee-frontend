@@ -1,0 +1,26 @@
+QA scenario S1/S2 evidence
+
+Invocation:
+if test -f backend/docs/api.md; then echo 'backend/docs/api.md: EXISTS'; else echo 'backend/docs/api.md: MISSING'; fi
+if test -f ../Contee-backend/docs/api.md; then echo '../Contee-backend/docs/api.md: EXISTS'; else echo '../Contee-backend/docs/api.md: MISSING'; fi
+nl -ba .codex/API.md
+nl -ba src/lib/api.ts | sed -n '5,18p'
+nl -ba ../Contee-backend/docs/api.md | sed -n '15,30p;32,70p'
+
+Output:
+backend/docs/api.md: MISSING
+../Contee-backend/docs/api.md: EXISTS
+     1  ## API rules
+     2  - Use this rule whenever making API call.
+     3  - Check the file on backend/docs/api.md to see backend api spec
+     5  const API_LOG_ENABLED = process.env.NEXT_PUBLIC_API_LOG === 'true'
+     6  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
+     7  const AUTH_REFRESH_PATH = '/api/v1/auth/refresh'
+    11  대부분 API는 인증이 필요하며, 컨트롤러에서 `@AuthenticationPrincipal UserPrincipal`을 사용한다.
+    25  - Access token은 `Authorization: Bearer {accessToken}` 헤더로 전달한다.
+    26  - 웹 refresh token은 `HttpOnly` cookie로 관리한다.
+    27  - 모바일 refresh token은 앱이 보관하고 JSON body로 전달한다.
+    32  ### 공통 응답 형식
+    50  ### 공통 에러
+
+Finding: API.md does not itself capture base URL, auth, or response/error contract, and its referenced relative path is missing from the frontend repository.

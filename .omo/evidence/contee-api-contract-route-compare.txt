@@ -1,0 +1,14 @@
+QA scenario S4 evidence
+
+Invocation:
+ruby route-set comparison over ../Contee-backend/docs/api.md and all backend *Controller.java @RequestMapping/@*Mapping annotations
+
+Output:
+DOC_ENDPOINT_COUNT=51
+SOURCE_CONTROLLER_ENDPOINT_COUNT=51
+SOURCE_NOT_IN_DOC
+GET /api/v1/teams/{id}/contis
+DOC_NOT_IN_SOURCE
+GET /api/v1/contis/team/{teamId}
+
+Finding: The backend reference is not synchronized with backend controller mappings for the team conti-list route.
