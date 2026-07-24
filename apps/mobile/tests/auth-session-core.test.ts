@@ -4,6 +4,7 @@ import test from 'node:test'
 import {
   bootstrapAuthSession,
   signOutAuthSession,
+  validateAndPersistAuthSession,
 } from '../src/lib/auth-session-core'
 
 test('auth bootstrap authenticates refresh token success after validation', async () => {
@@ -155,6 +156,45 @@ test('auth bootstrap does not log token-bearing errors', async () => {
   }
 })
 
+test('auth sign in persists tokens only after validation succeeds', async () => {
+  const calls: string[] = []
+  const tokens = {
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
+  }
+
+  await validateAndPersistAuthSession({
+    tokens,
+    validateSession: async () => {
+      calls.push('validate')
+    },
+    persistSession: async () => {
+      calls.push('persist')
+    },
+  })
+
+  assert.deepEqual(calls, ['validate', 'persist'])
+})
+
+test('auth sign in does not persist tokens when validation fails', async () => {
+  let persistCount = 0
+
+  await assert.rejects(
+    validateAndPersistAuthSession({
+      tokens: { accessToken: 'invalid-access-token' },
+      validateSession: async () => {
+        throw new Error('invalid session')
+      },
+      persistSession: async () => {
+        persistCount += 1
+      },
+    }),
+    /invalid session/
+  )
+
+  assert.equal(persistCount, 0)
+})
+
 test('auth sign out clears session and query cache', async () => {
   let clearCount = 0
   let queryClearCount = 0
@@ -175,7 +215,7 @@ test('auth sign out clears session and query cache', async () => {
   assert.equal(queryClearCount, 1)
 })
 
-test('auth sign out clears query cache when session cleanup fails', async () => {
+test('auth sign out reports local session cleanup failures', async () => {
   let queryClearCount = 0
   const originalConsoleError = console.error
   const originalConsoleWarn = console.warn
@@ -193,18 +233,20 @@ test('auth sign out clears query cache when session cleanup fails', async () => 
   }
 
   try {
-    const result = await signOutAuthSession({
-      session: {
-        clear: () => {
-          throw new Error('refresh_token=should-not-leak')
+    await assert.rejects(
+      signOutAuthSession({
+        session: {
+          clear: () => {
+            throw new Error('refresh_token=should-not-leak')
+          },
         },
-      },
-      clearQueryCache: () => {
-        queryClearCount += 1
-      },
-    })
+        clearQueryCache: () => {
+          queryClearCount += 1
+        },
+      }),
+      /refresh_token=should-not-leak/
+    )
 
-    assert.deepEqual(result, { status: 'unauthenticated' })
     assert.equal(queryClearCount, 1)
     assert.equal(consoleCallCount, 0)
   } finally {

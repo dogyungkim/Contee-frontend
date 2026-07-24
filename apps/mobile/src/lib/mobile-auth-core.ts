@@ -122,17 +122,6 @@ export const base64UrlEncode = (bytes: Uint8Array) => {
   return output
 }
 
-export const createRandomBase64UrlString = (byteLength = 32) => {
-  const crypto = globalThis.crypto
-  if (!crypto?.getRandomValues) {
-    throw new Error('Secure random generation is unavailable.')
-  }
-
-  const bytes = new Uint8Array(byteLength)
-  crypto.getRandomValues(bytes)
-  return base64UrlEncode(bytes)
-}
-
 const rotateRight = (value: number, shift: number) =>
   (value >>> shift) | (value << (32 - shift))
 

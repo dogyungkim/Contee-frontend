@@ -3,13 +3,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
 import { useAuthSession } from '@/lib/auth-session'
-import { getPublicEnvFlag, hasPublicEnvValue } from '@/lib/public-env'
+import {
+  getDevelopmentAuthBypassEnabled,
+  hasPublicEnvValue,
+} from '@/lib/public-env'
 import { colors, spacing, typography } from '@/theme'
 
 export default function LoginScreen() {
   const { authError, bootstrap, isAuthenticated, isLoading, signInWithGoogle } =
     useAuthSession()
-  const devBypassEnabled = getPublicEnvFlag('EXPO_PUBLIC_DEV_AUTH_BYPASS')
+  const devBypassEnabled = getDevelopmentAuthBypassEnabled()
   const hasDevAccessToken = hasPublicEnvValue('EXPO_PUBLIC_DEV_ACCESS_TOKEN')
   const hasApiBaseUrl = hasPublicEnvValue('EXPO_PUBLIC_API_BASE_URL')
   const usesDevBypass = devBypassEnabled && hasDevAccessToken

@@ -1,3 +1,7 @@
+import { isDevelopmentAuthBypassEnabled } from './mobile-config-core'
+
+declare const __DEV__: boolean
+
 export const getPublicEnv = (key: string) => {
   switch (key) {
     case 'EXPO_PUBLIC_API_BASE_URL':
@@ -16,6 +20,12 @@ export const getPublicEnv = (key: string) => {
 }
 
 export const getPublicEnvFlag = (key: string) => getPublicEnv(key) === 'true'
+
+export const getDevelopmentAuthBypassEnabled = () =>
+  isDevelopmentAuthBypassEnabled({
+    isDevelopment: typeof __DEV__ !== 'undefined' && __DEV__,
+    requested: getPublicEnvFlag('EXPO_PUBLIC_DEV_AUTH_BYPASS'),
+  })
 
 export const hasPublicEnvValue = (key: string) =>
   Boolean(getPublicEnv(key)?.trim())

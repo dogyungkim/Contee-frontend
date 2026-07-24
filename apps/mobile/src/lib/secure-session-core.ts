@@ -33,10 +33,7 @@ const getNonEmptyString = (value: unknown) => {
   return trimmedValue.length > 0 ? trimmedValue : null
 }
 
-const readStoredSessionField = (
-  value: object,
-  field: StoredSessionFields
-) => {
+const readStoredSessionField = (value: object, field: StoredSessionFields) => {
   const descriptor = Object.getOwnPropertyDescriptor(value, field)
   return getNonEmptyString(descriptor?.value)
 }
@@ -161,19 +158,15 @@ export const createSecureSessionAdapter = ({
 
       try {
         storedTokens = await readStoredSessionTokens(sessionOptions)
-      } catch (error) {
-        if (error instanceof Error) {
-          storedTokens = null
-        }
+      } catch {}
+
+      if (storedTokens?.refreshToken) {
+        try {
+          await logoutSession?.(storedTokens.refreshToken)
+        } catch {}
       }
 
-      try {
-        if (storedTokens?.refreshToken) {
-          await logoutSession?.(storedTokens.refreshToken)
-        }
-      } finally {
-        await clearStoredSessionTokens(sessionOptions)
-      }
+      await clearStoredSessionTokens(sessionOptions)
     },
   }
 }

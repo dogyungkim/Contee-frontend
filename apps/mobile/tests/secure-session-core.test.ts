@@ -168,3 +168,45 @@ test('secure session clear revokes mobile refresh tokens before local cleanup', 
   assert.deepEqual(revokedTokens, ['refresh-token'])
   assert.equal(values.size, 0)
 })
+
+test('secure session clear succeeds locally when remote revocation fails', async () => {
+  const { storage, values } = createMemoryStorage()
+  const adapter = createSecureSessionAdapter({
+    storage,
+    logoutSession: async () => {
+      throw new Error('server unavailable')
+    },
+  })
+
+  await writeStoredSessionTokens(
+    { storage },
+    {
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    }
+  )
+
+  await adapter.clear()
+
+  assert.equal(values.size, 0)
+})
+
+test('secure session clear reports local credential deletion failures', async () => {
+  const storage: SecureSessionStorage = {
+    getItemAsync: async () =>
+      JSON.stringify({
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      }),
+    setItemAsync: async () => undefined,
+    deleteItemAsync: async () => {
+      throw new Error('secure storage unavailable')
+    },
+  }
+  const adapter = createSecureSessionAdapter({ storage })
+
+  await assert.rejects(
+    () => Promise.resolve(adapter.clear()),
+    /secure storage unavailable/
+  )
+})

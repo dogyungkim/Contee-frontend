@@ -3,7 +3,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useAuthSession } from '@/lib/auth-session'
-import { getPublicEnvFlag, hasPublicEnvValue } from '@/lib/public-env'
+import {
+  getDevelopmentAuthBypassEnabled,
+  hasPublicEnvValue,
+} from '@/lib/public-env'
 import { colors, spacing, typography } from '@/theme'
 
 const getSessionStatusLabel = (
@@ -25,9 +28,10 @@ const getSessionStatusLabel = (
 }
 
 export default function SettingsScreen() {
-  const { isAuthenticated, isLoading, signOut, status } = useAuthSession()
+  const { authError, isAuthenticated, isLoading, signOut, status } =
+    useAuthSession()
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const devBypassEnabled = getPublicEnvFlag('EXPO_PUBLIC_DEV_AUTH_BYPASS')
+  const devBypassEnabled = getDevelopmentAuthBypassEnabled()
   const hasDevAccessToken = hasPublicEnvValue('EXPO_PUBLIC_DEV_ACCESS_TOKEN')
   const hasApiBaseUrl = hasPublicEnvValue('EXPO_PUBLIC_API_BASE_URL')
   const isLogoutDisabled = isLoading || isSigningOut || !isAuthenticated
@@ -138,6 +142,9 @@ export default function SettingsScreen() {
                 {isSigningOut ? '로그아웃 중...' : '로그아웃'}
               </Text>
             </Pressable>
+            {authError ? (
+              <Text style={styles.authError}>{authError}</Text>
+            ) : null}
           </View>
         </View>
       </ScrollView>
@@ -245,6 +252,10 @@ const styles = StyleSheet.create({
   actionDescription: {
     ...typography.body,
     color: colors.neutral600,
+  },
+  authError: {
+    ...typography.tabLabel,
+    color: colors.error,
   },
   logoutButton: {
     minHeight: 48,

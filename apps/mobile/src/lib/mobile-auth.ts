@@ -1,18 +1,30 @@
 import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
+import { getRandomBytesAsync } from 'expo-crypto'
 
-import { exchangeMobileOAuthCode } from './mobile-auth-api'
+import { exchangeMobileOAuthCode, MobileAuthApiError } from './mobile-auth-api'
 import {
   MOBILE_AUTH_CALLBACK_PATH,
+  base64UrlEncode,
   buildMobileOAuthAuthorizationUrl,
-  createRandomBase64UrlString,
   createS256CodeChallenge,
   parseMobileOAuthCallback,
   verifyMobileOAuthState,
 } from './mobile-auth-core'
-import { writeSecureSessionTokens } from './secure-session'
+import { getPublicEnvFlag } from './public-env'
 
 WebBrowser.maybeCompleteAuthSession()
+
+const logGoogleAuth = (
+  level: 'log' | 'error',
+  payload: Record<string, unknown>
+) => {
+  if (!getPublicEnvFlag('EXPO_PUBLIC_API_LOG')) return
+  globalThis.console?.[level]('[AUTH:GOOGLE]', payload)
+}
+
+const createRandomBase64UrlString = async (byteLength = 32) =>
+  base64UrlEncode(await getRandomBytesAsync(byteLength))
 
 export type MobileAuthFlowErrorCode =
   | 'configuration_missing'
@@ -67,8 +79,8 @@ export const signInWithGoogleMobileOAuth = async ({
     )
   }
 
-  const codeVerifier = createRandomBase64UrlString()
-  const state = createRandomBase64UrlString()
+  const codeVerifier = await createRandomBase64UrlString()
+  const state = await createRandomBase64UrlString()
   const codeChallenge = await createS256CodeChallenge(codeVerifier)
   const authorizationUrl = buildMobileOAuthAuthorizationUrl({
     apiBaseUrl,
@@ -77,10 +89,14 @@ export const signInWithGoogleMobileOAuth = async ({
     state,
   })
 
+  logGoogleAuth('log', { step: 'authorization_start', redirectUri })
+
   const result = await WebBrowser.openAuthSessionAsync(
     authorizationUrl,
     redirectUri
   )
+
+  logGoogleAuth('log', { step: 'authorization_result', type: result.type })
 
   if (result.type !== 'success') {
     throw new MobileAuthFlowError('cancelled', 'Mobile OAuth was cancelled.')
@@ -88,6 +104,7 @@ export const signInWithGoogleMobileOAuth = async ({
 
   const callback = parseMobileOAuthCallback(result.url)
   if (!verifyMobileOAuthState(callback.state, state)) {
+    logGoogleAuth('error', { step: 'state_mismatch' })
     throw new MobileAuthFlowError(
       'state_mismatch',
       'Mobile OAuth state does not match.'
@@ -95,6 +112,7 @@ export const signInWithGoogleMobileOAuth = async ({
   }
 
   if (callback.type === 'error') {
+    logGoogleAuth('error', { step: 'oauth_error', error: callback.error })
     throw new MobileAuthFlowError(
       'oauth_error',
       `Mobile OAuth failed: ${callback.error}`
@@ -102,15 +120,20 @@ export const signInWithGoogleMobileOAuth = async ({
   }
 
   try {
+    logGoogleAuth('log', { step: 'token_exchange_start' })
     const response = await exchangeMobileOAuthCode(apiBaseUrl, {
       code: callback.code,
       codeVerifier,
       redirectUri,
     })
-    await writeSecureSessionTokens(response.tokens)
     return response
   } catch (error) {
     if (error instanceof MobileAuthFlowError) throw error
+
+    logGoogleAuth('error', {
+      step: 'token_exchange_failed',
+      status: error instanceof MobileAuthApiError ? error.status : null,
+    })
 
     throw new MobileAuthFlowError(
       'token_exchange_failed',

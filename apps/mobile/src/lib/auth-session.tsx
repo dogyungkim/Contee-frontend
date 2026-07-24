@@ -12,17 +12,19 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   bootstrapAuthSession,
   signOutAuthSession,
+  validateAndPersistAuthSession,
   type MobileAuthStatus,
 } from './auth-session-core'
+import { subscribeToAuthSessionInvalidation } from './auth-session-events'
 import { API_BASE_URL, mobileSession } from './api'
 import {
   getMobileAuthErrorMessage,
+  MobileAuthFlowError,
   signInWithGoogleMobileOAuth,
 } from './mobile-auth'
-import {
-  MobileAuthApiError,
-  validateMobileSession,
-} from './mobile-auth-api'
+import { MobileAuthApiError, validateMobileSession } from './mobile-auth-api'
+import { getPublicEnvFlag } from './public-env'
+import { writeSecureSessionTokens } from './secure-session'
 
 interface AuthSessionContextValue {
   status: MobileAuthStatus
@@ -50,9 +52,7 @@ const readResponseStatus = (error: object) => {
 
 const isTerminalAuthError = (error: unknown) => {
   if (error instanceof MobileAuthApiError) {
-    return (
-      error.status === 400 || error.status === 401 || error.status === 403
-    )
+    return error.status === 400 || error.status === 401 || error.status === 403
   }
 
   if (!error || typeof error !== 'object') return false
@@ -99,34 +99,64 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     }
   }, [runBootstrap])
 
+  useEffect(
+    () =>
+      subscribeToAuthSessionInvalidation(() => {
+        queryClient.clear()
+        setAuthError(null)
+        setStatus('unauthenticated')
+      }),
+    [queryClient]
+  )
+
   const signInWithGoogle = useCallback(async () => {
     setStatus('bootstrapping')
     setAuthError(null)
+
+    if (getPublicEnvFlag('EXPO_PUBLIC_API_LOG')) {
+      console.log('[AUTH:GOOGLE]', { step: 'sign_in_pressed' })
+    }
 
     try {
       const response = await signInWithGoogleMobileOAuth({
         apiBaseUrl: API_BASE_URL,
       })
-      await validateMobileSession(API_BASE_URL, response.tokens.accessToken)
+      await validateAndPersistAuthSession({
+        tokens: response.tokens,
+        validateSession: (tokens) =>
+          validateMobileSession(API_BASE_URL, tokens.accessToken),
+        persistSession: writeSecureSessionTokens,
+      })
       queryClient.clear()
       setStatus('authenticated')
     } catch (error) {
+      if (getPublicEnvFlag('EXPO_PUBLIC_API_LOG')) {
+        console.error('[AUTH:GOOGLE]', {
+          step: 'sign_in_failed',
+          code:
+            error instanceof MobileAuthFlowError ? error.code : 'unexpected',
+          status: error instanceof MobileAuthApiError ? error.status : null,
+        })
+      }
       setStatus('unauthenticated')
       setAuthError(getMobileAuthErrorMessage(error))
     }
   }, [queryClient])
 
   const signOut = useCallback(async () => {
-    let nextStatus: MobileAuthStatus = 'unauthenticated'
+    setAuthError(null)
 
     try {
-      const result = await signOutAuthSession({
+      await signOutAuthSession({
         session: mobileSession,
         clearQueryCache: () => queryClient.clear(),
       })
-      nextStatus = result.status
-    } finally {
-      setStatus(nextStatus)
+      setStatus('unauthenticated')
+    } catch {
+      setStatus('authenticated')
+      setAuthError(
+        '이 기기의 로그인 정보를 삭제하지 못했습니다. 다시 시도해주세요.'
+      )
     }
   }, [queryClient])
 

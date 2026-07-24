@@ -73,7 +73,7 @@ const emitLog = (
   }
 
   const logger =
-    level === 'error' ? globalThis.console?.error : globalThis.console?.debug
+    level === 'error' ? globalThis.console?.error : globalThis.console?.log
   logger?.(label, payload)
 }
 

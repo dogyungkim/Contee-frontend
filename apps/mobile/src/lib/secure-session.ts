@@ -11,7 +11,7 @@ import {
   type SecureSessionAdapterOptions,
   type SecureSessionStorage,
 } from './secure-session-core'
-import { getPublicEnv, getPublicEnvFlag } from './public-env'
+import { getDevelopmentAuthBypassEnabled, getPublicEnv } from './public-env'
 
 const secureStoreOptions: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
@@ -26,7 +26,7 @@ const secureStoreStorage: SecureSessionStorage = {
 }
 
 const getDevSessionOptions = (): DevSessionOptions => ({
-  devAuthBypass: getPublicEnvFlag('EXPO_PUBLIC_DEV_AUTH_BYPASS'),
+  devAuthBypass: getDevelopmentAuthBypassEnabled(),
   devAccessToken: getPublicEnv('EXPO_PUBLIC_DEV_ACCESS_TOKEN'),
   devRefreshToken: getPublicEnv('EXPO_PUBLIC_DEV_REFRESH_TOKEN'),
 })

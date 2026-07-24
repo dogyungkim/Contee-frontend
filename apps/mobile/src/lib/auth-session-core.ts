@@ -25,6 +25,12 @@ export interface AuthSignOutResult {
   status: 'unauthenticated'
 }
 
+export interface ValidateAndPersistAuthSessionOptions {
+  tokens: SessionTokens
+  validateSession: (tokens: SessionTokens) => Promise<unknown> | unknown
+  persistSession: (tokens: SessionTokens) => Promise<void> | void
+}
+
 const clearSessionSilently = async (
   session: Pick<AuthSessionAdapter, 'clear'>
 ) => {
@@ -60,12 +66,21 @@ export const bootstrapAuthSession = async ({
   }
 }
 
+export const validateAndPersistAuthSession = async ({
+  tokens,
+  validateSession,
+  persistSession,
+}: ValidateAndPersistAuthSessionOptions) => {
+  await validateSession(tokens)
+  await persistSession(tokens)
+}
+
 export const signOutAuthSession = async ({
   session,
   clearQueryCache,
 }: AuthSignOutOptions): Promise<AuthSignOutResult> => {
   try {
-    await clearSessionSilently(session)
+    await session.clear()
   } finally {
     await clearQueryCache?.()
   }

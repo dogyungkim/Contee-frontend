@@ -1,5 +1,16 @@
 import type { ExpoConfig } from 'expo/config'
 
+const buildProfile = process.env.EAS_BUILD_PROFILE
+const isProduction = buildProfile
+  ? buildProfile === 'production'
+  : process.env.NODE_ENV === 'production'
+
+if (isProduction && process.env.EXPO_PUBLIC_DEV_AUTH_BYPASS === 'true') {
+  throw new Error(
+    'Development auth bypass must be disabled in production builds.'
+  )
+}
+
 const config: ExpoConfig = {
   name: 'Contee Mobile',
   slug: 'contee-mobile',
