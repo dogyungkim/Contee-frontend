@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router'
+import { getApiErrorMessage } from '@contee/api-client'
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
 
 import {
@@ -40,7 +41,7 @@ export default function SharedContiScreen() {
       <ScreenPlaceholder
         eyebrow="External Share"
         title="공유 콘티"
-        description="공유 콘티를 불러오지 못했습니다."
+        description={getApiErrorMessage(sharedContiQuery.error)}
         action={
           <Pressable
             accessibilityRole="button"

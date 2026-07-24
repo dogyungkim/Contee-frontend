@@ -24,7 +24,6 @@ import {
 } from './mobile-auth'
 import { MobileAuthApiError, validateMobileSession } from './mobile-auth-api'
 import { getPublicEnvFlag } from './public-env'
-import { writeSecureSessionTokens } from './secure-session'
 
 interface AuthSessionContextValue {
   status: MobileAuthStatus
@@ -125,7 +124,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
         tokens: response.tokens,
         validateSession: (tokens) =>
           validateMobileSession(API_BASE_URL, tokens.accessToken),
-        persistSession: writeSecureSessionTokens,
+        persistSession: mobileSession.setSession,
       })
       queryClient.clear()
       setStatus('authenticated')

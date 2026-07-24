@@ -3,8 +3,8 @@ import test from 'node:test'
 
 import {
   createSecureSessionAdapter,
-  readStoredSessionTokens,
-  writeStoredSessionTokens,
+  readStoredRefreshToken,
+  writeStoredRefreshToken,
   type SecureSessionStorage,
 } from '../src/lib/secure-session-core'
 
@@ -26,17 +26,25 @@ const createMemoryStorage = (initialValues: Record<string, string> = {}) => {
   return { storage, values, deletedKeys }
 }
 
-test('secure session adapter reads persisted access tokens', async () => {
+test('secure session keeps access tokens only in memory', async () => {
   const { storage } = createMemoryStorage()
   const storageKey = 'session-test'
   const adapter = createSecureSessionAdapter({ storage, storageKey })
 
-  await writeStoredSessionTokens(
-    { storage, storageKey },
-    { accessToken: 'access-token', refreshToken: 'refresh-token' }
-  )
+  await adapter.setSession({
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
+  })
 
   assert.equal(await adapter.getAccessToken(), 'access-token')
+  assert.equal(
+    (await storage.getItemAsync(storageKey))?.includes('access-token'),
+    false
+  )
+  assert.deepEqual(
+    await storage.getItemAsync(storageKey),
+    '{"refreshToken":"refresh-token"}'
+  )
 })
 
 test('secure session adapter clears persisted tokens', async () => {
@@ -44,10 +52,7 @@ test('secure session adapter clears persisted tokens', async () => {
   const storageKey = 'session-test'
   const adapter = createSecureSessionAdapter({ storage, storageKey })
 
-  await writeStoredSessionTokens(
-    { storage, storageKey },
-    { accessToken: 'secret' }
-  )
+  await writeStoredRefreshToken({ storage, storageKey }, 'refresh-token')
   await adapter.clear()
 
   assert.equal(values.has(storageKey), false)
@@ -56,12 +61,12 @@ test('secure session adapter clears persisted tokens', async () => {
 test('invalid stored session is deleted without exposing token values', async () => {
   const storageKey = 'session-test'
   const { storage, deletedKeys } = createMemoryStorage({
-    [storageKey]: JSON.stringify({ accessToken: '' }),
+    [storageKey]: JSON.stringify({ refreshToken: '' }),
   })
 
-  const tokens = await readStoredSessionTokens({ storage, storageKey })
+  const refreshToken = await readStoredRefreshToken({ storage, storageKey })
 
-  assert.equal(tokens, null)
+  assert.equal(refreshToken, null)
   assert.deepEqual(deletedKeys, [storageKey])
 })
 
@@ -92,8 +97,6 @@ test('development bypass token takes precedence over persisted tokens', async ()
     devAccessToken: 'dev-token',
   })
 
-  await writeStoredSessionTokens({ storage }, { accessToken: 'stored-token' })
-
   assert.equal(await adapter.getAccessToken(), 'dev-token')
 })
 
@@ -111,19 +114,17 @@ test('secure session refresh rotates persisted mobile tokens', async () => {
     },
   })
 
-  await writeStoredSessionTokens(
-    { storage },
-    {
-      accessToken: 'old-access-token',
-      refreshToken: 'old-refresh-token',
-    }
-  )
+  await writeStoredRefreshToken({ storage }, 'old-refresh-token')
 
   assert.deepEqual(await adapter.refresh(), {
     accessToken: 'new-access-token',
     refreshToken: 'new-refresh-token',
   })
   assert.equal(await adapter.getAccessToken(), 'new-access-token')
+  assert.equal(
+    await storage.getItemAsync('contee.mobile.session.v1'),
+    '{"refreshToken":"new-refresh-token"}'
+  )
 })
 
 test('secure session refresh clears invalid mobile refresh tokens', async () => {
@@ -133,13 +134,7 @@ test('secure session refresh clears invalid mobile refresh tokens', async () => 
     refreshSession: async () => null,
   })
 
-  await writeStoredSessionTokens(
-    { storage },
-    {
-      accessToken: 'old-access-token',
-      refreshToken: 'invalid-refresh-token',
-    }
-  )
+  await writeStoredRefreshToken({ storage }, 'invalid-refresh-token')
 
   assert.equal(await adapter.refresh(), null)
   assert.equal(values.size, 0)
@@ -155,13 +150,7 @@ test('secure session clear revokes mobile refresh tokens before local cleanup', 
     },
   })
 
-  await writeStoredSessionTokens(
-    { storage },
-    {
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-    }
-  )
+  await writeStoredRefreshToken({ storage }, 'refresh-token')
 
   await adapter.clear()
 
@@ -178,13 +167,7 @@ test('secure session clear succeeds locally when remote revocation fails', async
     },
   })
 
-  await writeStoredSessionTokens(
-    { storage },
-    {
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-    }
-  )
+  await writeStoredRefreshToken({ storage }, 'refresh-token')
 
   await adapter.clear()
 
@@ -195,7 +178,6 @@ test('secure session clear reports local credential deletion failures', async ()
   const storage: SecureSessionStorage = {
     getItemAsync: async () =>
       JSON.stringify({
-        accessToken: 'access-token',
         refreshToken: 'refresh-token',
       }),
     setItemAsync: async () => undefined,

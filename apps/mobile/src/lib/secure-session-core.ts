@@ -21,8 +21,6 @@ export interface SecureSessionAdapterOptions extends DevSessionOptions {
   logoutSession?: (refreshToken: string) => Promise<void>
 }
 
-type StoredSessionFields = 'accessToken' | 'refreshToken'
-
 const getStorageKey = (storageKey?: string) =>
   storageKey ?? SECURE_SESSION_STORAGE_KEY
 
@@ -33,19 +31,15 @@ const getNonEmptyString = (value: unknown) => {
   return trimmedValue.length > 0 ? trimmedValue : null
 }
 
-const readStoredSessionField = (value: object, field: StoredSessionFields) => {
+const readStoredSessionField = (value: object, field: string) => {
   const descriptor = Object.getOwnPropertyDescriptor(value, field)
   return getNonEmptyString(descriptor?.value)
 }
 
-const toSessionTokens = (value: unknown): SessionTokens | null => {
+const toRefreshToken = (value: unknown) => {
   if (!value || typeof value !== 'object') return null
 
-  const accessToken = readStoredSessionField(value, 'accessToken')
-  if (!accessToken) return null
-
-  const refreshToken = readStoredSessionField(value, 'refreshToken')
-  return refreshToken ? { accessToken, refreshToken } : { accessToken }
+  return readStoredSessionField(value, 'refreshToken')
 }
 
 export const getDevSessionTokens = ({
@@ -62,15 +56,15 @@ export const getDevSessionTokens = ({
   return refreshToken ? { accessToken, refreshToken } : { accessToken }
 }
 
-export const parseStoredSessionTokens = (storedValue: string) => {
+export const parseStoredRefreshToken = (storedValue: string) => {
   try {
-    return toSessionTokens(JSON.parse(storedValue))
+    return toRefreshToken(JSON.parse(storedValue))
   } catch {
     return null
   }
 }
 
-export const readStoredSessionTokens = async ({
+export const readStoredRefreshToken = async ({
   storage,
   storageKey,
 }: Pick<SecureSessionAdapterOptions, 'storage' | 'storageKey'>) => {
@@ -79,36 +73,40 @@ export const readStoredSessionTokens = async ({
 
   if (!storedValue) return null
 
-  const tokens = parseStoredSessionTokens(storedValue)
-  if (tokens) return tokens
+  const refreshToken = parseStoredRefreshToken(storedValue)
+  if (refreshToken) return refreshToken
 
   await storage.deleteItemAsync(key)
   return null
 }
 
-export const writeStoredSessionTokens = async (
+export const writeStoredRefreshToken = async (
   {
     storage,
     storageKey,
   }: Pick<SecureSessionAdapterOptions, 'storage' | 'storageKey'>,
-  tokens: SessionTokens
+  refreshToken: string
 ) => {
-  const normalizedTokens = toSessionTokens(tokens)
-  if (!normalizedTokens) {
-    throw new Error('Cannot save invalid session tokens.')
+  const normalizedRefreshToken = getNonEmptyString(refreshToken)
+  if (!normalizedRefreshToken) {
+    throw new Error('Cannot save an invalid refresh token.')
   }
 
   await storage.setItemAsync(
     getStorageKey(storageKey),
-    JSON.stringify(normalizedTokens)
+    JSON.stringify({ refreshToken: normalizedRefreshToken })
   )
 }
 
-export const clearStoredSessionTokens = ({
+export const clearStoredRefreshToken = ({
   storage,
   storageKey,
 }: Pick<SecureSessionAdapterOptions, 'storage' | 'storageKey'>) =>
   storage.deleteItemAsync(getStorageKey(storageKey))
+
+export interface SecureSessionAdapter extends AuthSessionAdapter {
+  setSession(tokens: SessionTokens): Promise<void>
+}
 
 export const createSecureSessionAdapter = ({
   storage,
@@ -118,8 +116,9 @@ export const createSecureSessionAdapter = ({
   devRefreshToken,
   refreshSession,
   logoutSession,
-}: SecureSessionAdapterOptions): AuthSessionAdapter => {
+}: SecureSessionAdapterOptions): SecureSessionAdapter => {
   const sessionOptions = { storage, storageKey }
+  let accessToken: string | null = null
   const getDevSession = () =>
     getDevSessionTokens({
       devAuthBypass,
@@ -132,8 +131,17 @@ export const createSecureSessionAdapter = ({
       const devSession = getDevSession()
       if (devSession?.accessToken) return devSession.accessToken
 
-      const storedTokens = await readStoredSessionTokens(sessionOptions)
-      return storedTokens?.accessToken ?? null
+      return accessToken
+    },
+    setSession: async (tokens) => {
+      const nextAccessToken = getNonEmptyString(tokens.accessToken)
+      const nextRefreshToken = getNonEmptyString(tokens.refreshToken)
+      if (!nextAccessToken || !nextRefreshToken) {
+        throw new Error('Cannot save invalid session tokens.')
+      }
+
+      await writeStoredRefreshToken(sessionOptions, nextRefreshToken)
+      accessToken = nextAccessToken
     },
     refresh: async () => {
       const devSession = getDevSession()
@@ -141,32 +149,38 @@ export const createSecureSessionAdapter = ({
 
       if (!refreshSession) return null
 
-      const storedTokens = await readStoredSessionTokens(sessionOptions)
-      if (!storedTokens?.refreshToken) return null
+      const refreshToken = await readStoredRefreshToken(sessionOptions)
+      if (!refreshToken) return null
 
-      const refreshedTokens = await refreshSession(storedTokens.refreshToken)
-      if (!refreshedTokens?.accessToken) {
-        await clearStoredSessionTokens(sessionOptions)
+      const refreshedTokens = await refreshSession(refreshToken)
+      if (!refreshedTokens?.accessToken || !refreshedTokens.refreshToken) {
+        accessToken = null
+        await clearStoredRefreshToken(sessionOptions)
         return null
       }
 
-      await writeStoredSessionTokens(sessionOptions, refreshedTokens)
+      await writeStoredRefreshToken(
+        sessionOptions,
+        refreshedTokens.refreshToken
+      )
+      accessToken = refreshedTokens.accessToken
       return refreshedTokens
     },
     clear: async () => {
-      let storedTokens: SessionTokens | null = null
+      accessToken = null
+      let refreshToken: string | null = null
 
       try {
-        storedTokens = await readStoredSessionTokens(sessionOptions)
+        refreshToken = await readStoredRefreshToken(sessionOptions)
       } catch {}
 
-      if (storedTokens?.refreshToken) {
+      if (refreshToken) {
         try {
-          await logoutSession?.(storedTokens.refreshToken)
+          await logoutSession?.(refreshToken)
         } catch {}
       }
 
-      await clearStoredSessionTokens(sessionOptions)
+      await clearStoredRefreshToken(sessionOptions)
     },
   }
 }

@@ -1,12 +1,10 @@
 import * as SecureStore from 'expo-secure-store'
-import type { SessionTokens } from '@contee/api-client'
-
 import {
   SECURE_SESSION_STORAGE_KEY,
-  clearStoredSessionTokens,
+  clearStoredRefreshToken,
   createSecureSessionAdapter as createCoreSecureSessionAdapter,
-  readStoredSessionTokens,
-  writeStoredSessionTokens,
+  readStoredRefreshToken,
+  writeStoredRefreshToken,
   type DevSessionOptions,
   type SecureSessionAdapterOptions,
   type SecureSessionStorage,
@@ -60,15 +58,15 @@ export const createSecureSessionAdapter = (
   options?: ExpoSecureSessionAdapterOptions
 ) => createCoreSecureSessionAdapter(getSessionOptions(options))
 
-export const readSecureSessionTokens = (
+export const readSecureRefreshToken = (
   options?: Pick<ExpoSecureSessionAdapterOptions, 'storage' | 'storageKey'>
-) => readStoredSessionTokens(getSessionOptions(options))
+) => readStoredRefreshToken(getSessionOptions(options))
 
-export const writeSecureSessionTokens = (
-  tokens: SessionTokens,
+export const writeSecureRefreshToken = (
+  refreshToken: string,
   options?: Pick<ExpoSecureSessionAdapterOptions, 'storage' | 'storageKey'>
-) => writeStoredSessionTokens(getSessionOptions(options), tokens)
+) => writeStoredRefreshToken(getSessionOptions(options), refreshToken)
 
-export const clearSecureSessionTokens = (
+export const clearSecureRefreshToken = (
   options?: Pick<ExpoSecureSessionAdapterOptions, 'storage' | 'storageKey'>
-) => clearStoredSessionTokens(getSessionOptions(options))
+) => clearStoredRefreshToken(getSessionOptions(options))

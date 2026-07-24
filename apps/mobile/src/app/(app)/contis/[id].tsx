@@ -1,4 +1,5 @@
 import { useLocalSearchParams } from 'expo-router'
+import { getApiErrorMessage } from '@contee/api-client'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import {
@@ -40,7 +41,7 @@ export default function ContiDetailScreen() {
       <ScreenPlaceholder
         eyebrow="Conti Detail"
         title="콘티 상세"
-        description="콘티 상세를 불러오지 못했습니다."
+        description={getApiErrorMessage(contiQuery.error)}
         action={
           <Pressable
             accessibilityRole="button"
