@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import type { Team, TeamMember, TeamRole, TeamSummary } from '@contee/domain'
 
+import { ListLoadingSkeleton } from '@/components/list-loading-skeleton'
 import { TeamSelectionTrigger } from '@/components/team-selection-modal'
 import { useMobileTeamRead } from '@/lib/team-read'
 import { useTeamSelection } from '@/lib/team-selection'
@@ -87,7 +88,7 @@ export default function TeamScreen() {
           팀 요약
         </Text>
         {teamQuery.isPending ? (
-          <Text style={styles.stateText}>팀 요약을 불러오는 중입니다.</Text>
+          <ListLoadingSkeleton rows={1} />
         ) : teamQuery.isError ? (
           <ErrorState
             isRetrying={teamQuery.isFetching}
@@ -104,7 +105,7 @@ export default function TeamScreen() {
           멤버
         </Text>
         {membersQuery.isPending ? (
-          <Text style={styles.stateText}>멤버 목록을 불러오는 중입니다.</Text>
+          <ListLoadingSkeleton rows={3} />
         ) : membersQuery.isError ? (
           <ErrorState
             isRetrying={membersQuery.isFetching}
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: spacing.sm,
-    borderRadius: 14,
+    borderRadius: 8,
     borderColor: colors.neutral300,
     borderWidth: 1,
     backgroundColor: colors.white,
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    borderRadius: 14,
+    borderRadius: 8,
     borderColor: colors.neutral300,
     borderWidth: 1,
     backgroundColor: colors.white,
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
   },
   roleBadge: {
     ...typography.tabLabel,
-    borderRadius: 999,
+    borderRadius: 8,
     backgroundColor: colors.neutral100,
     color: colors.neutral800,
     overflow: 'hidden',
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 8,
     borderColor: colors.neutral300,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,

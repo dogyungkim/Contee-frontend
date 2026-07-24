@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import type { TeamSong } from '@contee/domain'
 
+import { ListLoadingSkeleton } from '@/components/list-loading-skeleton'
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
 import { TeamSelectionTrigger } from '@/components/team-selection-modal'
 import { useMobileSongs } from '@/lib/song-read'
@@ -58,7 +59,7 @@ export default function SongsScreen() {
         {selectedTeam?.name ?? '선택된 팀'} 팀의 read-only 곡 라이브러리입니다.
       </Text>
       {songsQuery.isPending ? (
-        <Text style={styles.stateText}>곡 목록을 불러오는 중입니다.</Text>
+        <ListLoadingSkeleton />
       ) : songsQuery.isError ? (
         <View style={styles.stateBlock}>
           <Text style={styles.errorText}>곡 목록을 불러오지 못했습니다.</Text>
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: spacing.sm,
-    borderRadius: 14,
+    borderRadius: 8,
     borderColor: colors.neutral300,
     borderWidth: 1,
     backgroundColor: colors.white,
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     ...typography.tabLabel,
-    borderRadius: 999,
+    borderRadius: 8,
     backgroundColor: colors.neutral100,
     color: colors.neutral800,
     overflow: 'hidden',
@@ -204,7 +205,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 8,
     borderColor: colors.neutral300,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
