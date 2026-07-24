@@ -1,24 +1,24 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
 
-const packageUrl = new URL(
-  './node_modules/expo-modules-jsi/package.json',
-  import.meta.url
+const require = createRequire(import.meta.url)
+const packagePath = require.resolve('expo-modules-jsi/package.json')
+const sourcePath = join(
+  dirname(packagePath),
+  'apple/Sources/ExpoModulesJSI/Coding/JavaScriptCodable+Date.swift'
 )
-const sourceUrl = new URL(
-  './node_modules/expo-modules-jsi/apple/Sources/ExpoModulesJSI/Coding/JavaScriptCodable+Date.swift',
-  import.meta.url
-)
-const { version } = JSON.parse(readFileSync(packageUrl, 'utf8'))
+const { version } = JSON.parse(readFileSync(packagePath, 'utf8'))
 
-if (version === '57.0.3') {
-  const source = readFileSync(sourceUrl, 'utf8')
+if (['57.0.3', '57.0.4'].includes(version)) {
+  const source = readFileSync(sourcePath, 'utf8')
   const broken = 'abs(milliseconds) <= maxJavaScriptDateMilliseconds'
   const fixed = 'milliseconds.magnitude <= maxJavaScriptDateMilliseconds'
 
   if (!source.includes(fixed)) {
     if (!source.includes(broken)) {
-      throw new Error('expo-modules-jsi 57.0.3 source does not match')
+      throw new Error(`expo-modules-jsi ${version} source does not match`)
     }
-    writeFileSync(sourceUrl, source.replace(broken, fixed))
+    writeFileSync(sourcePath, source.replace(broken, fixed))
   }
 }
