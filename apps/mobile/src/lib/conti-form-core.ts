@@ -1,9 +1,71 @@
-import type { Conti, UpdateContiRequestDto } from '@contee/domain'
+import type {
+  Conti,
+  ContiSong,
+  ContiSongFormPart,
+  UpdateContiRequestDto,
+} from '@contee/domain'
 
 export interface ContiMetadataInput {
   title: string
   worshipDate: string
   worshipTime: string
+}
+
+export interface ContiSongInput {
+  localId: string
+  id?: string
+  teamSongId?: string
+  title: string
+  artist?: string
+  key?: string
+  bpm?: number
+  note?: string
+  youtubeUrl?: string
+  sheetMusicUrl?: string
+  songForm: ContiSongFormPart[]
+}
+
+function toContiSongInput(song: ContiSong): ContiSongInput {
+  return {
+    localId: song.id,
+    id: song.id,
+    teamSongId: song.teamSongId,
+    title: song.title,
+    artist: song.artist,
+    key: song.key,
+    bpm: song.bpm,
+    note: song.note,
+    youtubeUrl: song.youtubeUrl,
+    sheetMusicUrl: song.sheetMusicUrl,
+    songForm: song.songForm,
+  }
+}
+
+export function toContiSongInputs(conti: Conti) {
+  return [...(conti.contiSongs ?? [])]
+    .sort((left, right) => left.orderIndex - right.orderIndex)
+    .map(toContiSongInput)
+}
+
+export function moveContiSong(
+  songs: readonly ContiSongInput[],
+  fromIndex: number,
+  toIndex: number
+) {
+  if (
+    fromIndex < 0 ||
+    fromIndex >= songs.length ||
+    toIndex < 0 ||
+    toIndex >= songs.length ||
+    fromIndex === toIndex
+  ) {
+    return [...songs]
+  }
+
+  const next = [...songs]
+  const [song] = next.splice(fromIndex, 1)
+  next.splice(toIndex, 0, song)
+  return next
 }
 
 export function normalizeContiMetadata(input: {
@@ -32,22 +94,23 @@ export function hasContiMetadataChanges(
 
 export function toContiUpdateRequest(
   conti: Conti,
-  input: ContiMetadataInput
+  input: ContiMetadataInput,
+  songs: readonly ContiSongInput[] = toContiSongInputs(conti)
 ): UpdateContiRequestDto {
   return {
     ...normalizeContiMetadata(input),
     memo: conti.memo,
     bibleVerse: conti.bibleVerse,
     sharingInfo: conti.sharingInfo,
-    contiSongs: (conti.contiSongs ?? []).map((song) => ({
+    contiSongs: songs.map((song, orderIndex) => ({
       id: song.id,
       teamSongId: song.teamSongId,
-      title: song.title,
-      artist: song.artist,
-      orderIndex: song.orderIndex,
-      key: song.key,
+      title: song.title.trim() || undefined,
+      artist: song.artist?.trim() || undefined,
+      orderIndex,
+      key: song.key?.trim() || undefined,
       bpm: song.bpm,
-      note: song.note,
+      note: song.note?.trim() || undefined,
       youtubeUrl: song.youtubeUrl,
       sheetMusicUrl: song.sheetMusicUrl,
       songForm: song.songForm.map(
@@ -61,6 +124,50 @@ export function toContiUpdateRequest(
       ),
     })),
   }
+}
+
+export function getContiSongInputError(songs: readonly ContiSongInput[]) {
+  if (songs.some((song) => !song.teamSongId && !song.title.trim())) {
+    return '직접 입력한 곡의 제목을 입력해 주세요.'
+  }
+  if (
+    songs.some((song) => song.bpm !== undefined && !Number.isFinite(song.bpm))
+  ) {
+    return 'BPM은 숫자로 입력해 주세요.'
+  }
+
+  return null
+}
+
+export function hasContiChanges(
+  conti: Conti,
+  input: ContiMetadataInput,
+  songs: readonly ContiSongInput[]
+) {
+  if (
+    hasContiMetadataChanges(
+      {
+        title: conti.title,
+        worshipDate: conti.worshipDate,
+        worshipTime: conti.worshipTime,
+      },
+      input
+    )
+  ) {
+    return true
+  }
+
+  const initialSongs = toContiUpdateRequest(
+    conti,
+    {
+      title: conti.title,
+      worshipDate: conti.worshipDate,
+      worshipTime: conti.worshipTime,
+    },
+    toContiSongInputs(conti)
+  ).contiSongs
+  const currentSongs = toContiUpdateRequest(conti, input, songs).contiSongs
+  return JSON.stringify(initialSongs) !== JSON.stringify(currentSongs)
 }
 
 function isValidDate(value: string) {

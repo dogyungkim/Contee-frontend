@@ -2,10 +2,15 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  hasContiChanges,
   getContiMetadataInputError,
   hasContiMetadataChanges,
+  moveContiSong,
   normalizeContiMetadata,
+  toContiSongInputs,
+  toContiUpdateRequest,
 } from '../src/lib/conti-form-core'
+import type { Conti } from '@contee/domain'
 
 test('conti metadata trims input before sending it to the API', () => {
   assert.deepEqual(
@@ -67,5 +72,78 @@ test('conti metadata validates required title, calendar date, and time format', 
       worshipTime: '09:00',
     }),
     null
+  )
+})
+
+const conti = {
+  id: 'conti-1',
+  title: '주일 예배',
+  worshipDate: '2026-07-19',
+  worshipTime: '13:30',
+  teamId: 'team-1',
+  status: 'DRAFT',
+  contiSongs: [
+    {
+      id: 'song-1',
+      title: '기존 곡',
+      orderIndex: 3,
+      songForm: [],
+      teamSongId: 'team-song-1',
+    },
+    {
+      id: 'song-2',
+      title: '직접 입력 곡',
+      orderIndex: 8,
+      songForm: [],
+      artist: '원곡자',
+    },
+  ],
+} as Conti
+
+test('conti update keeps existing ids and derives order from the edited list', () => {
+  const songs = toContiSongInputs(conti)
+  const reordered = moveContiSong(songs, 1, 0)
+  const request = toContiUpdateRequest(
+    conti,
+    {
+      title: conti.title,
+      worshipDate: conti.worshipDate,
+      worshipTime: conti.worshipTime,
+    },
+    reordered
+  )
+
+  assert.deepEqual(
+    request.contiSongs.map(({ id, title, orderIndex }) => ({
+      id,
+      title,
+      orderIndex,
+    })),
+    [
+      { id: 'song-2', title: '직접 입력 곡', orderIndex: 0 },
+      { id: 'song-1', title: '기존 곡', orderIndex: 1 },
+    ]
+  )
+})
+
+test('conti songs become dirty when direct entries change or reorder', () => {
+  const songs = toContiSongInputs(conti)
+  const metadata = {
+    title: conti.title,
+    worshipDate: conti.worshipDate,
+    worshipTime: conti.worshipTime,
+  }
+
+  assert.equal(hasContiChanges(conti, metadata, songs), false)
+  assert.equal(
+    hasContiChanges(conti, metadata, moveContiSong(songs, 1, 0)),
+    true
+  )
+  assert.equal(
+    hasContiChanges(conti, metadata, [
+      ...songs,
+      { localId: 'new-1', title: '새 곡', songForm: [] },
+    ]),
+    true
   )
 })
