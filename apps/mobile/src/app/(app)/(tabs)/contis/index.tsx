@@ -63,13 +63,21 @@ export default function ContisScreen() {
       }
       style={styles.safeArea}
     >
-      <Text style={styles.eyebrow}>Read-only MVP</Text>
       <Text accessibilityRole="header" style={styles.title}>
         콘티
       </Text>
       <Text style={styles.description}>
-        {selectedTeam?.name ?? '선택된 팀'} 팀의 read-only 콘티 목록입니다.
+        {selectedTeam?.name ?? '선택된 팀'} 팀의 콘티를 확인하고 새 콘티를
+        만드세요.
       </Text>
+      <Pressable
+        accessibilityLabel="새 콘티 만들기"
+        accessibilityRole="button"
+        onPress={() => router.push('/contis/new')}
+        style={styles.createButton}
+      >
+        <Text style={styles.createButtonText}>새 콘티 만들기</Text>
+      </Pressable>
       <View style={styles.filters}>
         <TextInput
           accessibilityLabel="콘티 검색어"
@@ -180,10 +188,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.xl,
   },
-  eyebrow: {
-    ...typography.eyebrow,
-    color: colors.neutral500,
-  },
   title: {
     ...typography.title,
     color: colors.neutral950,
@@ -191,6 +195,18 @@ const styles = StyleSheet.create({
   description: {
     ...typography.body,
     color: colors.neutral600,
+  },
+  createButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: colors.neutral950,
+    paddingHorizontal: spacing.lg,
+  },
+  createButtonText: {
+    ...typography.label,
+    color: colors.white,
   },
   list: {
     gap: spacing.md,

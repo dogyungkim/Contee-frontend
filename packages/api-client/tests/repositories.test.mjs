@@ -4,6 +4,7 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 const {
+  createContiRepository,
   createContiReadRepository,
   createSongReadRepository,
   createTeamRepository,
@@ -216,6 +217,35 @@ test('conti read repository maps list content and preserves pagination metadata'
       url: '/api/v1/share/contis/share-token',
       config: undefined,
     },
+  ])
+})
+
+test('conti repository creates through the canonical endpoint and maps the response', async () => {
+  const request = {
+    teamId: 'team-1',
+    title: 'Sunday Service',
+    worshipDate: '2026-07-19',
+    worshipTime: '13:30',
+  }
+  const { client, calls } = createRecordingClient([
+    {
+      data: {
+        data: {
+          id: 'conti-1',
+          ...request,
+          worshipTime: '오후 1:30:00',
+          status: 'DRAFT',
+        },
+      },
+    },
+  ])
+
+  const conti = await createContiRepository(client).create(request)
+
+  assert.equal(conti.id, 'conti-1')
+  assert.equal(conti.worshipTime, '13:30')
+  assert.deepEqual(calls, [
+    { method: 'post', url: '/api/v1/contis', data: request, config: undefined },
   ])
 })
 

@@ -19,4 +19,5 @@ export {
 } from './errors'
 export { createTeamRepository } from './team.repository'
 export { createContiReadRepository } from './conti-read.repository'
+export { createContiRepository } from './conti.repository'
 export { createSongReadRepository } from './song-read.repository'
