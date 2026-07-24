@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import type { User } from '@contee/domain'
 
 import {
   bootstrapAuthSession,
@@ -29,6 +30,7 @@ interface AuthSessionContextValue {
   status: MobileAuthStatus
   isLoading: boolean
   isAuthenticated: boolean
+  user: User | null
   authError: string | null
   bootstrap: () => Promise<void>
   signInWithGoogle: () => Promise<void>
@@ -63,6 +65,7 @@ const isTerminalAuthError = (error: unknown) => {
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<MobileAuthStatus>('bootstrapping')
+  const [user, setUser] = useState<User | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
 
   const runBootstrap = useCallback(
@@ -81,6 +84,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     setAuthError(null)
     const result = await runBootstrap()
     setStatus(result.status)
+    setUser(result.status === 'authenticated' ? (result.user ?? null) : null)
   }, [runBootstrap])
 
   useEffect(() => {
@@ -90,6 +94,9 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
     void runBootstrap().then((result) => {
       if (isMounted) {
         setStatus(result.status)
+        setUser(
+          result.status === 'authenticated' ? (result.user ?? null) : null
+        )
       }
     })
 
@@ -103,6 +110,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       subscribeToAuthSessionInvalidation(() => {
         queryClient.clear()
         setAuthError(null)
+        setUser(null)
         setStatus('unauthenticated')
       }),
     [queryClient]
@@ -111,6 +119,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     setStatus('bootstrapping')
     setAuthError(null)
+    setUser(null)
 
     if (getPublicEnvFlag('EXPO_PUBLIC_API_LOG')) {
       console.log('[AUTH:GOOGLE]', { step: 'sign_in_pressed' })
@@ -120,13 +129,14 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       const response = await signInWithGoogleMobileOAuth({
         apiBaseUrl: API_BASE_URL,
       })
-      await validateAndPersistAuthSession({
+      const user = await validateAndPersistAuthSession({
         tokens: response.tokens,
         validateSession: (tokens) =>
           validateMobileSession(API_BASE_URL, tokens.accessToken),
         persistSession: mobileSession.setSession,
       })
       queryClient.clear()
+      setUser(user)
       setStatus('authenticated')
     } catch (error) {
       if (getPublicEnvFlag('EXPO_PUBLIC_API_LOG')) {
@@ -138,6 +148,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
         })
       }
       setStatus('unauthenticated')
+      setUser(null)
       setAuthError(getMobileAuthErrorMessage(error))
     }
   }, [queryClient])
@@ -151,6 +162,7 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
         clearQueryCache: () => queryClient.clear(),
       })
       setStatus('unauthenticated')
+      setUser(null)
     } catch {
       setStatus('authenticated')
       setAuthError(
@@ -164,13 +176,14 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       status,
       isLoading: status === 'bootstrapping',
       isAuthenticated: status === 'authenticated',
+      user,
       authError,
       bootstrap,
       signInWithGoogle,
       signOut,
       clearAuthError: () => setAuthError(null),
     }),
-    [authError, bootstrap, signInWithGoogle, signOut, status]
+    [authError, bootstrap, signInWithGoogle, signOut, status, user]
   )
 
   return (

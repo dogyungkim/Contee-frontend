@@ -58,6 +58,10 @@ export default function ProtectedAppLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="contis/new" options={{ title: '새 콘티 만들기' }} />
         <Stack.Screen name="contis/[id]" options={{ title: '콘티 상세' }} />
+        <Stack.Screen
+          name="contis/[id]/edit"
+          options={{ title: '콘티 편집', headerBackButtonMenuEnabled: false }}
+        />
         <Stack.Screen name="team/create" options={{ title: '새 팀 만들기' }} />
         <Stack.Screen name="team/join" options={{ title: '팀에 참여하기' }} />
         <Stack.Screen

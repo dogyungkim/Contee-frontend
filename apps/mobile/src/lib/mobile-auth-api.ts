@@ -1,5 +1,6 @@
 import type { SessionTokens } from '@contee/api-client'
 import type { ApiResponse } from '@contee/domain/api'
+import type { User } from '@contee/domain'
 
 import { buildApiUrl } from './mobile-auth-core'
 
@@ -42,6 +43,28 @@ export class MobileAuthApiError extends Error {
     this.name = 'MobileAuthApiError'
     this.status = status
   }
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+export const parseMobileSessionUser = (payload: unknown): User => {
+  if (!isRecord(payload) || !isRecord(payload.data)) {
+    throw new MobileAuthApiError('Mobile session user response is invalid.')
+  }
+
+  const { id, email, name, profileImageUrl, provider } = payload.data
+  if (
+    typeof id !== 'string' ||
+    typeof email !== 'string' ||
+    typeof name !== 'string' ||
+    typeof profileImageUrl !== 'string' ||
+    (provider !== undefined && typeof provider !== 'string')
+  ) {
+    throw new MobileAuthApiError('Mobile session user response is invalid.')
+  }
+
+  return { id, email, name, profileImageUrl, provider }
 }
 
 const toSessionTokens = (
@@ -174,7 +197,7 @@ export const logoutMobileSession = async (
 export const validateMobileSession = async (
   apiBaseUrl: string,
   accessToken: string
-) => {
+): Promise<User> => {
   const trimmedAccessToken = accessToken.trim()
   if (!trimmedAccessToken) {
     throw new MobileAuthApiError('Mobile access token is empty.', 401)
@@ -196,4 +219,7 @@ export const validateMobileSession = async (
       response.status
     )
   }
+
+  const payload = await response.json().catch(() => null)
+  return parseMobileSessionUser(payload)
 }

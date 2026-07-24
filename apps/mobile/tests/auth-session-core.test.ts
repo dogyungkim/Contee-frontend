@@ -25,6 +25,19 @@ test('auth bootstrap authenticates refresh token success after validation', asyn
   assert.equal(validationCount, 1)
 })
 
+test('auth bootstrap retains the validated current user', async () => {
+  const user = { id: 'user-1' }
+  const result = await bootstrapAuthSession({
+    session: {
+      refresh: async () => ({ accessToken: 'access-token' }),
+      clear: () => undefined,
+    },
+    validateSession: async () => user,
+  })
+
+  assert.deepEqual(result, { status: 'authenticated', user })
+})
+
 test('auth bootstrap returns unauthenticated when refresh returns null', async () => {
   let validationCount = 0
 

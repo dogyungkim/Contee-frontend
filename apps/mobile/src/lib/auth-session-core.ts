@@ -6,13 +6,14 @@ export type MobileAuthStatus =
   | 'unauthenticated'
   | 'unavailable'
 
-export interface AuthBootstrapResult {
+export interface AuthBootstrapResult<T = undefined> {
   status: Exclude<MobileAuthStatus, 'bootstrapping'>
+  user?: T
 }
 
-export interface AuthBootstrapOptions {
+export interface AuthBootstrapOptions<T = undefined> {
   session: Pick<AuthSessionAdapter, 'refresh' | 'clear'>
-  validateSession?: (tokens: SessionTokens) => Promise<unknown> | unknown
+  validateSession?: (tokens: SessionTokens) => Promise<T> | T
   isTerminalAuthError?: (error: unknown) => boolean
 }
 
@@ -25,9 +26,9 @@ export interface AuthSignOutResult {
   status: 'unauthenticated'
 }
 
-export interface ValidateAndPersistAuthSessionOptions {
+export interface ValidateAndPersistAuthSessionOptions<T = undefined> {
   tokens: SessionTokens
-  validateSession: (tokens: SessionTokens) => Promise<unknown> | unknown
+  validateSession: (tokens: SessionTokens) => Promise<T> | T
   persistSession: (tokens: SessionTokens) => Promise<void> | void
 }
 
@@ -42,11 +43,11 @@ const clearSessionSilently = async (
   }
 }
 
-export const bootstrapAuthSession = async ({
+export const bootstrapAuthSession = async <T = undefined>({
   session,
   validateSession,
   isTerminalAuthError,
-}: AuthBootstrapOptions): Promise<AuthBootstrapResult> => {
+}: AuthBootstrapOptions<T>): Promise<AuthBootstrapResult<T>> => {
   try {
     const refreshedTokens = await session.refresh()
 
@@ -54,8 +55,10 @@ export const bootstrapAuthSession = async ({
       return { status: 'unauthenticated' }
     }
 
-    await validateSession?.(refreshedTokens)
-    return { status: 'authenticated' }
+    const user = await validateSession?.(refreshedTokens)
+    return user === undefined
+      ? { status: 'authenticated' }
+      : { status: 'authenticated', user }
   } catch (error) {
     if (isTerminalAuthError?.(error)) {
       await clearSessionSilently(session)
@@ -66,13 +69,14 @@ export const bootstrapAuthSession = async ({
   }
 }
 
-export const validateAndPersistAuthSession = async ({
+export const validateAndPersistAuthSession = async <T = undefined>({
   tokens,
   validateSession,
   persistSession,
-}: ValidateAndPersistAuthSessionOptions) => {
-  await validateSession(tokens)
+}: ValidateAndPersistAuthSessionOptions<T>): Promise<T> => {
+  const user = await validateSession(tokens)
   await persistSession(tokens)
+  return user
 }
 
 export const signOutAuthSession = async ({

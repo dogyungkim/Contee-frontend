@@ -249,6 +249,45 @@ test('conti repository creates through the canonical endpoint and maps the respo
   ])
 })
 
+test('conti repository updates, publishes, and removes through canonical endpoints', async () => {
+  const request = {
+    title: 'Sunday Service',
+    worshipDate: '2026-07-19',
+    worshipTime: '13:30',
+    contiSongs: [],
+  }
+  const dto = { id: 'conti-1', teamId: 'team-1', ...request, status: 'DRAFT' }
+  const { client, calls } = createRecordingClient([
+    { data: { data: dto } },
+    { data: { data: { ...dto, status: 'PUBLISHED' } } },
+    { data: { data: null } },
+  ])
+  const repository = createContiRepository(client)
+
+  assert.equal(
+    (await repository.update('conti-1', request)).title,
+    'Sunday Service'
+  )
+  assert.equal((await repository.publish('conti-1')).status, 'PUBLISHED')
+  await repository.remove('conti-1')
+
+  assert.deepEqual(calls, [
+    {
+      method: 'put',
+      url: '/api/v1/contis/conti-1',
+      data: request,
+      config: undefined,
+    },
+    {
+      method: 'post',
+      url: '/api/v1/contis/conti-1/publish',
+      data: undefined,
+      config: undefined,
+    },
+    { method: 'delete', url: '/api/v1/contis/conti-1', config: undefined },
+  ])
+})
+
 test('song read repository maps list content and preserves pagination metadata', async () => {
   const songDto = {
     id: 'team-song-1',

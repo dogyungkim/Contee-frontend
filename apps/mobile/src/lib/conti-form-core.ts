@@ -1,3 +1,11 @@
+import type { Conti, UpdateContiRequestDto } from '@contee/domain'
+
+export interface ContiMetadataInput {
+  title: string
+  worshipDate: string
+  worshipTime: string
+}
+
 export function normalizeContiMetadata(input: {
   title: string
   worshipDate: string
@@ -7,6 +15,51 @@ export function normalizeContiMetadata(input: {
     title: input.title.trim(),
     worshipDate: input.worshipDate.trim(),
     worshipTime: input.worshipTime.trim(),
+  }
+}
+
+export function hasContiMetadataChanges(
+  initial: ContiMetadataInput,
+  current: ContiMetadataInput
+) {
+  const normalized = normalizeContiMetadata(current)
+  return (
+    initial.title !== normalized.title ||
+    initial.worshipDate !== normalized.worshipDate ||
+    initial.worshipTime !== normalized.worshipTime
+  )
+}
+
+export function toContiUpdateRequest(
+  conti: Conti,
+  input: ContiMetadataInput
+): UpdateContiRequestDto {
+  return {
+    ...normalizeContiMetadata(input),
+    memo: conti.memo,
+    bibleVerse: conti.bibleVerse,
+    sharingInfo: conti.sharingInfo,
+    contiSongs: (conti.contiSongs ?? []).map((song) => ({
+      id: song.id,
+      teamSongId: song.teamSongId,
+      title: song.title,
+      artist: song.artist,
+      orderIndex: song.orderIndex,
+      key: song.key,
+      bpm: song.bpm,
+      note: song.note,
+      youtubeUrl: song.youtubeUrl,
+      sheetMusicUrl: song.sheetMusicUrl,
+      songForm: song.songForm.map(
+        ({ partType, customPartName, repeatCount, barCount, note }) => ({
+          partType,
+          customPartName,
+          repeatCount,
+          barCount,
+          note,
+        })
+      ),
+    })),
   }
 }
 
