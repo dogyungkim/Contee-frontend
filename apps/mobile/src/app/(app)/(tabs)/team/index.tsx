@@ -1,4 +1,11 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import type { Team, TeamMember, TeamRole, TeamSummary } from '@contee/domain'
 
 import { TeamSelectionTrigger } from '@/components/team-selection-modal'
@@ -16,6 +23,8 @@ const ROLE_LABELS: Record<TeamRole, string> = {
 export default function TeamScreen() {
   const {
     isLoading: isTeamSelectionLoading,
+    isRefreshing: isTeamSelectionRefreshing,
+    refreshTeams,
     selectedTeam,
     selectedTeamId,
   } = useTeamSelection()
@@ -25,6 +34,12 @@ export default function TeamScreen() {
     return (
       <ScrollView
         contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl
+            onRefresh={() => void refreshTeams()}
+            refreshing={isTeamSelectionRefreshing}
+          />
+        }
         style={styles.safeArea}
       >
         <Text style={styles.eyebrow}>Read-only MVP</Text>
@@ -43,10 +58,20 @@ export default function TeamScreen() {
 
   const team = teamQuery.data
   const members = membersQuery.data ?? []
+  const refresh = () =>
+    Promise.all([teamQuery.refetch(), membersQuery.refetch()]).then(
+      () => undefined
+    )
 
   return (
     <ScrollView
       contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          onRefresh={() => void refresh()}
+          refreshing={teamQuery.isRefetching || membersQuery.isRefetching}
+        />
+      }
       style={styles.safeArea}
     >
       <Text style={styles.eyebrow}>Read-only MVP</Text>

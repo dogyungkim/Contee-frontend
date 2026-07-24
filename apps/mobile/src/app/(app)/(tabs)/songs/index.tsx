@@ -1,4 +1,11 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import type { TeamSong } from '@contee/domain'
 
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
@@ -35,6 +42,12 @@ export default function SongsScreen() {
   return (
     <ScrollView
       contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          onRefresh={() => void songsQuery.refetch()}
+          refreshing={songsQuery.isRefetching}
+        />
+      }
       style={styles.safeArea}
     >
       <Text style={styles.eyebrow}>Read-only MVP</Text>

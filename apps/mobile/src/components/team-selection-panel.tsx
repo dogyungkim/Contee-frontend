@@ -3,14 +3,9 @@ import type { TeamSummary } from '@contee/domain'
 
 import { useTeamSelection } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
+import { TeamSetupActions } from './team-setup-actions'
 
-interface TeamSelectionPanelProps {
-  emptyActionLabel?: string
-}
-
-export function TeamSelectionPanel({
-  emptyActionLabel = '팀 만들기 / 초대 코드로 참여',
-}: TeamSelectionPanelProps) {
+export function TeamSelectionPanel() {
   const {
     isError,
     isLoading,
@@ -48,16 +43,9 @@ export function TeamSelectionPanel({
     return (
       <View style={styles.panel}>
         <Text style={styles.mutedText}>
-          참여 중인 팀이 없습니다. 팀 생성/참여 플로우가 준비되면 이 화면에서
-          연결합니다.
+          참여 중인 팀이 없습니다. 새 팀을 만들거나 초대 코드로 참여하세요.
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          disabled
-          style={[styles.secondaryButton, styles.disabledButton]}
-        >
-          <Text style={styles.secondaryButtonText}>{emptyActionLabel}</Text>
-        </Pressable>
+        <TeamSetupActions />
       </View>
     )
   }
@@ -158,9 +146,6 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral300,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
-  },
-  disabledButton: {
-    opacity: 0.56,
   },
   secondaryButtonText: {
     ...typography.label,

@@ -29,7 +29,7 @@ interface TeamSelectionContextValue {
   isError: boolean
   error: Error | null
   selectTeam: (id: string) => Promise<void>
-  refreshTeams: () => Promise<void>
+  refreshTeams: () => Promise<TeamSummary[]>
 }
 
 const TeamSelectionContext = createContext<TeamSelectionContextValue | null>(
@@ -153,19 +153,22 @@ export function TeamSelectionProvider({ children }: { children: ReactNode }) {
 
   const selectTeam = useCallback(
     async (id: string) => {
-      const nextTeamId = teams.some((team) => team.id === id) ? id : null
+      const cachedTeams =
+        queryClient.getQueryData<TeamSummary[]>(teamKeys.lists()) ?? teams
+      const nextTeamId = cachedTeams.some((team) => team.id === id) ? id : null
 
       setSelectedTeamId(nextTeamId)
       setPersistedSelectedTeamId(nextTeamId)
       await persistSelectedTeamId(nextTeamId)
     },
-    [teams]
+    [queryClient, teams]
   )
 
   const refreshTeams = useCallback(async () => {
     setIsRetrying(true)
     try {
-      await teamsQuery.refetch()
+      const result = await teamsQuery.refetch()
+      return result.data ?? []
     } finally {
       setIsRetrying(false)
     }

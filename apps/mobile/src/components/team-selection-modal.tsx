@@ -12,6 +12,7 @@ import {
 
 import { useTeamSelection } from '@/lib/team-selection'
 import { colors } from '@/theme'
+import { TeamSetupActions } from './team-setup-actions'
 import { styles } from './team-selection-modal.styles'
 
 type TeamSelectionOverlayContextValue = Readonly<{
@@ -160,9 +161,13 @@ export function TeamSelectionModal({
                 </Pressable>
               </View>
             ) : teams.length === 0 ? (
-              <Text style={styles.stateText}>
-                참여 중인 팀이 없습니다. 팀에 참여한 뒤 다시 시도해 주세요.
-              </Text>
+              <View style={styles.stateBlock}>
+                <Text style={styles.stateText}>
+                  참여 중인 팀이 없습니다. 새 팀을 만들거나 초대 코드로
+                  참여하세요.
+                </Text>
+                <TeamSetupActions onNavigate={onClose} />
+              </View>
             ) : (
               <View style={styles.teamList}>
                 {teams.map((team) => {

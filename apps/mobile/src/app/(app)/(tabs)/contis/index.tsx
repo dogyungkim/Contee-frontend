@@ -1,5 +1,12 @@
 import { router } from 'expo-router'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 
 import { ContiReadCard } from '@/components/conti-read-card'
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
@@ -36,6 +43,12 @@ export default function ContisScreen() {
   return (
     <ScrollView
       contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          onRefresh={() => void contisQuery.refetch()}
+          refreshing={contisQuery.isRefetching}
+        />
+      }
       style={styles.safeArea}
     >
       <Text style={styles.eyebrow}>Read-only MVP</Text>
