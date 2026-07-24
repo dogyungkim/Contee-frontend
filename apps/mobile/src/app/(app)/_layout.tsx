@@ -62,6 +62,11 @@ export default function ProtectedAppLayout() {
           name="contis/[id]/edit"
           options={{ title: '콘티 편집', headerBackButtonMenuEnabled: false }}
         />
+        <Stack.Screen name="songs/new" options={{ title: '새 곡 등록' }} />
+        <Stack.Screen
+          name="songs/[id]/edit"
+          options={{ title: '곡 편집', headerBackButtonMenuEnabled: false }}
+        />
         <Stack.Screen name="team/create" options={{ title: '새 팀 만들기' }} />
         <Stack.Screen name="team/join" options={{ title: '팀에 참여하기' }} />
         <Stack.Screen

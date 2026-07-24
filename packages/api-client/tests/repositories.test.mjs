@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url)
 const {
   createContiRepository,
   createContiReadRepository,
+  createSongRepository,
   createSongReadRepository,
   createTeamRepository,
 } = require('../dist/index.js')
@@ -29,6 +30,10 @@ const createRecordingClient = (responses = []) => {
       },
       post: (url, data, config) => {
         calls.push({ method: 'post', url, data, config })
+        return nextResponse()
+      },
+      patch: (url, data, config) => {
+        calls.push({ method: 'patch', url, data, config })
         return nextResponse()
       },
       put: (url, data, config) => {
@@ -135,6 +140,66 @@ test('team repository preserves endpoint paths, payloads, and mapping', async ()
         method: 'put',
         url: '/api/v1/teams/team-1/members/user-1/role',
         data: { role: 'ADMIN' },
+      },
+    ]
+  )
+})
+
+test('song repository creates, updates, and saves song forms through web endpoints', async () => {
+  const song = {
+    id: 'team-song-1',
+    teamId: 'team-1',
+    title: 'Amazing Grace',
+    isFavorite: false,
+    createdAt: '2026-07-01T00:00:00Z',
+    updatedAt: '2026-07-02T00:00:00Z',
+  }
+  const { client, calls } = createRecordingClient([
+    { data: { data: song } },
+    { data: { data: { ...song, title: 'Amazing Grace (New)' } } },
+    { data: { data: { teamSongId: 'team-song-1', parts: [] } } },
+    {
+      data: {
+        data: {
+          teamSongId: 'team-song-1',
+          parts: [{ id: 1, partOrder: 0, partType: 'VERSE', repeatCount: 1 }],
+        },
+      },
+    },
+  ])
+  const repository = createSongRepository(client)
+
+  await repository.create('team-1', { title: 'Amazing Grace' })
+  await repository.update('team-1', 'team-song-1', {
+    title: 'Amazing Grace (New)',
+  })
+  await repository.getForm('team-1', 'team-song-1')
+  await repository.updateForm('team-1', 'team-song-1', {
+    parts: [{ partType: 'VERSE', repeatCount: 1 }],
+  })
+
+  assert.deepEqual(
+    calls.map(({ method, url, data }) => ({ method, url, data })),
+    [
+      {
+        method: 'post',
+        url: '/api/v1/teams/team-1/songs',
+        data: { title: 'Amazing Grace' },
+      },
+      {
+        method: 'patch',
+        url: '/api/v1/teams/team-1/songs/team-song-1',
+        data: { title: 'Amazing Grace (New)' },
+      },
+      {
+        method: 'get',
+        url: '/api/v1/teams/team-1/songs/team-song-1/form',
+        data: undefined,
+      },
+      {
+        method: 'put',
+        url: '/api/v1/teams/team-1/songs/team-song-1/form',
+        data: { parts: [{ partType: 'VERSE', repeatCount: 1 }] },
       },
     ]
   )

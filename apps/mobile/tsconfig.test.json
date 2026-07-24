@@ -21,6 +21,7 @@
     "src/lib/network-status-core.ts",
     "src/lib/public-env.ts",
     "src/lib/secure-session-core.ts",
+    "src/lib/safe-external-url.ts",
     "src/lib/team-selection-core.ts",
     "tests/**/*.ts"
   ],

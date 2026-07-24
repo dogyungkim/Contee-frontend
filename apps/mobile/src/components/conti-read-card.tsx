@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { Conti, ContiSong, SharedConti } from '@contee/domain'
 
+import type { ContiExternalLinkKind } from '@/lib/safe-external-url'
 import { colors, spacing, typography } from '@/theme'
 
 type ContiLike = Conti | SharedConti
@@ -52,7 +53,18 @@ export function ContiReadCard({ conti, onPress }: ContiReadCardProps) {
   )
 }
 
-export function ContiSongList({ songs }: { songs: readonly ContiSong[] }) {
+interface ContiSongListProps {
+  songs: readonly ContiSong[]
+  onOpenExternalUrl?: (
+    url: string | undefined,
+    kind: ContiExternalLinkKind
+  ) => void
+}
+
+export function ContiSongList({
+  songs,
+  onOpenExternalUrl,
+}: ContiSongListProps) {
   if (songs.length === 0) {
     return <Text style={styles.emptyText}>등록된 곡이 없습니다.</Text>
   }
@@ -73,6 +85,40 @@ export function ContiSongList({ songs }: { songs: readonly ContiSong[] }) {
                   .filter(Boolean)
                   .join(' · ')}
               </Text>
+            ) : null}
+            {onOpenExternalUrl &&
+            (song.youtubeUrl ||
+              song.sheetMusicUrl ||
+              song.sheetMusicFile?.downloadUrl) ? (
+              <View style={styles.songActions}>
+                {song.youtubeUrl ? (
+                  <Pressable
+                    accessibilityLabel={`${song.title} YouTube 영상 열기`}
+                    accessibilityRole="button"
+                    onPress={() =>
+                      onOpenExternalUrl(song.youtubeUrl, 'youtube')
+                    }
+                    style={styles.songActionButton}
+                  >
+                    <Text style={styles.songActionText}>영상</Text>
+                  </Pressable>
+                ) : null}
+                {song.sheetMusicUrl || song.sheetMusicFile?.downloadUrl ? (
+                  <Pressable
+                    accessibilityLabel={`${song.title} 악보 열기`}
+                    accessibilityRole="button"
+                    onPress={() =>
+                      onOpenExternalUrl(
+                        song.sheetMusicFile?.downloadUrl ?? song.sheetMusicUrl,
+                        'sheetMusic'
+                      )
+                    }
+                    style={styles.songActionButton}
+                  >
+                    <Text style={styles.songActionText}>악보</Text>
+                  </Pressable>
+                ) : null}
+              </View>
             ) : null}
           </View>
         </View>
@@ -167,6 +213,17 @@ const styles = StyleSheet.create({
     ...typography.tabLabel,
     color: colors.neutral600,
   },
+  songActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  songActionButton: {
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sm,
+  },
+  songActionText: { ...typography.tabLabel, color: colors.neutral950 },
   infoBlock: {
     gap: spacing.xs,
     borderRadius: 12,

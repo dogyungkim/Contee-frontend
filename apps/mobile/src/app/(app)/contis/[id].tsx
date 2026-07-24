@@ -3,8 +3,10 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 import {
   Alert,
+  Linking,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -25,6 +27,10 @@ import { getContiPermissions } from '@/lib/conti-permissions-core'
 import { useNetworkStatus } from '@/lib/query-client'
 import { useMobileTeamMembers } from '@/lib/team-read'
 import { useAuthSession } from '@/lib/auth-session'
+import {
+  getSafeContiExternalUrl,
+  type ContiExternalLinkKind,
+} from '@/lib/safe-external-url'
 import { colors, spacing, typography } from '@/theme'
 
 export default function ContiDetailScreen() {
@@ -128,6 +134,41 @@ export default function ContiDetailScreen() {
     ])
   }
 
+  const openExternalUrl = async (
+    url: string | undefined,
+    kind: ContiExternalLinkKind
+  ) => {
+    setActionError(null)
+    const safeUrl = getSafeContiExternalUrl(url, kind)
+    if (!safeUrl) {
+      setActionError('안전하지 않은 링크라 열 수 없습니다.')
+      return
+    }
+
+    try {
+      if (!(await Linking.canOpenURL(safeUrl))) throw new Error('unsupported')
+      await Linking.openURL(safeUrl)
+    } catch {
+      setActionError('링크를 열 수 없습니다. 다시 시도해 주세요.')
+    }
+  }
+
+  const share = async () => {
+    setActionError(null)
+    try {
+      await Share.share({
+        title: conti.title,
+        message: [
+          conti.title,
+          `예배: ${conti.worshipDate} ${conti.worshipTime}`,
+          `곡 ${conti.contiSongs?.length ?? conti.songCount ?? 0}개`,
+        ].join('\n'),
+      })
+    } catch {
+      setActionError('공유할 수 없습니다. 다시 시도해 주세요.')
+    }
+  }
+
   return (
     <ScrollView
       style={styles.safeArea}
@@ -194,6 +235,14 @@ export default function ContiDetailScreen() {
           오프라인 상태에서는 발행하거나 삭제할 수 없습니다.
         </Text>
       ) : null}
+      <Pressable
+        accessibilityLabel="콘티 공유"
+        accessibilityRole="button"
+        onPress={() => void share()}
+        style={styles.shareButton}
+      >
+        <Text style={styles.shareButtonText}>공유</Text>
+      </Pressable>
       {actionError ? (
         <Text accessibilityRole="alert" style={styles.errorText}>
           {actionError}
@@ -202,7 +251,10 @@ export default function ContiDetailScreen() {
       <ContiReadCard conti={conti} />
       <ContiInfoBlock conti={conti} />
       <Text style={styles.sectionTitle}>곡 목록</Text>
-      <ContiSongList songs={conti.contiSongs ?? []} />
+      <ContiSongList
+        songs={conti.contiSongs ?? []}
+        onOpenExternalUrl={(url, kind) => void openExternalUrl(url, kind)}
+      />
     </ScrollView>
   )
 }
@@ -258,6 +310,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   deleteButtonText: { ...typography.label, color: colors.error },
+  shareButton: {
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+  },
+  shareButtonText: { ...typography.label, color: colors.neutral950 },
   offlineText: { ...typography.body, color: colors.neutral600 },
   errorText: { ...typography.body, color: colors.error },
   retryButton: {

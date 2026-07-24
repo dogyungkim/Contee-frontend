@@ -1,7 +1,9 @@
 import { getApiErrorMessage } from '@contee/api-client'
 import type { Conti } from '@contee/domain'
 import { router, useLocalSearchParams, useNavigation } from 'expo-router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import { runOnJS } from 'react-native-reanimated'
 import {
   Alert,
   Pressable,
@@ -177,6 +179,10 @@ function ContiEditForm({ conti }: { conti: Conti }) {
     )
   }
 
+  const moveSong = (fromIndex: number, toIndex: number) => {
+    setSongs((current) => moveContiSong(current, fromIndex, toIndex))
+  }
+
   return (
     <TeamFormScreen
       description="제목과 예배 일정, 직접 입력 곡의 순서를 수정할 수 있습니다."
@@ -206,10 +212,17 @@ function ContiEditForm({ conti }: { conti: Conti }) {
                 return (
                   <View key={song.localId} style={styles.songCard}>
                     <View style={styles.songHeader}>
-                      <Text style={styles.songOrder}>{index + 1}</Text>
-                      <Text style={styles.songType}>
-                        {isDirectSong ? '직접 입력' : '보관함 곡'}
-                      </Text>
+                      <View style={styles.songHeaderDetails}>
+                        <Text style={styles.songOrder}>{index + 1}</Text>
+                        <Text style={styles.songType}>
+                          {isDirectSong ? '직접 입력' : '보관함 곡'}
+                        </Text>
+                      </View>
+                      <ReorderHandle
+                        disabled={isSongDisabled}
+                        index={index}
+                        onMove={moveSong}
+                      />
                     </View>
                     {isDirectSong ? (
                       <View style={styles.songFields}>
@@ -284,11 +297,7 @@ function ContiEditForm({ conti }: { conti: Conti }) {
                           disabled: isSongDisabled || index === 0,
                         }}
                         disabled={isSongDisabled || index === 0}
-                        onPress={() =>
-                          setSongs((current) =>
-                            moveContiSong(current, index, index - 1)
-                          )
-                        }
+                        onPress={() => moveSong(index, index - 1)}
                         style={styles.songActionButton}
                       >
                         <Text style={styles.songActionText}>위로</Text>
@@ -301,11 +310,7 @@ function ContiEditForm({ conti }: { conti: Conti }) {
                             isSongDisabled || index === songs.length - 1,
                         }}
                         disabled={isSongDisabled || index === songs.length - 1}
-                        onPress={() =>
-                          setSongs((current) =>
-                            moveContiSong(current, index, index + 1)
-                          )
-                        }
+                        onPress={() => moveSong(index, index + 1)}
                         style={styles.songActionButton}
                       >
                         <Text style={styles.songActionText}>아래로</Text>
@@ -427,6 +432,37 @@ function ContiEditForm({ conti }: { conti: Conti }) {
   )
 }
 
+function ReorderHandle({
+  disabled,
+  index,
+  onMove,
+}: {
+  disabled: boolean
+  index: number
+  onMove: (fromIndex: number, toIndex: number) => void
+}) {
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(!disabled)
+        .activateAfterLongPress(250)
+        .activeOffsetY([-12, 12])
+        .onEnd((event, success) => {
+          if (!success || Math.abs(event.translationY) < 32) return
+          runOnJS(onMove)(index, index + (event.translationY < 0 ? -1 : 1))
+        }),
+    [disabled, index, onMove]
+  )
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <View accessible={false} style={styles.reorderHandle}>
+        <Text style={styles.reorderHandleText}>↕ 드래그</Text>
+      </View>
+    </GestureDetector>
+  )
+}
+
 const styles = StyleSheet.create({
   form: { gap: spacing.lg },
   songSection: { gap: spacing.sm },
@@ -438,9 +474,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
   },
-  songHeader: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
+  songHeader: { alignItems: 'center', flexDirection: 'row' },
+  songHeaderDetails: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   songOrder: { ...typography.label, color: colors.neutral950 },
   songType: { ...typography.tabLabel, color: colors.neutral500 },
+  reorderHandle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    minWidth: 44,
+  },
+  reorderHandleText: { ...typography.label, color: colors.neutral500 },
   songTitle: { ...typography.body, color: colors.neutral950 },
   songFields: { gap: spacing.sm },
   songRow: { flexDirection: 'row', gap: spacing.sm },

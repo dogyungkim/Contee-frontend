@@ -8,12 +8,16 @@ import {
 } from 'react-native'
 import type { TeamSong } from '@contee/domain'
 import { getApiErrorMessage } from '@contee/api-client'
+import { router } from 'expo-router'
 
 import { ListLoadingSkeleton } from '@/components/list-loading-skeleton'
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
 import { TeamSelectionTrigger } from '@/components/team-selection-modal'
+import { useAuthSession } from '@/lib/auth-session'
+import { canEditSongs } from '@/lib/song-permissions-core'
 import { useMobileSongs } from '@/lib/song-read'
 import { useTeamSelection } from '@/lib/team-selection'
+import { useMobileTeamMembers } from '@/lib/team-read'
 import { colors, spacing, typography } from '@/theme'
 
 export default function SongsScreen() {
@@ -23,6 +27,8 @@ export default function SongsScreen() {
     selectedTeamId,
   } = useTeamSelection()
   const songsQuery = useMobileSongs(selectedTeamId)
+  const { user } = useAuthSession()
+  const membersQuery = useMobileTeamMembers(selectedTeamId)
 
   if (!selectedTeamId) {
     return (
@@ -40,6 +46,10 @@ export default function SongsScreen() {
   }
 
   const songs = songsQuery.data?.content ?? []
+  const canEdit = canEditSongs(
+    user?.id ?? null,
+    membersQuery.isSuccess ? membersQuery.data : undefined
+  )
 
   return (
     <ScrollView
@@ -52,13 +62,22 @@ export default function SongsScreen() {
       }
       style={styles.safeArea}
     >
-      <Text style={styles.eyebrow}>Read-only MVP</Text>
+      <Text style={styles.eyebrow}>Song Library</Text>
       <Text accessibilityRole="header" style={styles.title}>
         곡
       </Text>
       <Text style={styles.description}>
-        {selectedTeam?.name ?? '선택된 팀'} 팀의 read-only 곡 라이브러리입니다.
+        {selectedTeam?.name ?? '선택된 팀'} 팀의 곡 라이브러리입니다.
       </Text>
+      {canEdit ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('./new')}
+          style={styles.createButton}
+        >
+          <Text style={styles.createButtonText}>새 곡 등록</Text>
+        </Pressable>
+      ) : null}
       {songsQuery.isPending ? (
         <ListLoadingSkeleton />
       ) : songsQuery.isError ? (
@@ -81,7 +100,7 @@ export default function SongsScreen() {
       ) : (
         <View style={styles.list}>
           {songs.map((song) => (
-            <SongReadCard key={song.id} song={song} />
+            <SongReadCard canEdit={canEdit} key={song.id} song={song} />
           ))}
         </View>
       )}
@@ -89,14 +108,19 @@ export default function SongsScreen() {
   )
 }
 
-function SongReadCard({ song }: { song: TeamSong }) {
+function SongReadCard({ canEdit, song }: { canEdit: boolean; song: TeamSong }) {
   const details = [
     song.keySignature ? `Key ${song.keySignature}` : null,
     typeof song.bpm === 'number' ? `${song.bpm} BPM` : null,
   ].filter(Boolean)
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      accessibilityRole={canEdit ? 'button' : undefined}
+      disabled={!canEdit}
+      onPress={() => router.push(`./${song.id}/edit`)}
+      style={styles.card}
+    >
       <View style={styles.cardHeader}>
         <View style={styles.cardTextBlock}>
           <Text style={styles.cardTitle}>{song.title}</Text>
@@ -118,7 +142,7 @@ function SongReadCard({ song }: { song: TeamSong }) {
       ) : (
         <Text style={styles.mutedMetaText}>메모 없음</Text>
       )}
-    </View>
+    </Pressable>
   )
 }
 
@@ -146,6 +170,15 @@ const styles = StyleSheet.create({
   list: {
     gap: spacing.sm,
   },
+  createButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: colors.neutral950,
+    paddingHorizontal: spacing.lg,
+  },
+  createButtonText: { ...typography.label, color: colors.white },
   card: {
     gap: spacing.sm,
     borderRadius: 8,
