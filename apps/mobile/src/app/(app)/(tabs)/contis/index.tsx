@@ -1,10 +1,13 @@
 import { router } from 'expo-router'
+import { getApiErrorMessage } from '@contee/api-client'
+import { useState } from 'react'
 import {
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native'
 
@@ -16,12 +19,14 @@ import { useTeamSelection } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
 
 export default function ContisScreen() {
+  const [filters, setFilters] = useState({ q: '', from: '', to: '' })
+  const [appliedFilters, setAppliedFilters] = useState(filters)
   const {
     isLoading: isTeamLoading,
     selectedTeam,
     selectedTeamId,
   } = useTeamSelection()
-  const contisQuery = useMobileContis(selectedTeamId)
+  const contisQuery = useMobileContis(selectedTeamId, appliedFilters)
 
   if (!selectedTeamId) {
     return (
@@ -38,7 +43,13 @@ export default function ContisScreen() {
     )
   }
 
-  const contis = contisQuery.data?.content ?? []
+  const contis = contisQuery.data?.pages.flatMap((page) => page.content) ?? []
+
+  function resetFilters() {
+    const emptyFilters = { q: '', from: '', to: '' }
+    setFilters(emptyFilters)
+    setAppliedFilters(emptyFilters)
+  }
 
   return (
     <ScrollView
@@ -58,11 +69,66 @@ export default function ContisScreen() {
       <Text style={styles.description}>
         {selectedTeam?.name ?? '선택된 팀'} 팀의 read-only 콘티 목록입니다.
       </Text>
+      <View style={styles.filters}>
+        <TextInput
+          accessibilityLabel="콘티 검색어"
+          autoCorrect={false}
+          onChangeText={(q) => setFilters((current) => ({ ...current, q }))}
+          placeholder="콘티 제목 검색"
+          placeholderTextColor={colors.neutral500}
+          style={styles.input}
+          value={filters.q}
+        />
+        <View style={styles.dateFilters}>
+          <TextInput
+            accessibilityLabel="시작 날짜"
+            keyboardType="numbers-and-punctuation"
+            maxLength={10}
+            onChangeText={(from) =>
+              setFilters((current) => ({ ...current, from }))
+            }
+            placeholder="시작일 (YYYY-MM-DD)"
+            placeholderTextColor={colors.neutral500}
+            style={styles.dateInput}
+            value={filters.from}
+          />
+          <TextInput
+            accessibilityLabel="종료 날짜"
+            keyboardType="numbers-and-punctuation"
+            maxLength={10}
+            onChangeText={(to) => setFilters((current) => ({ ...current, to }))}
+            placeholder="종료일 (YYYY-MM-DD)"
+            placeholderTextColor={colors.neutral500}
+            style={styles.dateInput}
+            value={filters.to}
+          />
+        </View>
+        <View style={styles.filterActions}>
+          <Pressable
+            accessibilityLabel="콘티 필터 적용"
+            accessibilityRole="button"
+            onPress={() => setAppliedFilters(filters)}
+            style={styles.applyButton}
+          >
+            <Text style={styles.applyButtonText}>적용</Text>
+          </Pressable>
+          <Pressable
+            accessibilityLabel="콘티 필터 초기화"
+            accessibilityRole="button"
+            onPress={resetFilters}
+            style={styles.resetButton}
+          >
+            <Text style={styles.resetButtonText}>초기화</Text>
+          </Pressable>
+        </View>
+      </View>
       {contisQuery.isPending ? (
         <Text style={styles.stateText}>콘티 목록을 불러오는 중입니다.</Text>
       ) : contisQuery.isError ? (
         <View style={styles.stateBlock}>
-          <Text style={styles.errorText}>콘티 목록을 불러오지 못했습니다.</Text>
+          <Text style={styles.errorText}>
+            {getApiErrorMessage(contisQuery.error)}
+          </Text>
           <Pressable
             accessibilityRole="button"
             onPress={() => void contisQuery.refetch()}
@@ -84,6 +150,20 @@ export default function ContisScreen() {
               onPress={() => router.push(`/contis/${conti.id}`)}
             />
           ))}
+          {contisQuery.hasNextPage ? (
+            <Pressable
+              accessibilityLabel="콘티 더 보기"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: contisQuery.isFetchingNextPage }}
+              disabled={contisQuery.isFetchingNextPage}
+              onPress={() => void contisQuery.fetchNextPage()}
+              style={styles.moreButton}
+            >
+              <Text style={styles.moreButtonText}>
+                {contisQuery.isFetchingNextPage ? '불러오는 중...' : '더 보기'}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       )}
     </ScrollView>
@@ -114,6 +194,63 @@ const styles = StyleSheet.create({
   list: {
     gap: spacing.md,
   },
+  filters: {
+    gap: spacing.sm,
+  },
+  dateFilters: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  input: {
+    ...typography.body,
+    minHeight: 48,
+    borderRadius: 8,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+    backgroundColor: colors.white,
+    color: colors.neutral950,
+    paddingHorizontal: spacing.md,
+  },
+  dateInput: {
+    ...typography.body,
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 8,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+    backgroundColor: colors.white,
+    color: colors.neutral950,
+    paddingHorizontal: spacing.sm,
+  },
+  filterActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  applyButton: {
+    minHeight: 44,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: colors.neutral950,
+  },
+  applyButtonText: {
+    ...typography.label,
+    color: colors.white,
+  },
+  resetButton: {
+    minHeight: 44,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+  },
+  resetButtonText: {
+    ...typography.label,
+    color: colors.neutral950,
+  },
   stateBlock: {
     gap: spacing.sm,
   },
@@ -129,12 +266,25 @@ const styles = StyleSheet.create({
     minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 8,
     borderColor: colors.neutral300,
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
   },
   retryButtonText: {
+    ...typography.label,
+    color: colors.neutral950,
+  },
+  moreButton: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderColor: colors.neutral300,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+  },
+  moreButtonText: {
     ...typography.label,
     color: colors.neutral950,
   },

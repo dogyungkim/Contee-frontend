@@ -1,21 +1,29 @@
 import { createContiReadRepository } from '@contee/api-client'
-import { contiKeys, type ContiListKeyParams } from '@contee/query'
-import { useQuery } from '@tanstack/react-query'
+import type { ContiSearchParamsDto } from '@contee/domain'
+import { contiKeys } from '@contee/query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
 import apiClient from './api'
+import {
+  CONTI_PAGE_SIZE,
+  getNextContiPage,
+  normalizeContiFilters,
+} from './conti-list-core'
 
 const contiReadRepository = createContiReadRepository(apiClient)
 
-const DEFAULT_CONTI_LIST_PARAMS = {
-  page: 0,
-  size: 20,
-} satisfies ContiListKeyParams
+export function useMobileContis(
+  teamId: string | null,
+  filters: Pick<ContiSearchParamsDto, 'q' | 'from' | 'to'> = {}
+) {
+  const params = { ...normalizeContiFilters(filters), size: CONTI_PAGE_SIZE }
 
-export function useMobileContis(teamId: string | null) {
-  return useQuery({
-    queryKey: contiKeys.list(teamId ?? '', DEFAULT_CONTI_LIST_PARAMS),
-    queryFn: () =>
-      contiReadRepository.listByTeam(teamId!, DEFAULT_CONTI_LIST_PARAMS),
+  return useInfiniteQuery({
+    queryKey: contiKeys.list(teamId ?? '', params),
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      contiReadRepository.listByTeam(teamId!, { ...params, page: pageParam }),
+    getNextPageParam: getNextContiPage,
     enabled: Boolean(teamId),
   })
 }
