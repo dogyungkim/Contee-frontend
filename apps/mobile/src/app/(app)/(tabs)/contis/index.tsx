@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 
 import { ContiReadCard } from '@/components/conti-read-card'
+import { ListLoadingSkeleton } from '@/components/list-loading-skeleton'
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
 import { TeamSelectionTrigger } from '@/components/team-selection-modal'
 import { useMobileContis } from '@/lib/conti-read'
@@ -123,7 +124,7 @@ export default function ContisScreen() {
         </View>
       </View>
       {contisQuery.isPending ? (
-        <Text style={styles.stateText}>콘티 목록을 불러오는 중입니다.</Text>
+        <ListLoadingSkeleton />
       ) : contisQuery.isError ? (
         <View style={styles.stateBlock}>
           <Text style={styles.errorText}>
