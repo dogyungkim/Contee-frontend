@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native'
 import type { Team, TeamMember, TeamRole, TeamSummary } from '@contee/domain'
+import { getApiErrorMessage } from '@contee/api-client'
 
 import { ListLoadingSkeleton } from '@/components/list-loading-skeleton'
 import { TeamSelectionTrigger } from '@/components/team-selection-modal'
@@ -92,7 +93,7 @@ export default function TeamScreen() {
         ) : teamQuery.isError ? (
           <ErrorState
             isRetrying={teamQuery.isFetching}
-            message="팀 요약을 불러오지 못했습니다."
+            message={getApiErrorMessage(teamQuery.error)}
             onRetry={() => void teamQuery.refetch()}
           />
         ) : (
@@ -109,7 +110,7 @@ export default function TeamScreen() {
         ) : membersQuery.isError ? (
           <ErrorState
             isRetrying={membersQuery.isFetching}
-            message="멤버 목록을 불러오지 못했습니다."
+            message={getApiErrorMessage(membersQuery.error)}
             onRetry={() => void membersQuery.refetch()}
           />
         ) : members.length === 0 ? (

@@ -9,7 +9,7 @@ import { TeamSelectionProvider } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
 
 export function ErrorBoundary({
-  error,
+  error: _error,
   retry,
 }: {
   error: Error
@@ -18,7 +18,9 @@ export function ErrorBoundary({
   return (
     <View style={styles.errorContainer}>
       <Text style={styles.errorTitle}>화면을 불러오지 못했습니다.</Text>
-      <Text style={styles.errorMessage}>{error.message}</Text>
+      <Text style={styles.errorMessage}>
+        화면을 표시하는 중 문제가 발생했습니다. 다시 시도해주세요.
+      </Text>
       <Pressable
         accessibilityRole="button"
         onPress={retry}

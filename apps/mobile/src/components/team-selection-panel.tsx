@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { TeamSummary } from '@contee/domain'
+import { getApiErrorMessage } from '@contee/api-client'
 
 import { useTeamSelection } from '@/lib/team-selection'
 import { colors, spacing, typography } from '@/theme'
@@ -7,6 +8,7 @@ import { TeamSetupActions } from './team-setup-actions'
 
 export function TeamSelectionPanel() {
   const {
+    error,
     isError,
     isLoading,
     isRefreshing,
@@ -23,9 +25,7 @@ export function TeamSelectionPanel() {
   if (isError) {
     return (
       <View style={styles.panel}>
-        <Text style={styles.errorText}>
-          팀 목록을 불러오지 못했습니다. 다시 시도해 주세요.
-        </Text>
+        <Text style={styles.errorText}>{getApiErrorMessage(error)}</Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => void refreshTeams()}

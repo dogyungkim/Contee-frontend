@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native'
 import type { TeamSong } from '@contee/domain'
+import { getApiErrorMessage } from '@contee/api-client'
 
 import { ListLoadingSkeleton } from '@/components/list-loading-skeleton'
 import { ScreenPlaceholder } from '@/components/screen-placeholder'
@@ -62,7 +63,9 @@ export default function SongsScreen() {
         <ListLoadingSkeleton />
       ) : songsQuery.isError ? (
         <View style={styles.stateBlock}>
-          <Text style={styles.errorText}>곡 목록을 불러오지 못했습니다.</Text>
+          <Text style={styles.errorText}>
+            {getApiErrorMessage(songsQuery.error)}
+          </Text>
           <Pressable
             accessibilityRole="button"
             onPress={() => void songsQuery.refetch()}

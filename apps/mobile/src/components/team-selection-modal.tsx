@@ -1,6 +1,7 @@
 import { ChevronDown, Check, X } from 'lucide-react-native'
 import { createContext, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
+import { getApiErrorMessage } from '@contee/api-client'
 import {
   Pressable,
   SafeAreaView,
@@ -93,6 +94,7 @@ export function TeamSelectionModal({
   onClose: () => void
 }) {
   const {
+    error,
     isError,
     isLoading,
     isRefreshing,
@@ -148,7 +150,7 @@ export function TeamSelectionModal({
             ) : isError ? (
               <View style={styles.stateBlock}>
                 <Text style={styles.errorText}>
-                  팀 목록을 불러오지 못했습니다.
+                  {getApiErrorMessage(error)}
                 </Text>
                 <Pressable
                   accessibilityRole="button"
